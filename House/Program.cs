@@ -15,7 +15,10 @@ namespace House
     {
         public static void Main(string[] args)
         {
-            
+            SearchEng s = new SearchEng();
+            string response = s.Search("how old is the oldest man");
+            say(response);
+
             say("Hello, I am house.");
             start(null);
 
@@ -102,6 +105,13 @@ namespace House
                     say(item.Key);
                 }
             }
+            else if (input.Contains("search for"))
+            {
+                string question = input.Replace("search for", "");
+                SearchEng s = new SearchEng();
+                string response = s.Search(question);
+                say(response);
+            }
             else
             {
                 say(input + ", is not a valid command.");
@@ -166,11 +176,12 @@ namespace House
                 recognizer.UpdateRecognizerSetting("CFGConfidenceRejectionThreshold", 50);
                 recognizer.BabbleTimeout = new TimeSpan(0);
                 // Create a grammar for choosing cities for a flight.
-                Choices keyWords = new Choices(new string[] {"local news", "national news", "weather", "time", "temperature", "forecast", "panda" });
+                Choices keyWords = new Choices(new string[] {"search for", "local news", "national news", "weather", "time", "temperature", "forecast", "panda" });
 
                 GrammarBuilder gb = new GrammarBuilder();
                 //gb.Append("House, what is the");
                 gb.Append(keyWords);
+                
 
 
                 // Construct a Grammar object and load it to the recognizer.
