@@ -15,7 +15,7 @@ namespace House
     {
         public static void Main(string[] args)
         {
-
+            
             say("Hello, I am house.");
             start(null);
 
@@ -23,10 +23,8 @@ namespace House
 
         private static void promps(string input)
         {
-            say("loading");
+            
             Weather w = new Weather();
-            w.ZIP = "74037";
-            w.Conditions();
 
             if (input.Contains("weather") || input.Contains("wheather"))
             {
@@ -57,9 +55,55 @@ namespace House
             {
                 // set alarm clock
             }
+            else if (input.Contains("national news"))
+            {
+                // get the news
+                say("Loading the news");
+                News n = new News();
+                while (true)
+                {
+                    if (!n.Loaded)
+                    {
+                        Thread.Sleep(50);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                
+                foreach (var item in n.NationalNews)
+                {
+                    say("");
+                    say(item.Key);
+                }
+            }
+            else if (input.Contains("local news"))
+            {
+                // get the news
+                say("Loading the news");
+                News n = new News();
+                while (true)
+                {
+                    if (!n.Loaded)
+                    {
+                        Thread.Sleep(50);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var item in n.LocalNews)
+                {
+                    say("");
+                    say(item.Key);
+                }
+            }
             else
             {
-                say(input + " can not compute.");
+                say(input + ", is not a valid command.");
             }
         }
 
@@ -115,44 +159,47 @@ namespace House
 
         public static void start(string[] args)
         {
-            while (true)
+            // Create an in-process speech recognizer.
+            using (SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine(new CultureInfo("en-US")))
             {
-                // Create an in-process speech recognizer.
-                using (SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine(new CultureInfo("en-US")))
+                recognizer.UpdateRecognizerSetting("CFGConfidenceRejectionThreshold", 50);
+                recognizer.BabbleTimeout = new TimeSpan(0);
+                // Create a grammar for choosing cities for a flight.
+                Choices keyWords = new Choices(new string[] {"local news", "national news", "weather", "time", "temperature", "forecast", "panda" });
+
+                GrammarBuilder gb = new GrammarBuilder();
+                //gb.Append("House, what is the");
+                gb.Append(keyWords);
+
+
+                // Construct a Grammar object and load it to the recognizer.
+                Grammar keywordChooser = new Grammar(gb);
+                keywordChooser.Name = ("City Chooser");
+                recognizer.LoadGrammarAsync(keywordChooser);
+
+                // Attach event handlers.
+                recognizer.SpeechDetected +=
+                  new EventHandler<SpeechDetectedEventArgs>(
+                    SpeechDetectedHandler);
+                recognizer.SpeechHypothesized +=
+                  new EventHandler<SpeechHypothesizedEventArgs>(
+                    SpeechHypothesizedHandler);
+                recognizer.SpeechRecognitionRejected +=
+                  new EventHandler<SpeechRecognitionRejectedEventArgs>(
+                    SpeechRecognitionRejectedHandler);
+                recognizer.SpeechRecognized +=
+                  new EventHandler<SpeechRecognizedEventArgs>(
+                    SpeechRecognizedHandler);
+                recognizer.RecognizeCompleted +=
+                  new EventHandler<RecognizeCompletedEventArgs>(
+                    RecognizeCompletedHandler);
+
+
+                // Assign input to the recognizer and start an asynchronous
+                // recognition operation.
+                recognizer.SetInputToDefaultAudioDevice();
+                while (true)
                 {
-                    // Create a grammar for choosing cities for a flight.
-                    Choices cities = new Choices(new string[] { "weather", "time", "temperature", "forecast", "panda" });
-
-                    GrammarBuilder gb = new GrammarBuilder();
-                    gb.Append("House, what is the");
-                    gb.Append(cities);
-                    
-                    // Construct a Grammar object and load it to the recognizer.
-                    Grammar cityChooser = new Grammar(gb);
-                    cityChooser.Name = ("City Chooser");
-                    recognizer.LoadGrammarAsync(cityChooser);
-                    
-                    // Attach event handlers.
-                    recognizer.SpeechDetected +=
-                      new EventHandler<SpeechDetectedEventArgs>(
-                        SpeechDetectedHandler);
-                    recognizer.SpeechHypothesized +=
-                      new EventHandler<SpeechHypothesizedEventArgs>(
-                        SpeechHypothesizedHandler);
-                    recognizer.SpeechRecognitionRejected +=
-                      new EventHandler<SpeechRecognitionRejectedEventArgs>(
-                        SpeechRecognitionRejectedHandler);
-                    recognizer.SpeechRecognized +=
-                      new EventHandler<SpeechRecognizedEventArgs>(
-                        SpeechRecognizedHandler);
-                    recognizer.RecognizeCompleted +=
-                      new EventHandler<RecognizeCompletedEventArgs>(
-                        RecognizeCompletedHandler);
-
-                    // Assign input to the recognizer and start an asynchronous
-                    // recognition operation.
-                    recognizer.SetInputToDefaultAudioDevice();
-
                     completed = false;
                     //Console.WriteLine("Starting asynchronous recognition...");
                     
@@ -161,7 +208,7 @@ namespace House
                     // Wait for the operation to complete.
                     while (!completed)
                     {
-                        Thread.Sleep(333);
+                        Thread.Sleep(30);
                     }
                     Console.WriteLine("Done.");
                 }
@@ -172,7 +219,7 @@ namespace House
         static void SpeechDetectedHandler(object sender, SpeechDetectedEventArgs e)
         {
             //Console.WriteLine(" In SpeechDetectedHandler:");
-            //Console.WriteLine(" - AudioPosition = {0}", e.AudioPosition);
+            Console.WriteLine(" - AudioPosition = {0}", e.AudioPosition);
         }
 
         // Handle the SpeechHypothesized event.
@@ -196,8 +243,7 @@ namespace House
         }
 
         // Handle the SpeechRecognitionRejected event.
-        static void SpeechRecognitionRejectedHandler(
-          object sender, SpeechRecognitionRejectedEventArgs e)
+        static void SpeechRecognitionRejectedHandler(object sender, SpeechRecognitionRejectedEventArgs e)
         {
             Console.WriteLine("RecognitionRejected: ");
 
@@ -209,7 +255,7 @@ namespace House
                 {
                     grammarName = e.Result.Grammar.Name;
                     Console.WriteLine(e.Result.Confidence);
-                    promps(e.Result.Text);
+                    say("say again");
                 }
                 resultText = e.Result.Text;
             }
@@ -253,6 +299,7 @@ namespace House
                 Console.WriteLine(
                   " - BabbleTimeout = {0}; InitialSilenceTimeout = {1}",
                   e.BabbleTimeout, e.InitialSilenceTimeout);
+                completed = true;
                 return;
             }
             if (e.InputStreamEnded)
