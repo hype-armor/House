@@ -31,6 +31,7 @@ namespace House
                 // look up weather
                 say(w.Condition);
                 say(w.Temperature);
+                say(w.Hazards);
             }
             else if (input.Contains("temperature") || input.Contains("temp"))
             {

@@ -45,19 +45,13 @@ class Weather
 			forecast [0].Attributes ["low"].Value;
 		_Forecast = Fcast;
 
+        // Hazards
+        SavedLocation = "http://alerts.weather.gov/cap/wwaatmget.php?x=OKZ060&y=0";
+        Weather = new XmlDocument();
+        Weather.Load(SavedLocation);
+        NameSpaceMgr = new XmlNamespaceManager(Weather.NameTable);
+
+        XmlElement hazards = Weather.DocumentElement["entry"]["summary"]; //Weather.SelectNodes("//feed/entry/summary", NameSpaceMgr);
+        _Hazards = hazards.InnerText;
 	}
-
-	private void GetHazards()
-	{
-        //http://alerts.weather.gov/cap/wwaatmget.php?x=OKZ060&y=0
-        string SavedLocation = "http://alerts.weather.gov/cap/wwaatmget.php?x=OKZ060&y=0";
-		XmlDocument XMLWeather = new XmlDocument();
-		XMLWeather.Load(SavedLocation);
-		XmlNamespaceManager NameSpaceMgr = new XmlNamespaceManager(XMLWeather.NameTable);
-        XmlNodeList DocumentNode = XMLWeather.SelectNodes("//summary");
-        _Hazards = DocumentNode[0].InnerText;
-	}
-
-
-    
 }
