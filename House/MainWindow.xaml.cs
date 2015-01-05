@@ -122,6 +122,8 @@ namespace OpenEcho
                     long minutes = temp.First().Trim().ToLong();
                     dt.AddMinutes(minutes);
                 }
+
+                Quartz q = new Quartz();
                 say(dt.ToShortTimeString());
             }
             else
