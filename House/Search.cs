@@ -12,7 +12,7 @@ class SearchEng
     {
         if (string.IsNullOrWhiteSpace(Question))
         {
-            throw new ApplicationException("Specify the URI of the resource to retrieve.");
+            return "No question";
         }
         WebClient client = new WebClient();
 
