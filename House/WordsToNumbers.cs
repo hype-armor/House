@@ -43,9 +43,6 @@ namespace OpenEcho
             WordList.Add(80, "Eighty");
             WordList.Add(90, "Ninety");
 
-            WordList.Add(100, "Hundred");
-            WordList.Add(1000, "Thousand");
-
             return WordList[Num];
         }
     }

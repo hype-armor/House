@@ -93,8 +93,36 @@ namespace OpenEcho
             }
             else if (input == "set alarm for")
             {
+                // input will come as hours and then minutes. 
                 int peaches = 53;
                 say(peaches.ToWords());
+            }
+            else if (input.Contains("set timer"))
+            {
+                // input example: set timer for two hours and fourteen minutes.
+                // input will come as number hours and then number minutes. 
+
+                input = input.Replace("set timer for", "")
+                    .Replace("set timer", "")
+                    .Replace("and", ""); // best think of a better way to clean up useless words.
+
+                DateTime dt = DateTime.Now;
+                
+                if (input.Contains("hours"))
+                {
+                    string[] temp = input.Split(new string[] { "hours", "hour" }, StringSplitOptions.RemoveEmptyEntries);
+                    long hours = temp.First().Trim().ToLong();
+                    input = temp.Last().Trim();
+                   
+                    dt.AddHours(hours);
+                }
+                if (input.Contains("minutes"))
+                {
+                    string[] temp = input.Split(new string[] { "minutes" }, StringSplitOptions.RemoveEmptyEntries);
+                    long minutes = temp.First().Trim().ToLong();
+                    dt.AddMinutes(minutes);
+                }
+                say(dt.ToShortTimeString());
             }
             else
             {
