@@ -16,6 +16,7 @@ using System.Speech.Synthesis;
 using System.Threading;
 using System.Windows.Threading;
 using ExtensionMethods;
+using System.Diagnostics;
 
 namespace OpenEcho
 {
@@ -24,28 +25,30 @@ namespace OpenEcho
     /// </summary>
     public partial class MainWindow : Window
     {
-        private WindowsMicrophoneMuteLibrary.WindowsMicMute micMute
-                = new WindowsMicrophoneMuteLibrary.WindowsMicMute();
+        static System.Timers.Timer aTimer;
+        //private Speach speach = new Speach();
 
-        private static System.Timers.Timer aTimer;
-
-
-        public MainWindow()
+        public  MainWindow()
         {
             InitializeComponent();
-
-            //say("Hello, my name is Lexy");
-            micMute.UnMuteMic();
+            
+            Speech.micMute.UnMuteMic();
             aTimer = new System.Timers.Timer(1000); 
             aTimer.Elapsed += Timeout;
             //aTimer.Enabled = true;
             txtInput.Focus();
 
-            micMute.UnMuteMic();
+            Speech.micMute.UnMuteMic();
+
+            Quartz q = new Quartz();
+
+            // google search test.
+            SearchEng se = new SearchEng();
+            se.Search("who is the president of the united states");
         }
         private void Timeout(object sender, System.Timers.ElapsedEventArgs e)
         {
-            micMute.MuteMic();
+            Speech.micMute.MuteMic();
             aTimer.Stop();
 
             ProcessInput();
@@ -59,9 +62,20 @@ namespace OpenEcho
                 input = txtInput.Text;
 
             }));
-            Thread.Sleep(50); // make sure input has been populated.
+
+            do
+            {
+                Thread.Sleep(50); // make sure input has been populated.
+            } while (input == "");
+
+            int WordCount = input.Split(new char[] {' '}).Count();
+
             string wikiSearchTerm = "search wikipedia for ";
-            if (input.StartsWith("what are ") || input.StartsWith("what is ") || input.StartsWith("what is a "))
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                Speech.say("");
+            }
+            else if (input.StartsWith("what are ") || input.StartsWith("what is ") || input.StartsWith("what is a "))
             {
                 input = input.Replace("what are ", "");
                 input = input.Replace("what is a ", "");
@@ -69,33 +83,37 @@ namespace OpenEcho
 
                 // define term
                 Wikipedia wiki = new Wikipedia();
-                say(wiki.Search(input, true));
+                Speech.say(wiki.Search(input, true));
             }
             else if (input.StartsWith("how do you spell ") || input.StartsWith("spell ") || input.StartsWith("spell the word "))
             {
                 // spell term
 
                 string word = input.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Last();
-                say(word + " is spelled.");
+                Speech.say(word + " is spelled.");
                 Thread.Sleep(1200);
                 foreach (char letter in word)
                 {
-                    say(letter.ToString());
+                    Speech.say(letter.ToString());
                     Thread.Sleep(700);
                 }
             }
-            else if (input.StartsWith(wikiSearchTerm))
+            else if (input.StartsWith(wikiSearchTerm) || WordCount == 1)
             {
                 input = input.Replace(wikiSearchTerm, "");
 
                 Wikipedia wiki = new Wikipedia();
-                say(wiki.Search(input));
+                Speech.say(wiki.Search(input));
+            }
+            else if (input == "time" || input == "what is the time" || input == "what time is it" || input == "what's the time")
+            {
+                Speech.say(DateTime.Now.ToShortTimeString());
             }
             else if (input == "set alarm for")
             {
                 // input will come as hours and then minutes. 
                 int peaches = 53;
-                say(peaches.ToWords());
+                Speech.say(peaches.ToWords());
             }
             else if (input.Contains("set timer"))
             {
@@ -124,14 +142,20 @@ namespace OpenEcho
                 }
 
                 Quartz q = new Quartz();
-                say(dt.ToShortTimeString());
+                Speech.say(dt.ToShortTimeString());
             }
             else
             {
                 // send the input to Wolfram to see if it can make sense of it.
-                say("Searching Wolfram Alpha");
+                Speech.say("Searching Wolfram Alpha");
                 Wolfram wa = new Wolfram();
-                say(wa.Query(input));
+                string ret = wa.Query(input);
+                if (ret == "Wolfram|Alpha doesn't know how to interpret your input.")
+                {
+                    // send it to google?
+                    ret = "pardon?";
+                }
+                Speech.say(ret);
             }
         }
 
@@ -141,21 +165,16 @@ namespace OpenEcho
             aTimer.Start();
         }
 
-        private void say(string text)
+        private void cbSilent_Checked(object sender, RoutedEventArgs e)
         {
-            Task.Factory.StartNew(() =>
-            {
-                // Initialize a new instance of the SpeechSynthesizer.
-                SpeechSynthesizer synth = new SpeechSynthesizer();
-
-                // Configure the audio output. 
-                synth.SetOutputToDefaultAudioDevice();
-
-                micMute.MuteMic();
-                synth.Speak(text);
-
-                micMute.UnMuteMic();
-            });
+            Speech.Silent = cbSilent.IsChecked == true ? true : false; // Because of type 'bool?'.
         }
+
+        private void cbSilent_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Speech.Silent = cbSilent.IsChecked == true ? true : false; // Because of type 'bool?'.
+        }
+
+        
     }
 }

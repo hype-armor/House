@@ -1,10 +1,11 @@
 ﻿<Window x:Class="OpenEcho.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="House" Height="197.048" Width="555.157" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow" ResizeMode="NoResize">
+        Title="House" Height="182.975" Width="399.345" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow" ResizeMode="NoResize">
     <Grid>
-        <TextBox x:Name="txtInput" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="500" TextChanged="txtInput_TextChanged"/>
-        <TextBox x:Name="txtUnderstood" HorizontalAlignment="Left" Height="111" Margin="10,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="500"/>
+        <TextBox x:Name="txtInput" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="357" TextChanged="txtInput_TextChanged"/>
+        <TextBox x:Name="txtUnderstood" HorizontalAlignment="Left" Height="85" Margin="10,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="357"/>
+        <CheckBox x:Name="cbSilent" Content="Silent" HorizontalAlignment="Left" Margin="10,128,0,0" VerticalAlignment="Top" Checked="cbSilent_Checked" Unchecked="cbSilent_Unchecked"/>
 
     </Grid>
 </Window>
