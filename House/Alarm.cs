@@ -2,40 +2,66 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
+using System.Media;
 
 namespace OpenEcho
 {
     class Quartz
     {
+
         private static List<Timer> Timers = new List<Timer>();
         private static List<Alarm> Alarms = new List<Alarm>();
-
+        
         static Quartz()
         {
-            // Create temp alarm and timer for testing.
-            CreateAlarm(new DateTime(1), "Test Alarm");
-            CreateTimer(15000, "Test Timer");
+            CreateAlarm(DateTime.Parse("9:17 pm"), "Good Morning");
 
-            // load stored alarms and timers.
+            //CreateTimer(15000, "Test Timer");
 
-            // check if alarm time has passed.
+            // check if alarm(s) should sound.
+            Task.Factory.StartNew(() =>
+                {
+                    while (true)
+                    {
+                        CheckAlarms();
+                        Thread.Sleep(100);
+                    }
+                });
+        }
+
+        private static void CheckAlarms()
+        {
             foreach (Alarm alarm in Alarms)
             {
-                if (alarm.Enabled == true && 
-                    alarm.AlarmTime.TimeOfDay < DateTime.Now.TimeOfDay &&
-                    (alarm.AlarmTime.TimeOfDay - DateTime.Now.TimeOfDay) < TimeSpan.FromMinutes(1)
-                    ) // just check for time for now.
+                TimeSpan CurrentTime = DateTime.Now.TimeOfDay;
+                TimeSpan AlarmTime = alarm.AlarmTime.TimeOfDay;
+
+                bool AlarmIsInPast = (AlarmTime <= CurrentTime);
+                double MinutesSinceAlarm = (CurrentTime - AlarmTime).TotalMinutes;
+
+                if (alarm.Enabled && AlarmIsInPast)
                 {
-                    // buzz
-                    string Name = alarm.Name.Length == 0 ? "Alarm" : alarm.Name;
-                    MessageBox.Show(Name + " has elapsed.");
+                    if (!alarm.Acknowledged && MinutesSinceAlarm <= 1)
+                    {
+                        Buzz(alarm);
+                        alarm.Acknowledged = true;
+                        string Name = alarm.Name.Length == 0 ? "Alarm" : alarm.Name;
+                    }
+                    else if (alarm.Acknowledged && MinutesSinceAlarm > 1)
+                    {
+                        alarm.Acknowledged = false;
+                    }
                 }
             }
+        }
 
-            // check if timer has elapsed.
+        private static void Buzz(Alarm alarm)
+        {
+            Speech.say(alarm.AlarmTime.ToShortTimeString(), "Alarm!");
         }
 
         public static void CreateAlarm(DateTime AlarmTime, string Name = "")
@@ -59,17 +85,15 @@ namespace OpenEcho
     {
         public string Name = "Timer";
         public int Duration = 0;
+        public bool Acknowledge = false;
     }
 
     class Alarm
     {
-        // AlarmClock clock = new AlarmClock(someFutureTime);
-        // clock.Alarm += (sender, e) => MessageBox.Show("Wake up!");
-        //
-
-        public string Name = "Alarm";
+        public string Name = "";
         public DateTime AlarmTime = new DateTime();
         public bool Snoozed = false;
         public bool Enabled = true;
+        public bool Acknowledged = false;
     }
 }
