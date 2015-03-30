@@ -13,7 +13,7 @@ namespace ExtensionMethods
 		public static string ToDate(this object value)
 		{
 			DateTime Datet;
-			if (value != "")
+			if (value.ToString() != "")
 			{
 				if (!DateTime.TryParse(value.ToString(), out Datet))
 				{
