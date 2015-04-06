@@ -27,19 +27,15 @@ namespace OpenEcho
                 {
                     while (true)
                     {
-                        List<Action> DeleteActions = new List<Action>();
-                        foreach (Action a in q)
+                        if (q.Count() > 0)
                         {
+                            Action a = q.First();
                             a.Invoke();
-                            DeleteActions.Add(a);
-                        }
-                        foreach (Action a in DeleteActions)
-                        {
                             q.Remove(a);
                         }
+                        
                         Thread.Sleep(5);
                     }
-                    
                 });
         }
 
@@ -66,36 +62,6 @@ namespace OpenEcho
                     
                 })
             );
-        }
-
-        public static void osay(string text, string title = "House")
-        {
-            if (Silent)
-            {
-                Task.Factory.StartNew(() =>
-                    {
-                        MessageBox.Show(text, title, MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK, MessageBoxOptions.ServiceNotification);
-                    });
-                
-                Understood = text;
-            }
-            else
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    
-                    // Initialize a new instance of the SpeechSynthesizer.
-                    SpeechSynthesizer synth = new SpeechSynthesizer();
-
-                    // Configure the audio output. 
-                    synth.SetOutputToDefaultAudioDevice();
-
-                    micMute.MuteMic();
-                    synth.Speak(text);
-
-                    micMute.UnMuteMic();
-                });
-            }
         }
     }
 }
