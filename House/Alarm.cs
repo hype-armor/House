@@ -13,10 +13,26 @@ namespace OpenEcho
     class Quartz
     {
 
-        private static List<Timer> Timers = new List<Timer>();
-        private static List<Alarm> Alarms = new List<Alarm>();
-        
-        static Quartz()
+        private List<Timer> Timers = new List<Timer>();
+        private List<Alarm> Alarms = new List<Alarm>();
+
+        private class Timer
+        {
+            public string Name = "Timer";
+            public int Duration = 0;
+            public bool Acknowledge = false;
+        }
+
+        private class Alarm
+        {
+            public string Name = "";
+            public DateTime AlarmTime = new DateTime();
+            public bool Snoozed = false;
+            public bool Enabled = true;
+            public bool Acknowledged = false;
+        }
+
+        public void Init()
         {
             CreateAlarm(DateTime.Parse("9:17 pm"), "Good Morning");
 
@@ -33,7 +49,7 @@ namespace OpenEcho
                 });
         }
 
-        private static void CheckAlarms()
+        private void CheckAlarms()
         {
             foreach (Alarm alarm in Alarms)
             {
@@ -59,12 +75,12 @@ namespace OpenEcho
             }
         }
 
-        private static void Buzz(Alarm alarm)
+        private void Buzz(Alarm alarm)
         {
             Speech.say(alarm.AlarmTime.ToShortTimeString(), "Alarm!");
         }
 
-        public static void CreateAlarm(DateTime AlarmTime, string Name = "")
+        public void CreateAlarm(DateTime AlarmTime, string Name = "")
         {
             Alarm a = new Alarm();
             a.AlarmTime = AlarmTime;
@@ -72,7 +88,7 @@ namespace OpenEcho
             Alarms.Add(a);
         }
 
-        public static void CreateTimer(int Duration, string Name = "")
+        public void CreateTimer(int Duration, string Name = "")
         {
             Timer t = new Timer();
             t.Duration = Duration;
@@ -81,19 +97,5 @@ namespace OpenEcho
         }
     }
 
-    class Timer
-    {
-        public string Name = "Timer";
-        public int Duration = 0;
-        public bool Acknowledge = false;
-    }
-
-    class Alarm
-    {
-        public string Name = "";
-        public DateTime AlarmTime = new DateTime();
-        public bool Snoozed = false;
-        public bool Enabled = true;
-        public bool Acknowledged = false;
-    }
+    
 }

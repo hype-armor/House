@@ -26,10 +26,10 @@ namespace OpenEcho
     /// </summary>
     public partial class MainWindow : Window
     {
-        static System.Timers.Timer aTimer;
-        //private Speach speach = new Speach();
+        private static System.Timers.Timer aTimer;
+        private Quartz quartz = new Quartz();
 
-        public  MainWindow()
+        public MainWindow()
         {
             InitializeComponent();
             
@@ -40,8 +40,9 @@ namespace OpenEcho
             txtInput.Focus();
 
             Speech.micMute.UnMuteMic();
+            quartz.Init();
+            
 
-            Quartz q = new Quartz();
 
             // google search test.
             //SearchEng se = new SearchEng();
@@ -113,8 +114,10 @@ namespace OpenEcho
             else if (input.Contains("set alarm for"))
             {
                 
-                string result = input.ReplaceWithNumber();
-                string time = Regex.Match(result, @"\d+").Value;
+                string result = input.ReplaceWithNumbers();
+                string time = Regex.Match(result, @"\d+\s\d+").Value.Trim().Replace(" ", ":");
+                string ampm = Regex.Match(result, @"\s(?:am|pm)").Value.Trim();
+                quartz.CreateAlarm(DateTime.Parse(time + " " + ampm));
                 Speech.say(result.ToString());
 
             }
