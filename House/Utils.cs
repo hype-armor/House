@@ -168,7 +168,7 @@ namespace ExtensionMethods
                   StringComparison.InvariantCultureIgnoreCase) ? -1 : 1);
         }
 
-        public static string ReplaceWithNumber(this string numberString)
+        public static string ReplaceWithNumbers(this string numberString)
         {
             StringBuilder sb = new StringBuilder();
             string[] words = numberString.Split(new char[] {' '});
