@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Collections;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace ExtensionMethods
 {
@@ -165,6 +166,29 @@ namespace ExtensionMethods
             }
             return (total + acc) * (numberString.StartsWith("minus",
                   StringComparison.InvariantCultureIgnoreCase) ? -1 : 1);
+        }
+
+        public static string ReplaceWithNumber(this string numberString)
+        {
+            StringBuilder sb = new StringBuilder();
+            string[] words = numberString.Split(new char[] {' '});
+            foreach (string word in words)
+            {
+                if (!word.Trim().Contains("zero") && word.ToLong() != 0)
+                {
+                    sb.Append(word.ToLong().ToString());
+                }
+                else if (word.Trim().Contains("zero"))
+                {
+                    sb.Append("0");
+                }
+                else
+                {
+                    sb.Append(word + " ");
+                }
+            }
+
+            return sb.ToString();
         }
 	}
 }

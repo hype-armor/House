@@ -17,6 +17,7 @@ using System.Threading;
 using System.Windows.Threading;
 using ExtensionMethods;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace OpenEcho
 {
@@ -43,8 +44,8 @@ namespace OpenEcho
             Quartz q = new Quartz();
 
             // google search test.
-            SearchEng se = new SearchEng();
-            se.Search("who is the president of the united states");
+            //SearchEng se = new SearchEng();
+            //se.Search("who is the president of the united states");
         }
         private void Timeout(object sender, System.Timers.ElapsedEventArgs e)
         {
@@ -62,7 +63,7 @@ namespace OpenEcho
                 input = txtInput.Text;
 
             }));
-
+            
             do
             {
                 Thread.Sleep(50); // make sure input has been populated.
@@ -109,11 +110,13 @@ namespace OpenEcho
             {
                 Speech.say(DateTime.Now.ToShortTimeString());
             }
-            else if (input == "set alarm for")
+            else if (input.Contains("set alarm for"))
             {
-                // input will come as hours and then minutes. 
-                int peaches = 53;
-                Speech.say(peaches.ToWords());
+                
+                string result = input.ReplaceWithNumber();
+                string time = Regex.Match(result, @"\d+").Value;
+                Speech.say(result.ToString());
+
             }
             else if (input.Contains("set timer"))
             {
