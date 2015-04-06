@@ -69,7 +69,7 @@ namespace OpenEcho
             {
                 Thread.Sleep(50); // make sure input has been populated.
             } while (input == "");
-            input = input.Replace("  ", " ");
+            input = input.Replace("  ", " ").Trim();
             int WordCount = input.Split(new char[] {' '}).Count();
 
             string wikiSearchTerm = "search wikipedia for ";
