@@ -58,7 +58,7 @@ namespace OpenEcho
                         StreamWriter sr = new StreamWriter("C:\\Users\\greg\\Documents\\webpage.html");
                         sr.Write(s);
                         sr.Close();
-                        sr.Dispose();
+                        
 
                         var className = s.Split(new string[] {"."}, StringSplitOptions.None);
                         for (int i = 0; i < className.Length; i++)
