@@ -172,20 +172,40 @@ namespace ExtensionMethods
         {
             StringBuilder sb = new StringBuilder();
             string[] words = numberString.Split(new char[] {' '});
+            long prevNumber = 0;
+            bool add = false;
             foreach (string word in words)
             {
-                if (!word.Trim().Contains("zero") && word.ToLong() != 0)
+                string wordToAdd = "";
+                if (word.Last() == 'y')
                 {
-                    sb.Append(word.ToLong().ToString());
+                    prevNumber = word.ToLong();
+                    add = true;
+                    continue;
+                }
+                else if (!word.Trim().Contains("zero") && word.ToLong() != 0)
+                {
+                    if (add)
+                    {
+                        wordToAdd = (word.ToLong() + prevNumber).ToString();
+                    }
+                    else
+                    {
+                        wordToAdd = word.ToLong().ToString();
+                    }
+                    
                 }
                 else if (word.Trim().Contains("zero"))
                 {
-                    sb.Append("0");
+                    wordToAdd = "0";
+                    add = false;
                 }
                 else
                 {
-                    sb.Append(word + " ");
+                    wordToAdd = word;
+                    add = false;
                 }
+                sb.Append(wordToAdd + " ");
             }
 
             return sb.ToString();
