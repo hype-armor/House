@@ -19,7 +19,7 @@ namespace OpenEcho
         public static string Understood;
         public static bool Silent = false;
 
-        private static Queue q = new Queue();
+        private static List<Action> q = new List<Action>();
 
         static Speech()
         {
@@ -27,9 +27,15 @@ namespace OpenEcho
                 {
                     while (true)
                     {
+                        List<Action> DeleteActions = new List<Action>();
                         foreach (Action a in q)
                         {
                             a.Invoke();
+                            DeleteActions.Add(a);
+                        }
+                        foreach (Action a in DeleteActions)
+                        {
+                            q.Remove(a);
                         }
                         Thread.Sleep(5);
                     }
@@ -39,7 +45,7 @@ namespace OpenEcho
 
         public static void say(string text, string title = "House")
         {
-            q.Enqueue(new Action(() =>
+            q.Add(new Action(() =>
                 {
                     if (Silent)
                     {

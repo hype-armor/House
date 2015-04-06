@@ -93,8 +93,9 @@
     <Reference Include="WindowsMicrophoneMuteLibrary">
       <HintPath>\\psf\Home\Downloads\WindowsMicrophoneMuteLibraryBinaries\WindowsMicrophoneMuteLibrary.dll</HintPath>
     </Reference>
-    <Reference Include="WolframAlpha.NET">
-      <HintPath>..\..\..\..\..\Downloads\WolframAlpha.NET-master\WolframAlpha.NET-master\WolframAlpha.NET\bin\Release\WolframAlpha.NET.dll</HintPath>
+    <Reference Include="WolframAlpha.NET, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>\\psf\Home\Downloads\dlls\WolframAlpha.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
