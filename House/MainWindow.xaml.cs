@@ -69,7 +69,7 @@ namespace OpenEcho
             {
                 Thread.Sleep(50); // make sure input has been populated.
             } while (input == "");
-
+            input = input.Replace("  ", " ");
             int WordCount = input.Split(new char[] {' '}).Count();
 
             string wikiSearchTerm = "search wikipedia for ";
@@ -115,7 +115,7 @@ namespace OpenEcho
             {
                 
                 string result = input.ReplaceWithNumbers();
-                string time = Regex.Match(result, @"\d+\s\d+").Value.Trim().Replace(" ", ":");
+                string time = Regex.Match(result, @"\d+\s\d+|\d+").Value.Trim().Replace(" ", ":");
                 string ampm = Regex.Match(result, @"\s(?:am|pm)").Value.Trim();
                 quartz.CreateAlarm(DateTime.Parse(time + " " + ampm));
                 Speech.say(result.ToString());
