@@ -45,9 +45,7 @@ namespace OpenEcho
                 {
                     if (Silent)
                     {
-                        MessageBox.Show(text, title, MessageBoxButton.OK, MessageBoxImage.Information,
-                        MessageBoxResult.OK, MessageBoxOptions.ServiceNotification);
-                        Understood = text;
+                        PrintMsg(text, title);
                     }
                     else
                     {
@@ -55,13 +53,29 @@ namespace OpenEcho
                         synth.SetOutputToDefaultAudioDevice();
 
                         micMute.MuteMic();
-                        synth.Speak(text);
+                        try
+                        {
+                            synth.Speak(text);
+                        }
+                        catch (Exception e)
+                        {
+                            Silent = true;
+                            PrintMsg(e.Message, e.Source);
+                            PrintMsg(text, title);
+                        } 
 
                         micMute.UnMuteMic();
                     }
                     
                 })
             );
+        }
+
+        private static void PrintMsg(string text, string title)
+        {
+            MessageBox.Show(text, title, MessageBoxButton.OK, MessageBoxImage.Information,
+            MessageBoxResult.OK, MessageBoxOptions.ServiceNotification);
+            Understood = text;
         }
     }
 }
