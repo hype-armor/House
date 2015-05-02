@@ -61,20 +61,23 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CoreAudioApi">
-      <HintPath>\\psf\Home\Downloads\WindowsMicrophoneMuteLibraryBinaries\CoreAudioApi.dll</HintPath>
+      <HintPath>D:\Downloads\dlls\CoreAudioApi.dll</HintPath>
     </Reference>
     <Reference Include="HtmlAgilityPack">
-      <HintPath>..\..\..\..\..\Downloads\HtmlAgilityPack.1.4.6\Net40-client\HtmlAgilityPack.dll</HintPath>
+      <HintPath>D:\Downloads\dlls\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="MixerNativeLibrary">
-      <HintPath>\\psf\Home\Downloads\WindowsMicrophoneMuteLibraryBinaries\MixerNativeLibrary.dll</HintPath>
+      <HintPath>D:\Downloads\dlls\MixerNativeLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenNLP">
+      <HintPath>D:\Downloads\SharpNLP-1.0.2529-Bin\OpenNLP.dll</HintPath>
     </Reference>
     <Reference Include="RestSharp">
-      <HintPath>..\..\..\..\..\Downloads\WolframAlpha.NET-master\WolframAlpha.NET-master\WolframAlpha.NET\bin\Release\RestSharp.dll</HintPath>
+      <HintPath>D:\Downloads\dlls\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -91,11 +94,11 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsMicrophoneMuteLibrary">
-      <HintPath>\\psf\Home\Downloads\WindowsMicrophoneMuteLibraryBinaries\WindowsMicrophoneMuteLibrary.dll</HintPath>
+      <HintPath>D:\Downloads\dlls\WindowsMicrophoneMuteLibrary.dll</HintPath>
     </Reference>
     <Reference Include="WolframAlpha.NET, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>\\psf\Home\Downloads\dlls\WolframAlpha.NET.dll</HintPath>
+      <HintPath>D:\Downloads\dlls\WolframAlpha.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +107,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Alarm.cs" />
+    <Compile Include="Calculator.cs" />
+    <Compile Include="QueryClassification.cs" />
     <Compile Include="Speech.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Wikipedia.cs" />
