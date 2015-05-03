@@ -26,8 +26,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace OpenEcho
 {
-
     // for information on saving the object to a file on change. https://msdn.microsoft.com/en-us/library/et91as27.aspx
+
     [Serializable()]
     class QueryClassification
     {
@@ -95,6 +95,24 @@ namespace OpenEcho
             BinaryFormatter serializer = new BinaryFormatter();
             serializer.Serialize(FileStream, terms);
             FileStream.Close();
+        }
+
+        public string Classify(string Query)
+        {
+            foreach (KeyValuePair<string, HashSet<string>> item in terms)
+            {
+                string term = item.Key;
+                HashSet<string> verbs = item.Value;
+
+                foreach (string verb in verbs)
+                {
+                    if (Query.Contains(verb))
+                    {
+                        return term;
+                    }
+                }
+            }
+            return string.Empty;
         }
     }
 }

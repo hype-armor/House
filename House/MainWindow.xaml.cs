@@ -86,6 +86,8 @@ namespace OpenEcho
             input = input.Replace("  ", " ").Trim();
             int WordCount = input.Split(new char[] {' '}).Count();
 
+            qc.Classify(input);
+
             string wiki = "search wikipedia for";
             string addAction = "add search term";
             if (input.Contains(wiki))
