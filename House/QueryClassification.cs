@@ -15,14 +15,14 @@ namespace OpenEcho
     {
         const string saveLocation = "QueryClassification.bin";
 
-        Dictionary<string, List<string>> terms = new Dictionary<string, List<string>>();
+        Dictionary<string, HashSet<string>> terms = new Dictionary<string, HashSet<string>>();
 
         public void Init()
         {
             terms = LoadDict(saveLocation);
 
             string action = "search";
-            List<string> verbs = new List<string>();
+            HashSet<string> verbs = new HashSet<string>();
             //searchVerbs.Add("", keyWord);
             try
             {
@@ -39,24 +39,24 @@ namespace OpenEcho
             SaveDict();
         }
 
-        public void Add(string action, string verb)
+        public void AddVerbToAction(string verb, string action)
         {
-            List<string> verbs = terms[action];
+            HashSet<string> verbs = terms[action];
             verbs.Add(verb);
             terms[action] = verbs;
 
             SaveDict();
         }
 
-        private Dictionary<string, List<string>> LoadDict(string name)
+        private Dictionary<string, HashSet<string>> LoadDict(string name)
         {
-            Dictionary<string, List<string>> dict = new Dictionary<string, List<string>>();
+            Dictionary<string, HashSet<string>> dict = new Dictionary<string, HashSet<string>>();
 
             if (File.Exists(saveLocation))
             {
                 Stream FileStream = File.OpenRead(saveLocation);
                 BinaryFormatter deserializer = new BinaryFormatter();
-                dict = (Dictionary<string, List<string>>)deserializer.Deserialize(FileStream);
+                dict = (Dictionary<string, HashSet<string>>)deserializer.Deserialize(FileStream);
                 FileStream.Close();
             }
             return dict;
