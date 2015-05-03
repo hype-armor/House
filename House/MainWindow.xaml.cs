@@ -86,20 +86,19 @@ namespace OpenEcho
             input = input.Replace("  ", " ").Trim();
             int WordCount = input.Split(new char[] {' '}).Count();
 
-            qc.Classify(input);
+            KeyValuePair<string,string> term = qc.Classify(input);
 
-            if (input.Contains("wikipedia"))
+            if (term.Key == "wikipedia")
             {
                 Wikipedia wikipedia = new Wikipedia();
-                string term = input.Replace(wiki, "");
-                string ret = wikipedia.Search(term);
+                input = input.Replace(term.Value, "").Trim();
+                string ret = wikipedia.Search(input);
                 Speech.say(ret);
             }
-            else if (input.Contains("new action"))
+            else if (term.Key == "new action")
             {
                 // usage: add search term, x to y.
-                string tInput = input.Replace(addAction, "")
-                    .Trim();
+                string tInput = input.Replace(term.Value, "").Trim();
                 string[] words = tInput.Split(new string[] { " to " }, StringSplitOptions.RemoveEmptyEntries);
 
                 string verb = words[0];
