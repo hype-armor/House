@@ -39,12 +39,10 @@ namespace OpenEcho
         {
             terms = LoadDict(saveLocation);
 
-            string action = "search";
+            string action = "wikipedia";
             HashSet<string> verbs = new HashSet<string>();
-            verbs.Add("lookup");
-            verbs.Add("look up");
-            verbs.Add("search");
-            verbs.Add("what is");
+            verbs.Add("what is a");
+            verbs.Add("what is an");
 
             if (!terms.Keys.Contains(action))
             {
@@ -99,6 +97,8 @@ namespace OpenEcho
 
         public string Classify(string Query)
         {
+            List<string> matchedVerbs = new List<string>();
+
             foreach (KeyValuePair<string, HashSet<string>> item in terms)
             {
                 string term = item.Key;
@@ -108,11 +108,27 @@ namespace OpenEcho
                 {
                     if (Query.Contains(verb))
                     {
-                        return term;
+                        matchedVerbs.Add(term);
                     }
                 }
             }
-            return string.Empty;
+
+            if (matchedVerbs.Count == 1)
+            {
+                return matchedVerbs.First();
+            }
+            else if (matchedVerbs.Count > 1)
+            {
+                // more than one classification. List them and have user pick.
+                Speech.say("There is more than one match for your query. Please remove one of the matches from my database.");
+            }
+            else
+            {
+                // no match was found. Ask user for classification and store for next time
+                Speech.say("I can not match your query to anything in my database. Please add your query to my database.");
+            }
+
+            return "";
         }
     }
 }

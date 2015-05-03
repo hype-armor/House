@@ -88,16 +88,14 @@ namespace OpenEcho
 
             qc.Classify(input);
 
-            string wiki = "search wikipedia for";
-            string addAction = "add search term";
-            if (input.Contains(wiki))
+            if (input.Contains("wikipedia"))
             {
                 Wikipedia wikipedia = new Wikipedia();
                 string term = input.Replace(wiki, "");
                 string ret = wikipedia.Search(term);
                 Speech.say(ret);
             }
-            else if (input.Contains(addAction))
+            else if (input.Contains("new action"))
             {
                 // usage: add search term, x to y.
                 string tInput = input.Replace(addAction, "")
