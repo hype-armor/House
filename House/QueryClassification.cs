@@ -41,12 +41,17 @@ namespace OpenEcho
 
             string action = "wikipedia";
             HashSet<string> verbs = new HashSet<string>();
+            verbs.Add("what is");
             verbs.Add("what is a");
             verbs.Add("what is an");
 
             if (!terms.Keys.Contains(action))
             {
                 terms.Add(action, verbs);
+            }
+            else if (terms.Keys.Contains(action) && terms[action] != verbs)
+            {
+                terms[action] = verbs;
             }
             
 
@@ -95,9 +100,9 @@ namespace OpenEcho
             FileStream.Close();
         }
 
-        public string Classify(string Query)
+        public KeyValuePair<string, string> Classify(string Query)
         {
-            List<string> matchedVerbs = new List<string>();
+            Dictionary<string, string> matchedVerbs = new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, HashSet<string>> item in terms)
             {
@@ -108,27 +113,31 @@ namespace OpenEcho
                 {
                     if (Query.Contains(verb))
                     {
-                        matchedVerbs.Add(term);
+                        matchedVerbs.Add(term, verb);
                     }
                 }
             }
 
-            if (matchedVerbs.Count == 1)
+            if (matchedVerbs.Count() == 1)
             {
                 return matchedVerbs.First();
             }
-            else if (matchedVerbs.Count > 1)
+            else if (matchedVerbs.Count() > 1)
             {
                 // more than one classification. List them and have user pick.
                 Speech.say("There is more than one match for your query. Please remove one of the matches from my database.");
+
+                return new KeyValuePair<string,string>("", "");
             }
             else
             {
                 // no match was found. Ask user for classification and store for next time
                 Speech.say("I can not match your query to anything in my database. Please add your query to my database.");
+
+                return new KeyValuePair<string, string>("", "");
             }
 
-            return "";
+            throw new Exception("I was unable to find a match.");
         }
     }
 }
