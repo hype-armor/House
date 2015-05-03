@@ -23,19 +23,12 @@ namespace OpenEcho
 
             string action = "search";
             HashSet<string> verbs = new HashSet<string>();
-            //searchVerbs.Add("", keyWord);
-            try
-            {
-                verbs.Add("lookup");
-                verbs.Add("look up");
-                verbs.Add("search");
-                verbs.Add("what is");
-                terms.Add(action, verbs);
-            }
-            catch (Exception)
-            {
-                // searchVerbs are already added.
-            }
+            verbs.Add("lookup");
+            verbs.Add("look up");
+            verbs.Add("search");
+            verbs.Add("what is");
+            terms.Add(action, verbs);
+
             SaveDict();
         }
 
@@ -66,6 +59,7 @@ namespace OpenEcho
         {
             if (File.Exists(saveLocation))
             {
+                // save old dict
                 string newFileName = saveLocation.Replace(".bin", " ") + 
                     DateTime.Now + 
                     ".bin";
@@ -79,12 +73,5 @@ namespace OpenEcho
             serializer.Serialize(FileStream, terms);
             FileStream.Close();
         }
-    }
-
-    class Query
-    {
-        string subject;
-        string verb;
-        Action t;
     }
 }
