@@ -45,7 +45,12 @@ namespace OpenEcho
             verbs.Add("look up");
             verbs.Add("search");
             verbs.Add("what is");
-            terms.Add(action, verbs);
+
+            if (!terms.Keys.Contains(action))
+            {
+                terms.Add(action, verbs);
+            }
+            
 
             SaveDict();
         }
