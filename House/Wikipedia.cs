@@ -35,7 +35,10 @@ namespace OpenEcho
             url = FormatURL(Subject);
 
             HtmlDocument doc = GetDocument(url);
-
+            if (!doc.DocumentNode.HasChildNodes)
+            {
+                return "Wikipedia did not return a valid result.";
+            }
             string p = doc.DocumentNode.SelectSingleNode("/p").InnerText;
 
             Regex parenths = new Regex("\\([^()]*\\)");
@@ -66,6 +69,13 @@ namespace OpenEcho
             string html = wc.DownloadString(url);
             XmlDocument xml = new XmlDocument();
             xml.LoadXml(html);
+
+            if (html.Contains("error code=\"missingtitle\""))
+            {
+                // the page does not exist.
+                return new HtmlDocument();
+            }
+
             string nodes = xml.SelectSingleNode("//text").InnerText;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(nodes);
