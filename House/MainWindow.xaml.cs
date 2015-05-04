@@ -86,23 +86,24 @@ namespace OpenEcho
             input = input.Replace("  ", " ").Trim();
             int WordCount = input.Split(new char[] {' '}).Count();
 
-            KeyValuePair<string,string> term = qc.Classify(input);
+            KeyValuePair<QueryClassification.Actions, string> term = qc.Classify(input);
 
-            if (term.Key == "wikipedia")
+            if (term.Key == QueryClassification.Actions.wikipedia)
             {
                 Wikipedia wikipedia = new Wikipedia();
                 input = input.Replace(term.Value, "").Trim();
                 string ret = wikipedia.Search(input);
                 Speech.say(ret);
             }
-            else if (term.Key == "new action")
+            else if (term.Key == QueryClassification.Actions.newAction)
             {
                 // usage: add search term, x to y.
-                string tInput = input.Replace(term.Value, "").Trim();
-                string[] words = tInput.Split(new string[] { " to " }, StringSplitOptions.RemoveEmptyEntries);
+                input = input.Replace(term.Value, "").Trim();
+                string[] words = input.Split(new string[] { " to " }, StringSplitOptions.RemoveEmptyEntries);
 
                 string verb = words[0];
-                string action = words[1];
+                QueryClassification.Actions action = 
+                    (QueryClassification.Actions)Enum.Parse(typeof(QueryClassification.Actions), words[1], true);
 
                 qc.AddVerbToAction(verb, action);
             }

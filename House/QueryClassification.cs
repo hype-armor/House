@@ -33,49 +33,50 @@ namespace OpenEcho
     {
         const string saveLocation = "QueryClassification.bin";
 
-        Dictionary<string, HashSet<string>> terms = new Dictionary<string, HashSet<string>>();
+        public enum Actions { wikipedia, newAction, alarm, timer};
+        Dictionary<Actions, HashSet<string>> terms = new Dictionary<Actions, HashSet<string>>();
 
         public void Init()
         {
             terms = LoadDict(saveLocation);
 
-            string action = "wikipedia";
-            HashSet<string> verbs = new HashSet<string>();
-            verbs.Add("what is");
-            verbs.Add("what is a");
-            verbs.Add("what is an");
+            AddVerbToAction("what is", Actions.wikipedia, true);
+            AddVerbToAction("what is a", Actions.wikipedia, true);
+            AddVerbToAction("what is an", Actions.wikipedia, true);
 
-            if (!terms.Keys.Contains(action))
-            {
-                terms.Add(action, verbs);
-            }
-            else if (terms.Keys.Contains(action) && terms[action] != verbs)
-            {
-                terms[action] = verbs;
-            }
-            
+            AddVerbToAction("add verb", Actions.newAction, true);
 
-            SaveDict();
+
         }
 
-        public void AddVerbToAction(string verb, string action)
+        public void AddVerbToAction(string verb, Actions action, bool init = false)
         {
+            if (!terms.Keys.Contains(action))
+            {
+                terms.Add(action, new HashSet<string>());
+            }
+
             HashSet<string> verbs = terms[action];
             verbs.Add(verb);
             terms[action] = verbs;
 
             SaveDict();
+
+            if (!init)
+            {
+                Speech.say("I have added " + verb + " to " + action); 
+            }
         }
 
-        private Dictionary<string, HashSet<string>> LoadDict(string name)
+        private Dictionary<Actions, HashSet<string>> LoadDict(string name)
         {
-            Dictionary<string, HashSet<string>> dict = new Dictionary<string, HashSet<string>>();
+            Dictionary<Actions, HashSet<string>> dict = new Dictionary<Actions, HashSet<string>>();
 
             if (File.Exists(saveLocation))
             {
                 Stream FileStream = File.OpenRead(saveLocation);
                 BinaryFormatter deserializer = new BinaryFormatter();
-                dict = (Dictionary<string, HashSet<string>>)deserializer.Deserialize(FileStream);
+                dict = (Dictionary<Actions, HashSet<string>>)deserializer.Deserialize(FileStream);
                 FileStream.Close();
             }
             return dict;
@@ -92,7 +93,11 @@ namespace OpenEcho
                 newFileName = newFileName
                     .Replace('/', '.')
                     .Replace(':','.');
-                System.IO.File.Move(saveLocation, newFileName);
+
+                if (!File.Exists(newFileName))
+                {
+                    System.IO.File.Move(saveLocation, newFileName);
+                }
             }
             Stream FileStream = File.Create(saveLocation);
             BinaryFormatter serializer = new BinaryFormatter();
@@ -100,13 +105,13 @@ namespace OpenEcho
             FileStream.Close();
         }
 
-        public KeyValuePair<string, string> Classify(string Query)
+        public KeyValuePair<Actions, string> Classify(string Query)
         {
-            Dictionary<string, string> matchedVerbs = new Dictionary<string, string>();
+            Dictionary<Actions, string> matchedVerbs = new Dictionary<Actions, string>();
 
-            foreach (KeyValuePair<string, HashSet<string>> item in terms)
+            foreach (KeyValuePair<Actions, HashSet<string>> item in terms)
             {
-                string term = item.Key;
+                Actions term = item.Key;
                 HashSet<string> verbs = item.Value;
 
                 foreach (string verb in verbs)
@@ -127,14 +132,14 @@ namespace OpenEcho
                 // more than one classification. List them and have user pick.
                 Speech.say("There is more than one match for your query. Please remove one of the matches from my database.");
 
-                return new KeyValuePair<string,string>("", "");
+                return new KeyValuePair<Actions, string>(new Actions(), "");
             }
             else
             {
                 // no match was found. Ask user for classification and store for next time
                 Speech.say("I can not match your query to anything in my database. Please add your query to my database.");
 
-                return new KeyValuePair<string, string>("", "");
+                return new KeyValuePair<Actions, string>(new Actions(), "");
             }
 
             throw new Exception("I was unable to find a match.");
