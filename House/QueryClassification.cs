@@ -33,7 +33,7 @@ namespace OpenEcho
     {
         const string saveLocation = "QueryClassification.bin";
 
-        public enum Actions { wikipedia, newAction, alarm, timer};
+        public enum Actions {help, wikipedia, newAction, alarm, timer};
         Dictionary<Actions, HashSet<string>> terms = new Dictionary<Actions, HashSet<string>>();
 
         public void Init()

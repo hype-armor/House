@@ -88,7 +88,11 @@ namespace OpenEcho
 
             KeyValuePair<QueryClassification.Actions, string> term = qc.Classify(input);
 
-            if (term.Key == QueryClassification.Actions.wikipedia)
+            if (term.Key == QueryClassification.Actions.help)
+            {
+                Speech.say("Ask me to lookup something on wikipedia.");
+            }
+            else if (term.Key == QueryClassification.Actions.wikipedia)
             {
                 Wikipedia wikipedia = new Wikipedia();
                 input = input.Replace(term.Value, "").Trim();
