@@ -19,8 +19,23 @@ namespace OpenEcho
         private class Timer
         {
             public string Name = "Timer";
-            public int Duration = 0;
-            public bool Acknowledge = false;
+            public TimeSpan Duration;
+            private System.Timers.Timer aTimer = new System.Timers.Timer();
+
+            public void Set()
+            {
+                aTimer = new System.Timers.Timer(Duration.TotalMilliseconds);
+                // Hook up the Elapsed event for the timer. 
+                aTimer.Elapsed += OnTimedEvent;
+                aTimer.Enabled = true;
+                aTimer.Start();
+            }
+
+            private void OnTimedEvent(object sender, ElapsedEventArgs e)
+            {
+                Speech.say(Name);
+                aTimer.Stop();
+            }
         }
 
         private class Alarm
@@ -88,12 +103,13 @@ namespace OpenEcho
             Alarms.Add(a);
         }
 
-        public void CreateTimer(int Duration, string Name = "")
+        public void CreateTimer(TimeSpan Duration, string Name = "")
         {
             Timer t = new Timer();
             t.Duration = Duration;
             t.Name = Name;
             Timers.Add(t);
+            t.Set();
         }
     }
 

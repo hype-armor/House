@@ -99,6 +99,10 @@ namespace OpenEcho
                 string ret = wikipedia.Search(input);
                 Speech.say(ret);
             }
+            else if (term.Key == QueryClassification.Actions.timer)
+            {
+                quartz.CreateTimer(5);
+            }
             else if (term.Key == QueryClassification.Actions.newAction)
             {
                 // usage: add search term, x to y.

@@ -46,7 +46,9 @@ namespace OpenEcho
 
             AddVerbToAction("add verb", Actions.newAction, true);
 
-
+            AddVerbToAction("set a timer for", Actions.timer, true);
+            AddVerbToAction("create a timer for", Actions.timer, true);
+            AddVerbToAction("make a timer for", Actions.timer, true);
         }
 
         public void AddVerbToAction(string verb, Actions action, bool init = false)
