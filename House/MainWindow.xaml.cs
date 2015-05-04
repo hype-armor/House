@@ -101,7 +101,7 @@ namespace OpenEcho
             }
             else if (term.Key == QueryClassification.Actions.timer)
             {
-                quartz.CreateTimer(5);
+                quartz.CreateTimer(new TimeSpan(0,0,5));
             }
             else if (term.Key == QueryClassification.Actions.newAction)
             {

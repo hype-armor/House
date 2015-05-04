@@ -13,18 +13,18 @@ namespace OpenEcho
     class Quartz
     {
 
-        private List<Timer> Timers = new List<Timer>();
-        private List<Alarm> Alarms = new List<Alarm>();
+        private List<Timer> timers = new List<Timer>();
+        private List<Alarm> alarms = new List<Alarm>();
 
         private class Timer
         {
-            public string Name = "Timer";
-            public TimeSpan Duration;
+            public string name = "Timer";
+            public TimeSpan duration;
             private System.Timers.Timer aTimer = new System.Timers.Timer();
 
             public void Set()
             {
-                aTimer = new System.Timers.Timer(Duration.TotalMilliseconds);
+                aTimer = new System.Timers.Timer(duration.TotalMilliseconds);
                 // Hook up the Elapsed event for the timer. 
                 aTimer.Elapsed += OnTimedEvent;
                 aTimer.Enabled = true;
@@ -33,18 +33,18 @@ namespace OpenEcho
 
             private void OnTimedEvent(object sender, ElapsedEventArgs e)
             {
-                Speech.say(Name);
+                Speech.say(name);
                 aTimer.Stop();
             }
         }
 
         private class Alarm
         {
-            public string Name = "";
-            public DateTime AlarmTime = new DateTime();
-            public bool Snoozed = false;
-            public bool Enabled = true;
-            public bool Acknowledged = false;
+            public string name = "";
+            public DateTime alarmTime = new DateTime();
+            public bool snoozed = false;
+            public bool enabled = true;
+            public bool acknowledged = false;
         }
 
         public void Init()
@@ -66,25 +66,25 @@ namespace OpenEcho
 
         private void CheckAlarms()
         {
-            foreach (Alarm alarm in Alarms)
+            foreach (Alarm alarm in alarms)
             {
                 TimeSpan CurrentTime = DateTime.Now.TimeOfDay;
-                TimeSpan AlarmTime = alarm.AlarmTime.TimeOfDay;
+                TimeSpan AlarmTime = alarm.alarmTime.TimeOfDay;
 
                 bool AlarmIsInPast = (AlarmTime <= CurrentTime);
                 double MinutesSinceAlarm = (CurrentTime - AlarmTime).TotalMinutes;
 
-                if (alarm.Enabled && AlarmIsInPast)
+                if (alarm.enabled && AlarmIsInPast)
                 {
-                    if (!alarm.Acknowledged && MinutesSinceAlarm <= 1)
+                    if (!alarm.acknowledged && MinutesSinceAlarm <= 1)
                     {
                         Buzz(alarm);
-                        alarm.Acknowledged = true;
-                        string Name = alarm.Name.Length == 0 ? "Alarm" : alarm.Name;
+                        alarm.acknowledged = true;
+                        string Name = alarm.name.Length == 0 ? "Alarm" : alarm.name;
                     }
-                    else if (alarm.Acknowledged && MinutesSinceAlarm > 1)
+                    else if (alarm.acknowledged && MinutesSinceAlarm > 1)
                     {
-                        alarm.Acknowledged = false;
+                        alarm.acknowledged = false;
                     }
                 }
             }
@@ -92,24 +92,26 @@ namespace OpenEcho
 
         private void Buzz(Alarm alarm)
         {
-            Speech.say(alarm.AlarmTime.ToShortTimeString(), "Alarm!");
+            Speech.say(alarm.alarmTime.ToShortTimeString(), "Alarm!");
         }
 
-        public void CreateAlarm(DateTime AlarmTime, string Name = "")
+        public void CreateAlarm(DateTime alarmTime, string name = "")
         {
             Alarm a = new Alarm();
-            a.AlarmTime = AlarmTime;
-            a.Name = Name;
-            Alarms.Add(a);
+            a.alarmTime = alarmTime;
+            a.name = name;
+            alarms.Add(a);
         }
 
-        public void CreateTimer(TimeSpan Duration, string Name = "")
+        public void CreateTimer(TimeSpan duration, string name = "Timer")
         {
             Timer t = new Timer();
-            t.Duration = Duration;
-            t.Name = Name;
-            Timers.Add(t);
+            t.duration = duration;
+            t.name = name;
+            timers.Add(t);
             t.Set();
+
+            Speech.say("I've set the timer " + name + " for you");
         }
     }
 
