@@ -51,9 +51,6 @@ namespace OpenEcho
         {
             CreateAlarm(DateTime.Parse("9:17 pm"), "Good Morning");
 
-            //CreateTimer(15000, "Test Timer");
-
-            // check if alarm(s) should sound.
             Task.Factory.StartNew(() =>
                 {
                     while (true)

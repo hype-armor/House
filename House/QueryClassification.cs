@@ -31,10 +31,13 @@ namespace OpenEcho
     [Serializable()]
     class QueryClassification
     {
-        const string saveLocation = "QueryClassification.bin";
+        private const string saveLocation = "QueryClassification.bin";
 
-        public enum Actions {help, wikipedia, newAction, alarm, timer};
-        Dictionary<Actions, HashSet<string>> terms = new Dictionary<Actions, HashSet<string>>();
+        [field: NonSerialized()]
+        public enum Actions {help, wikipedia, newAction, alarm, timer, unknown};
+
+        [field: NonSerialized()]
+        private Dictionary<Actions, HashSet<string>> terms = new Dictionary<Actions, HashSet<string>>();
 
         public void Init()
         {
@@ -49,6 +52,8 @@ namespace OpenEcho
             AddVerbToAction("set a timer for", Actions.timer, true);
             AddVerbToAction("create a timer for", Actions.timer, true);
             AddVerbToAction("make a timer for", Actions.timer, true);
+
+            AddVerbToAction("help", Actions.help, true);
         }
 
         public void AddVerbToAction(string verb, Actions action, bool init = false)
@@ -138,14 +143,14 @@ namespace OpenEcho
                 // more than one classification. List them and have user pick.
                 Speech.say("There is more than one match for your query. Please remove one of the matches from my database.");
 
-                return new KeyValuePair<Actions, string>(new Actions(), "");
+                return new KeyValuePair<Actions, string>(Actions.unknown, "");
             }
             else
             {
                 // no match was found. Ask user for classification and store for next time
-                Speech.say("I can not match your query to anything in my database. Please add your query to my database.");
+                Speech.say("I can not match your query to anything in my database.");
 
-                return new KeyValuePair<Actions, string>(new Actions(), "");
+                return new KeyValuePair<Actions, string>(Actions.unknown, "");
             }
 
             throw new Exception("I was unable to find a match.");
