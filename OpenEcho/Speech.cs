@@ -1,5 +1,5 @@
 ﻿/*
-    House is a program to automate basic tasks at home all while being handsfree.
+    OpenEcho is a program to automate basic tasks at home all while being handsfree.
     Copyright (C) 2015  Gregory Morgan
 
     This program is free software: you can redistribute it and/or modify
@@ -57,7 +57,7 @@ namespace OpenEcho
                 });
         }
 
-        public static void say(string text, string title = "House")
+        public static void say(string text, string title = "OpenEcho")
         {
             q.Add(new Action(() =>
                 {
