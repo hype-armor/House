@@ -120,6 +120,10 @@ namespace OpenEcho
                     {
                         matchedVerbs.Add(term, verb);
                     }
+                    else if (Query.Contains(verb) && matchedVerbs.Keys.Contains(term) && matchedVerbs[term].Length < verb.Length)
+                    {
+                        matchedVerbs[term] = verb;
+                    }
                 }
             }
 
