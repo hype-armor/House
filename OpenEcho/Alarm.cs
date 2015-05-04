@@ -14,7 +14,7 @@ namespace OpenEcho
     {
 
         private List<Timer> timers = new List<Timer>();
-        private List<Alarm> alarms = new List<Alarm>();
+        private static List<Alarm> alarms = new List<Alarm>();
 
         private class Timer
         {
@@ -47,7 +47,7 @@ namespace OpenEcho
             public bool acknowledged = false;
         }
 
-        public void Init()
+        static Quartz()
         {
             CreateAlarm(DateTime.Parse("9:17 pm"), "Good Morning");
 
@@ -61,7 +61,7 @@ namespace OpenEcho
                 });
         }
 
-        private void CheckAlarms()
+        private static void CheckAlarms()
         {
             foreach (Alarm alarm in alarms)
             {
@@ -87,12 +87,12 @@ namespace OpenEcho
             }
         }
 
-        private void Buzz(Alarm alarm)
+        private static void Buzz(Alarm alarm)
         {
             Speech.say(alarm.alarmTime.ToShortTimeString(), "Alarm!");
         }
 
-        public void CreateAlarm(DateTime alarmTime, string name = "")
+        public static void CreateAlarm(DateTime alarmTime, string name = "")
         {
             Alarm a = new Alarm();
             a.alarmTime = alarmTime;

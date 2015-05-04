@@ -58,9 +58,6 @@ namespace OpenEcho
             txtInput.Focus();
 
             Speech.micMute.UnMuteMic();
-
-            quartz.Init();
-            qc.Init();
         }
         private void Timeout(object sender, System.Timers.ElapsedEventArgs e)
         {
@@ -113,7 +110,7 @@ namespace OpenEcho
                 QueryClassification.Actions action = 
                     (QueryClassification.Actions)Enum.Parse(typeof(QueryClassification.Actions), words[1], true);
 
-                qc.AddVerbToAction(verb, action);
+                QueryClassification.AddVerbToAction(verb, action);
             }
         }
 

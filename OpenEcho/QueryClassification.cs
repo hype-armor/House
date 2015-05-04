@@ -33,13 +33,12 @@ namespace OpenEcho
     {
         private const string saveLocation = "QueryClassification.bin";
 
-        [field: NonSerialized()]
         public enum Actions {help, wikipedia, newAction, alarm, timer, unknown};
 
         [field: NonSerialized()]
-        private Dictionary<Actions, HashSet<string>> terms = new Dictionary<Actions, HashSet<string>>();
+        private static Dictionary<Actions, HashSet<string>> terms = new Dictionary<Actions, HashSet<string>>();
 
-        public void Init()
+        static QueryClassification()
         {
             terms = LoadDict(saveLocation);
 
@@ -56,7 +55,7 @@ namespace OpenEcho
             AddVerbToAction("help", Actions.help, true);
         }
 
-        public void AddVerbToAction(string verb, Actions action, bool init = false)
+        public static void AddVerbToAction(string verb, Actions action, bool init = false)
         {
             if (!terms.Keys.Contains(action))
             {
@@ -75,7 +74,7 @@ namespace OpenEcho
             }
         }
 
-        private Dictionary<Actions, HashSet<string>> LoadDict(string name)
+        private static Dictionary<Actions, HashSet<string>> LoadDict(string name)
         {
             Dictionary<Actions, HashSet<string>> dict = new Dictionary<Actions, HashSet<string>>();
 
@@ -89,7 +88,7 @@ namespace OpenEcho
             return dict;
         }
 
-        private void SaveDict()
+        private static void SaveDict()
         {
             if (File.Exists(saveLocation))
             {
