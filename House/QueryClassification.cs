@@ -116,7 +116,7 @@ namespace OpenEcho
 
                 foreach (string verb in verbs)
                 {
-                    if (Query.Contains(verb))
+                    if (Query.Contains(verb) && !matchedVerbs.Keys.Contains(term))
                     {
                         matchedVerbs.Add(term, verb);
                     }
