@@ -55,7 +55,7 @@ namespace OpenEcho
             AddVerbToAction("help", Actions.help, true);
         }
 
-        public static void AddVerbToAction(string verb, Actions action, bool init = false)
+        public static void AddVerbToAction(string verb, Actions action, bool silent = false)
         {
             if (!terms.Keys.Contains(action))
             {
@@ -68,7 +68,7 @@ namespace OpenEcho
 
             SaveDict();
 
-            if (!init)
+            if (!silent)
             {
                 Speech.say("I have added " + verb + " to " + action); 
             }
