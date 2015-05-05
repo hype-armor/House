@@ -61,6 +61,29 @@ namespace OpenEcho
         {
             q.Add(new Action(() =>
                 {
+                    char[] alphaNumeric = new char[] 
+                    { 
+                        'a','b','c','d','e','f','g','h','i','j','k',
+                        'l','m','n','o','p','q','r','s','t','u','v',
+                        'w','x','y','z','1','2','3','4','5','6','7','8','9','0',
+                        '.',',',' '
+                    };
+                    string result = "";
+                    foreach (char c in text)
+                    {
+                        char letter = c.ToString().ToLower()[0];
+                        if (alphaNumeric.Contains(letter))
+                        {
+                            result += c;
+                        }
+                        else
+                        {
+                            result += " ";
+                        }
+                    }
+
+                    result = result.Replace("   ", " ").Replace("  ", " ");
+
                     if (Silent)
                     {
                         PrintMsg(text, title);
