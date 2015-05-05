@@ -107,10 +107,17 @@ namespace OpenEcho
                 string[] words = input.Split(new string[] { " to " }, StringSplitOptions.RemoveEmptyEntries);
 
                 string verb = words[0];
-                QueryClassification.Actions action = 
-                    (QueryClassification.Actions)Enum.Parse(typeof(QueryClassification.Actions), words[1], true);
 
-                QueryClassification.AddVerbToAction(verb, action);
+                try
+                {
+                    QueryClassification.Actions action =
+                                (QueryClassification.Actions)Enum.Parse(typeof(QueryClassification.Actions), words[1], true);
+                    QueryClassification.AddVerbToAction(verb, action);
+                }
+                catch (ArgumentException e)
+                {
+                    Speech.say(e.Message);
+                }
             }
         }
 
