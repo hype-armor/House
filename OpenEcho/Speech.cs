@@ -21,19 +21,25 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Speech.Synthesis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
-using WindowsMicrophoneMuteLibrary;
 
 namespace OpenEcho
 {
     class Speech
     {
-        public static WindowsMicMute micMute = new WindowsMicMute();
+        
+        public static bool Mute
+        {
+            set
+            {
+                //public static WindowsMicMute micMute = new WindowsMicMute();
+                // if true then mute else if false then unmute mic.
+            }
+        }
+
         public static string Understood;
         public static bool Silent = false;
 
@@ -90,13 +96,9 @@ namespace OpenEcho
                     }
                     else
                     {
-                        SpeechSynthesizer synth = new SpeechSynthesizer();
-                        synth.SetOutputToDefaultAudioDevice();
-
-                        micMute.MuteMic();
                         try
                         {
-                            synth.Speak(text);
+                            Console.WriteLine(text);
                         }
                         catch (Exception e)
                         {
@@ -104,19 +106,14 @@ namespace OpenEcho
                             PrintMsg(e.Message, e.Source);
                             PrintMsg(text, title);
                         } 
-
-                        micMute.UnMuteMic();
                     }
-                    
                 })
             );
         }
 
         private static void PrintMsg(string text, string title)
         {
-            MessageBox.Show(text, title, MessageBoxButton.OK, MessageBoxImage.Information,
-            MessageBoxResult.OK, MessageBoxOptions.ServiceNotification);
-            Understood = text;
+            Console.WriteLine();
         }
     }
 }

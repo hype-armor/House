@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Speech.Synthesis;
 using System.Text;
 using System.Threading;
 using System.Windows;
@@ -66,12 +65,14 @@ class Weather
     private static void say(string text)
     {
         // Initialize a new instance of the SpeechSynthesizer.
-        SpeechSynthesizer synth = new SpeechSynthesizer();
+        //SpeechSynthesizer synth = new SpeechSynthesizer();
 
         // Configure the audio output. 
-        synth.SetOutputToDefaultAudioDevice();
+        //synth.SetOutputToDefaultAudioDevice();
 
         // Speak a string.
-        synth.Speak(text);
+        //synth.Speak(text);
+
+        Console.WriteLine(text);
     }
 }
