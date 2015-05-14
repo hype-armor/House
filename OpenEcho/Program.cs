@@ -31,6 +31,11 @@ namespace OpenEcho
 
         static void Main(string[] args)
         {
+            ProcessInput();
+        }
+
+        static void ProcessInput()
+        {
             Console.WriteLine("start");
             string input = Console.ReadLine().Replace("  ", " ").Trim();
 
