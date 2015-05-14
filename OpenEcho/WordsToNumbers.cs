@@ -29,39 +29,50 @@ namespace OpenEcho
         public int retInt(string word)
         {
 
-            Dictionary<string, int> WordList = new Dictionary<string, int>();
-            WordList.Add("Zero",       0);
-            WordList.Add("One",        1);
-            WordList.Add("Two",        2);
-            WordList.Add("Three",      3);
-            WordList.Add("Four",       4);
-            WordList.Add("Five",       5);
-            WordList.Add("Six",        6);
-            WordList.Add("Seven",      7);
-            WordList.Add("Eight",      8);
-            WordList.Add("Nine",       9);
+            Dictionary<string, int> wordList = new Dictionary<string, int>();
+            wordList.Add("zero",       0);
+            wordList.Add("one",        1);
+            wordList.Add("two",        2);
+            wordList.Add("three",      3);
+            wordList.Add("four",       4);
+            wordList.Add("five",       5);
+            wordList.Add("six",        6);
+            wordList.Add("seven",      7);
+            wordList.Add("eight",      8);
+            wordList.Add("nine",       9);
                                         
-            WordList.Add("Ten",       10);
-            WordList.Add("Eleven",    11);
-            WordList.Add("Twelve",    12);
-            WordList.Add("Thirteen",  13);
-            WordList.Add("Fourteen",  14);
-            WordList.Add("Fifteen",   15);
-            WordList.Add("Sixteen",   16);
-            WordList.Add("Seventeen", 17);
-            WordList.Add("Eighteen",  18);
-            WordList.Add("Nineteen",  19);
+            wordList.Add("ten",       10);
+            wordList.Add("eleven",    11);
+            wordList.Add("twelve",    12);
+            wordList.Add("thirteen",  13);
+            wordList.Add("fourteen",  14);
+            wordList.Add("fifteen",   15);
+            wordList.Add("sixteen",   16);
+            wordList.Add("seventeen", 17);
+            wordList.Add("eighteen",  18);
+            wordList.Add("nineteen",  19);
                                         
-            WordList.Add("Twenty",    20);
-            WordList.Add("Thirty",    30);
-            WordList.Add("Forty",     40);
-            WordList.Add("Fifty",     50);
-            WordList.Add("Sixty",     60);
-            WordList.Add("Seventy",   70);
-            WordList.Add("Eighty",    80);
-            WordList.Add("Ninety",    90);
+            wordList.Add("twenty",    20);
+            wordList.Add("thirty",    30);
+            wordList.Add("forty",     40);
+            wordList.Add("fifty",     50);
+            wordList.Add("sixty",     60);
+            wordList.Add("seventy",   70);
+            wordList.Add("eighty",    80);
+            wordList.Add("ninety",    90);
 
-            return WordList[word];
+            int number;
+            
+
+            if (wordList.ContainsKey(word))
+            {
+                return wordList[word];
+            }
+            else if (Int32.TryParse(word, out number))
+            {
+                return number;
+            }
+            return -1;
         }
     }
 }

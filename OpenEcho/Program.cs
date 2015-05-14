@@ -58,7 +58,23 @@ namespace OpenEcho
             }
             else if (term.Key == QueryClassification.Actions.timer)
             {
-                quartz.CreateTimer(new TimeSpan(0, 0, 5));
+                // set a timer for ten minutes
+                WordsToNumbers wtn = new WordsToNumbers();
+
+                var one = term.Value.ToString();
+                var two = term.Key.ToString();
+
+                input = input.Replace(one, two);
+
+                List<string> words = input.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                string minutesStr = words.Contains("minutes") ? words[words.IndexOf("minutes")-1] : "";
+
+                int minutes = wtn.retInt(minutesStr);
+
+                quartz.CreateTimer(new TimeSpan(0, minutes, 5));
+
+                Speech.say("I have created a timer for " + minutes.ToString() + " minutes.");
             }
             else if (term.Key == QueryClassification.Actions.newAction)
             {
