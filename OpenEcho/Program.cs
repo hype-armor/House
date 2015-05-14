@@ -31,12 +31,16 @@ namespace OpenEcho
 
         static void Main(string[] args)
         {
-            ProcessInput();
+            do
+            {
+                ProcessInput();
+            } while (true);
         }
 
         static void ProcessInput()
         {
-            Console.WriteLine("start");
+            Speech.say("No bob, I can't let you do that");
+
             string input = Console.ReadLine().Replace("  ", " ").Trim();
 
             KeyValuePair<QueryClassification.Actions, string> term = qc.Classify(input);
@@ -75,6 +79,8 @@ namespace OpenEcho
                     Speech.say(e.Message);
                 }
             }
+
+            Speech.say("END");
         }
     }
 }
