@@ -33,13 +33,15 @@ namespace OpenEcho
         {
             do
             {
+                Speech.say("Type 'help' for a list of commands.");
                 ProcessInput();
+
             } while (true);
         }
 
         static void ProcessInput()
         {
-            Speech.say("No bob, I can't let you do that");
+            
 
             string input = Console.ReadLine().Replace("  ", " ").Trim();
 
@@ -47,7 +49,10 @@ namespace OpenEcho
 
             if (term.Key == QueryClassification.Actions.help)
             {
-                Speech.say("Ask me to lookup something on wikipedia.");
+                // print all possible actions in order.
+
+
+                Speech.say(qc.help);
             }
             else if (term.Key == QueryClassification.Actions.wikipedia)
             {
@@ -61,10 +66,10 @@ namespace OpenEcho
                 // set a timer for ten minutes
                 WordsToNumbers wtn = new WordsToNumbers();
 
-                var one = term.Value.ToString();
-                var two = term.Key.ToString();
+                var value = term.Value.ToString();
+                var key = term.Key.ToString();
 
-                input = input.Replace(one, two);
+                input = input.Replace(value, key);
 
                 List<string> words = input.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
 
@@ -76,7 +81,7 @@ namespace OpenEcho
 
                 Speech.say("I have created a timer for " + minutes.ToString() + " minutes.");
             }
-            else if (term.Key == QueryClassification.Actions.newAction)
+            else if (term.Key == QueryClassification.Actions.newPhrase)
             {
                 // usage: add search term, x to y.
                 input = input.Replace(term.Value, "").Trim();
@@ -92,11 +97,23 @@ namespace OpenEcho
                 }
                 catch (ArgumentException e)
                 {
-                    Speech.say(e.Message);
+                    string erroredAction = e.Message.Replace("Requested value ", "").Replace(" was not found.", "").Replace("'", "");
+                    bool actionNotFound = erroredAction == words[1];
+                    if (actionNotFound)
+                    {
+                        // action does not exist.
+                        Speech.say("The action " + erroredAction + " does not exist.");
+                    }
+                    else
+                    {
+                        Speech.say("Error casting word to action. " + e.Message);
+                    }
                 }
             }
-
-            Speech.say("END");
+            else if (term.Key == QueryClassification.Actions.clear)
+            {
+                Console.Clear();
+            }
         }
     }
 }
