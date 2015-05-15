@@ -228,5 +228,14 @@ namespace ExtensionMethods
 
             return sb.ToString();
         }
+
+        public static string CleanText(this string text)
+        {
+            return text
+                .ToLower()
+                .Trim()
+                .Replace("   ", "")
+                .Replace("  ", "");
+        }
 	}
 }
