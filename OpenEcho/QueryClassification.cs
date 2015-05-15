@@ -23,6 +23,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using ExtensionMethods;
 
 namespace OpenEcho
 {
@@ -36,11 +37,11 @@ namespace OpenEcho
         public enum Actions {help, wikipedia, newAction, alarm, timer, unknown};
 
         [field: NonSerialized()]
-        private static Dictionary<Actions, HashSet<string>> terms = new Dictionary<Actions, HashSet<string>>();
+        private static Dictionary<Actions, HashSet<string>> actionDatabase = new Dictionary<Actions, HashSet<string>>();
 
         static QueryClassification()
         {
-            terms = LoadDict(saveLocation);
+            actionDatabase = LoadDict(saveLocation);
 
             AddVerbToAction("what is", Actions.wikipedia, true);
             AddVerbToAction("what is a", Actions.wikipedia, true);
@@ -55,22 +56,24 @@ namespace OpenEcho
             AddVerbToAction("help", Actions.help, true);
         }
 
-        public static void AddVerbToAction(string verb, Actions action, bool silent = false)
+        public static void AddVerbToAction(string phrase, Actions action, bool silent = false)
         {
-            if (!terms.Keys.Contains(action))
+            if (!actionDatabase.Keys.Contains(action))
             {
-                terms.Add(action, new HashSet<string>());
+                actionDatabase.Add(action, new HashSet<string>());
             }
 
-            HashSet<string> verbs = terms[action];
-            verbs.Add(verb);
-            terms[action] = verbs;
+            phrase = phrase.CleanText();
+
+            HashSet<string> phrases = actionDatabase[action];
+            phrases.Add(phrase);
+            actionDatabase[action] = phrases;
 
             SaveDict();
 
             if (!silent)
             {
-                Speech.say("I have added " + verb + " to " + action); 
+                Speech.say("I have added " + phrase + " to " + action); 
             }
         }
 
@@ -107,7 +110,7 @@ namespace OpenEcho
             }
             Stream FileStream = File.Create(saveLocation);
             BinaryFormatter serializer = new BinaryFormatter();
-            serializer.Serialize(FileStream, terms);
+            serializer.Serialize(FileStream, actionDatabase);
             FileStream.Close();
         }
 
@@ -115,7 +118,7 @@ namespace OpenEcho
         {
             Dictionary<Actions, string> matchedVerbs = new Dictionary<Actions, string>();
 
-            foreach (KeyValuePair<Actions, HashSet<string>> item in terms)
+            foreach (KeyValuePair<Actions, HashSet<string>> item in actionDatabase)
             {
                 Actions term = item.Key;
                 HashSet<string> verbs = item.Value;
@@ -153,6 +156,23 @@ namespace OpenEcho
             }
 
             throw new Exception("I was unable to find a match.");
+        }
+
+        public string help
+        {
+            get
+            {
+                StringBuilder helpText = new StringBuilder();
+                foreach (var term in actionDatabase)
+                {
+                    foreach (var value in term.Value)
+                    {
+                        helpText.AppendLine(term.Key + ": " + value);
+                    }
+                }
+
+                return helpText.ToString();
+            }
         }
     }
 }
