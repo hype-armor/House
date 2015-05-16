@@ -58,6 +58,14 @@ namespace OpenEcho
             {
                 Speech.say("Please wait. I might take a while.");
             }
+            else if (avg >= 20000)
+            {
+                Speech.say("Please wait.");
+            }
+            else if (avg >= 10000)
+            {
+                Speech.say("hmmmmmm, okay, hold on a second.");
+            }
             else if (avg >= 5000)
             {
                 Speech.say("Loading");
