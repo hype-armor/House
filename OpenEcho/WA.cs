@@ -32,8 +32,12 @@ namespace OpenEcho
         
         public string Query(string question)
         {
+            int id = ResponseTime.Start(QueryClassification.Actions.wolframAlpha);
+
             WolframAlpha wa = new WolframAlpha("API-KEY");
             QueryResult results = wa.Query(question);
+
+            ResponseTime.Stop(QueryClassification.Actions.wolframAlpha, id);
 
             string ret = "";
             if (results.Error != null)
@@ -42,7 +46,7 @@ namespace OpenEcho
             }
             else if (results.Pods.Count <= 0)
             {
-                ret = "Wolfram|Alpha doesn't know how to interpret your input.";
+                ret = "Wolfram Alpha doesn't know how to interpret your input.";
             }
             else
 	        {
