@@ -7,7 +7,7 @@
     <ProjectGuid>{4F6039B6-4C54-474A-AA1D-4D6C231388DB}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OpenEcho2</RootNamespace>
+    <RootNamespace>OpenEcho</RootNamespace>
     <AssemblyName>OpenEcho2</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -64,6 +64,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryClassification.cs" />
+    <Compile Include="ResponseTime.cs" />
     <Compile Include="Search.cs" />
     <Compile Include="Speech.cs" />
     <Compile Include="Utils.cs" />
