@@ -34,30 +34,30 @@ namespace OpenEcho
     {
         private const string saveLocation = "QueryClassification.bin";
 
-        public enum Actions {help, wikipedia, newPhrase, alarm, timer, clear, unknown};
+        public enum Actions { help, wikipedia, newPhrase, alarm, timer, clear, wolframAlpha, unknown };
 
         [field: NonSerialized()]
         private static Dictionary<Actions, HashSet<string>> actionDatabase = new Dictionary<Actions, HashSet<string>>();
 
         static QueryClassification()
         {
-            actionDatabase = LoadDict(saveLocation);
+            actionDatabase = LoadDictionary(saveLocation);
 
-            AddVerbToAction("what is", Actions.wikipedia, true);
-            AddVerbToAction("what is a", Actions.wikipedia, true);
-            AddVerbToAction("what is an", Actions.wikipedia, true);
+            AddPhraseToAction("what is", Actions.wolframAlpha, true);
+            AddPhraseToAction("what is a", Actions.wolframAlpha, true);
+            AddPhraseToAction("what is an", Actions.wolframAlpha, true);
 
-            AddVerbToAction("add verb", Actions.newPhrase, true);
+            AddPhraseToAction("add verb", Actions.newPhrase, true);
 
-            AddVerbToAction("set a timer for", Actions.timer, true);
-            AddVerbToAction("create a timer for", Actions.timer, true);
-            AddVerbToAction("make a timer for", Actions.timer, true);
+            AddPhraseToAction("set a timer for", Actions.timer, true);
+            AddPhraseToAction("create a timer for", Actions.timer, true);
+            AddPhraseToAction("make a timer for", Actions.timer, true);
 
-            AddVerbToAction("help", Actions.help, true);
-            AddVerbToAction("clear", Actions.clear, true);
+            AddPhraseToAction("help", Actions.help, true);
+            AddPhraseToAction("clear", Actions.clear, true);
         }
 
-        public static void AddVerbToAction(string phrase, Actions action, bool silent = false)
+        public static void AddPhraseToAction(string phrase, Actions action, bool silent = false)
         {
             if (!actionDatabase.Keys.Contains(action))
             {
@@ -70,7 +70,7 @@ namespace OpenEcho
             phrases.Add(phrase);
             actionDatabase[action] = phrases;
 
-            SaveDict();
+            SaveDictionary();
 
             if (!silent)
             {
@@ -78,7 +78,24 @@ namespace OpenEcho
             }
         }
 
-        private static Dictionary<Actions, HashSet<string>> LoadDict(string name)
+        public static void RemovePhraseFromAction(string phrase, Actions action)
+        {
+            if (actionDatabase.Keys.Contains(action))
+            {
+                HashSet<string> phrases = actionDatabase[action];
+                phrases.Remove(phrase);
+
+                Speech.say("Removed phrase " + phrase + " from " + action.ToString());
+            }
+            else
+            {
+                Speech.say("Unable to remove phrase from action list. Action does not exist.");
+            }
+
+            SaveDictionary();
+        }
+
+        private static Dictionary<Actions, HashSet<string>> LoadDictionary(string name)
         {
             Dictionary<Actions, HashSet<string>> dict = new Dictionary<Actions, HashSet<string>>();
 
@@ -92,7 +109,7 @@ namespace OpenEcho
             return dict;
         }
 
-        private static void SaveDict()
+        private static void SaveDictionary()
         {
             if (File.Exists(saveLocation))
             {
@@ -146,6 +163,25 @@ namespace OpenEcho
                 // more than one classification. List them and have user pick.
                 Speech.say("There is more than one match for your query. Please remove one of the matches from my database.");
 
+                Speech.say("Which would you like to remove?");
+                foreach (KeyValuePair<Actions, string> item in matchedVerbs)
+                {
+                    Speech.say("Would you like to remove the phrase " + item.Value + " from the action " + item.Key);
+
+                    string response = Console.ReadLine();
+
+                    if (response.CleanText() == "yes")
+                    {
+                        RemovePhraseFromAction(item.Value, item.Key);
+                    }
+                }
+
+                if (matchedVerbs.Count() == 1)
+                {
+                    // yay we cleaned up that action listing.
+                    return matchedVerbs.First();
+                }
+
                 return new KeyValuePair<Actions, string>(Actions.unknown, "");
             }
             else
@@ -157,6 +193,13 @@ namespace OpenEcho
             }
 
             throw new Exception("I was unable to find a match.");
+        }
+
+        public static Actions ParseAction(string word)
+        {
+            QueryClassification.Actions action =
+                                (QueryClassification.Actions)Enum.Parse(typeof(QueryClassification.Actions), word, true);
+            return action;
         }
 
         public string help

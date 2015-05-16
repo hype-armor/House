@@ -28,6 +28,8 @@ namespace OpenEcho
     {
         static Quartz quartz = new Quartz();
         static QueryClassification qc = new QueryClassification();
+        static Wikipedia wikipedia = new Wikipedia();
+
 
         static void Main(string[] args)
         {
@@ -50,13 +52,10 @@ namespace OpenEcho
             if (term.Key == QueryClassification.Actions.help)
             {
                 // print all possible actions in order.
-
-
                 Speech.say(qc.help);
             }
             else if (term.Key == QueryClassification.Actions.wikipedia)
             {
-                Wikipedia wikipedia = new Wikipedia();
                 input = input.Replace(term.Value, "").Trim();
                 string ret = wikipedia.Search(input);
                 Speech.say(ret);
@@ -91,9 +90,8 @@ namespace OpenEcho
 
                 try
                 {
-                    QueryClassification.Actions action =
-                                (QueryClassification.Actions)Enum.Parse(typeof(QueryClassification.Actions), words[1], true);
-                    QueryClassification.AddVerbToAction(verb, action);
+                    QueryClassification.Actions action = QueryClassification.ParseAction(words[1]);
+                    QueryClassification.AddPhraseToAction(verb, action);
                 }
                 catch (ArgumentException e)
                 {
@@ -109,6 +107,12 @@ namespace OpenEcho
                         Speech.say("Error casting word to action. " + e.Message);
                     }
                 }
+            }
+            else if (term.Key == QueryClassification.Actions.wolframAlpha)
+            {
+                Wolfram wolf = new Wolfram();
+                string result = wolf.Query(input);
+                Speech.say(result);
             }
             else if (term.Key == QueryClassification.Actions.clear)
             {
