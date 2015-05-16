@@ -34,7 +34,7 @@ namespace OpenEcho
     {
         private const string saveLocation = "QueryClassification.bin";
 
-        public enum Actions { help, wikipedia, newPhrase, alarm, timer, clear, wolframAlpha, unknown };
+        public enum Actions { help, wikipedia, newPhrase, alarm, timer, clear, wolframAlpha, weather, unknown };
 
         [field: NonSerialized()]
         private static Dictionary<Actions, HashSet<string>> actionDatabase = new Dictionary<Actions, HashSet<string>>();
@@ -51,10 +51,13 @@ namespace OpenEcho
 
             AddPhraseToAction("set a timer for", Actions.timer, true);
             AddPhraseToAction("create a timer for", Actions.timer, true);
-            AddPhraseToAction("make a timer for", Actions.timer, true);
 
             AddPhraseToAction("help", Actions.help, true);
             AddPhraseToAction("clear", Actions.clear, true);
+
+            AddPhraseToAction("current weather", Actions.weather, true);
+            AddPhraseToAction("weather", Actions.weather, true);
+            AddPhraseToAction("forcast", Actions.weather, true);
         }
 
         public static void AddPhraseToAction(string phrase, Actions action, bool silent = false)

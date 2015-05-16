@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ExtensionMethods;
 
 namespace OpenEcho
 {
@@ -113,6 +114,20 @@ namespace OpenEcho
                 Wolfram wolf = new Wolfram();
                 string result = wolf.Query(input);
                 Speech.say(result);
+            }
+            else if (term.Key == QueryClassification.Actions.weather)
+            {
+                Weather weather = new Weather();
+                weather.Update();
+
+                if (input.CleanText().Contains("forcast"))
+                {
+                    Speech.say(weather.Forecast);
+                }
+                else
+                {
+                    Speech.say("It is currently, " + weather.Temperature + " and " + weather.Condition);
+                }
             }
             else if (term.Key == QueryClassification.Actions.clear)
             {
