@@ -92,19 +92,19 @@ namespace OpenEcho
 
                     if (Silent)
                     {
-                        PrintMsg(text, title);
+                        PrintMsg(result, title);
                     }
                     else
                     {
                         try
                         {
-                            Console.WriteLine(text);
+                            Console.WriteLine(result);
                         }
                         catch (Exception e)
                         {
                             Silent = true;
                             PrintMsg(e.Message, e.Source);
-                            PrintMsg(text, title);
+                            PrintMsg(result, title);
                         } 
                     }
                 })
