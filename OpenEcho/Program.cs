@@ -1,6 +1,6 @@
 ﻿/*
     OpenEcho is a program to automate basic tasks at home all while being handsfree.
-    Copyright (C) 2015  Gregory Morgan
+    Copyright (C) 2015 Gregory Morgan
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,12 +47,11 @@ namespace OpenEcho
             
 
             string input = Console.ReadLine().Replace("  ", " ").Trim();
-
+            input = "set a timer for thirtynine minutes";
             KeyValuePair<QueryClassification.Actions, string> term = qc.Classify(input);
 
             if (term.Key == QueryClassification.Actions.help)
             {
-                // print all possible actions in order.
                 Speech.say(qc.help);
             }
             else if (term.Key == QueryClassification.Actions.wikipedia)
@@ -63,23 +62,15 @@ namespace OpenEcho
             }
             else if (term.Key == QueryClassification.Actions.timer)
             {
-                // set a timer for ten minutes
                 WordsToNumbers wtn = new WordsToNumbers();
 
+                wtn.ToLong(input);
                 var value = term.Value.ToString();
                 var key = term.Key.ToString();
 
                 input = input.Replace(value, key);
 
-                List<string> words = input.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
-
-                string minutesStr = words.Contains("minutes") ? words[words.IndexOf("minutes")-1] : "";
-
-                int minutes = wtn.retInt(minutesStr);
-
-                quartz.CreateTimer(new TimeSpan(0, minutes, 5));
-
-                Speech.say("I have created a timer for " + minutes.ToString() + " minutes.");
+                quartz.Understand(input);
             }
             else if (term.Key == QueryClassification.Actions.newPhrase)
             {

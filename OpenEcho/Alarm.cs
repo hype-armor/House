@@ -61,6 +61,21 @@ namespace OpenEcho
                 });
         }
 
+        public void Understand(string input)
+        {
+            WordsToNumbers wtn = new WordsToNumbers();
+
+            List<string> words = input.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            string minutesStr = words.Contains("minutes") ? words[words.IndexOf("minutes") - 1] : "";
+
+            int minutes = wtn.retInt(minutesStr); // does this work with "forty five" minutes...nope
+
+            CreateTimer(new TimeSpan(0, minutes, 0));
+
+            Speech.say("I have created a timer for " + minutes.ToString() + " minutes.");
+        }
+
         private static void CheckAlarms()
         {
             foreach (Alarm alarm in alarms)
