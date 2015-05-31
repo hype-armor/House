@@ -41,7 +41,6 @@ namespace OpenEcho
             }
         }
 
-        public static string Understood;
         public static bool Silent = false;
 
         private static List<Action> q = new List<Action>();
