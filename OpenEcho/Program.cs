@@ -34,9 +34,10 @@ namespace OpenEcho
 
         static void Main(string[] args)
         {
+            Speech.say("Type 'help' for a list of commands.");
+
             do
             {
-                Speech.say("Type 'help' for a list of commands.");
                 ProcessInput();
 
             } while (true);
@@ -44,10 +45,7 @@ namespace OpenEcho
 
         static void ProcessInput()
         {
-            
-
             string input = Console.ReadLine().Replace("  ", " ").Trim();
-            input = "set a timer for thirtynine minutes";
             KeyValuePair<QueryClassification.Actions, string> term = qc.Classify(input);
 
             if (term.Key == QueryClassification.Actions.help)
@@ -119,6 +117,11 @@ namespace OpenEcho
                 {
                     Speech.say("It is currently, " + weather.Temperature + " and " + weather.Condition);
                 }
+            }
+            else if (term.Key == QueryClassification.Actions.joke)
+            {
+                Jokes joke = new Jokes();
+                joke.TellAJoke();
             }
             else if (term.Key == QueryClassification.Actions.clear)
             {

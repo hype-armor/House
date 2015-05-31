@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="Alarm.cs" />
     <Compile Include="Calculator.cs" />
+    <Compile Include="Jokes.cs" />
     <Compile Include="News.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
