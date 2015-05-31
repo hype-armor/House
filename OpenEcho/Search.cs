@@ -1,6 +1,6 @@
 ﻿/*
     OpenEcho is a program to automate basic tasks at home all while being handsfree.
-    Copyright (C) 2015  Gregory Morgan
+    Copyright (C) 2015 Gregory Morgan
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
