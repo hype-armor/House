@@ -1,6 +1,6 @@
 ﻿/*
     OpenEcho is a program to automate basic tasks at home all while being handsfree.
-    Copyright (C) 2015  Gregory Morgan
+    Copyright (C) 2015 Gregory Morgan
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace OpenEcho
@@ -73,6 +74,63 @@ namespace OpenEcho
                 return number;
             }
             return -1;
+        }
+
+        private Dictionary<string, long> numberTable = new Dictionary<string, long>
+        {{"zero",0},{"one",1},{"two",2},{"three",3},{"four",4},
+        {"five",5},{"six",6},{"seven",7},{"eight",8},{"nine",9},
+        {"ten",10},{"eleven",11},{"twelve",12},{"thirteen",13},
+        {"fourteen",14},{"fifteen",15},{"sixteen",16},
+        {"seventeen",17},{"eighteen",18},{"nineteen",19},{"twenty",20},
+        {"thirty",30},{"forty",40},{"fifty",50},{"sixty",60},
+        {"seventy",70},{"eighty",80},{"ninety",90},{"hundred",100},
+        {"thousand",1000}};
+
+        public long ToLong(string numberString)
+        {
+            string[] words = numberString.ToLower().Split(new char[] { ' ', '-', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] ones = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
+            string[] teens = {"eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"};
+            string[] tens = {"ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"};
+            Dictionary<string, int> modifiers = new Dictionary<string, int>() {
+                {"billion", 1000000000},
+                {"million", 1000000},
+                {"thousand", 1000},
+                {"hundred", 100}
+            };
+
+            if (numberString == "eleventy billion")
+                return int.MaxValue; // 110,000,000,000 is out of range for an int!
+
+            int result = 0;
+            int currentResult = 0;
+            int lastModifier = 1;
+
+            foreach(string word in words) {
+                if(modifiers.ContainsKey(word)) {
+                    lastModifier *= modifiers[word];
+                } else {
+                    int n;
+
+                    if(lastModifier > 1) {
+                        result += currentResult * lastModifier;
+                        lastModifier = 1;
+                        currentResult = 0;
+                    }
+
+                    if((n = Array.IndexOf(ones, word) + 1) > 0) {
+                        currentResult += n;
+                    } else if((n = Array.IndexOf(teens, word) + 1) > 0) {
+                        currentResult += n + 10;
+                    } else if((n = Array.IndexOf(tens, word) + 1) > 0) {
+                        currentResult += n * 10;
+                    } else if(word != "and") {
+                        throw new ApplicationException("Unrecognized word: " + word);
+                    }
+                }
+            }
+
+            return result + currentResult * lastModifier;
         }
     }
 }
