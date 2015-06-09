@@ -74,11 +74,11 @@ namespace OpenEcho
                 NameSpaceMgr = new XmlNamespaceManager(Weather.NameTable);
 
                 XmlElement hazards = Weather.DocumentElement["entry"]["summary"]; //Weather.SelectNodes("//feed/entry/summary", NameSpaceMgr);
-                _Hazards = hazards.InnerText;
+                _Hazards = hazards == null ? "" : hazards.InnerText;
             }
             catch (Exception e)
             {
-                Speech.say(e.Message);
+                
             }
         }
     }

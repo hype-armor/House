@@ -17,11 +17,15 @@
 */
 
 using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ExtensionMethods;
+using System.Speech.Synthesis;
+using System.IO;
+using System.Threading;
 
 namespace OpenEcho
 {
@@ -34,29 +38,27 @@ namespace OpenEcho
 
         static void Main(string[] args)
         {
-            Speech.say("Type 'help' for a list of commands.");
+            // start web server...
+            WebServer ws = new WebServer();
+            ws.Start(IPAddress.Any, 80, "/");
 
-            do
-            {
-                ProcessInput();
-
-            } while (true);
         }
 
-        static void ProcessInput()
+        public static byte[] ProcessInput(string input, string id)
         {
-            string input = Console.ReadLine().Replace("  ", " ").Trim();
+            MessageSystem messageSystem = new MessageSystem();
+
             KeyValuePair<QueryClassification.Actions, string> term = qc.Classify(input);
 
             if (term.Key == QueryClassification.Actions.help)
             {
-                Speech.say(qc.help);
+                messageSystem.Post(id, qc.help);
             }
             else if (term.Key == QueryClassification.Actions.wikipedia)
             {
                 input = input.Replace(term.Value, "").Trim();
                 string ret = wikipedia.Search(input);
-                Speech.say(ret);
+                messageSystem.Post(id, ret);
             }
             else if (term.Key == QueryClassification.Actions.timer)
             {
@@ -90,19 +92,19 @@ namespace OpenEcho
                     if (actionNotFound)
                     {
                         // action does not exist.
-                        Speech.say("The action " + erroredAction + " does not exist.");
+                        messageSystem.Post(id, "The action " + erroredAction + " does not exist.");
                     }
                     else
                     {
-                        Speech.say("Error casting word to action. " + e.Message);
+                        messageSystem.Post(id, "Error casting word to action. " + e.Message);
                     }
                 }
             }
             else if (term.Key == QueryClassification.Actions.wolframAlpha)
             {
                 Wolfram wolf = new Wolfram();
-                string result = wolf.Query(input);
-                Speech.say(result);
+                string result = wolf.Query(id, input, messageSystem);
+                messageSystem.Post(id, result);
             }
             else if (term.Key == QueryClassification.Actions.weather)
             {
@@ -111,22 +113,35 @@ namespace OpenEcho
 
                 if (input.CleanText().Contains("forcast"))
                 {
-                    Speech.say(weather.Forecast);
+                    messageSystem.Post(id, weather.Forecast);
                 }
                 else
                 {
-                    Speech.say("It is currently, " + weather.Temperature + " and " + weather.Condition);
+                    messageSystem.Post(id, "It is currently, " + weather.Temperature + " and " + weather.Condition);
                 }
             }
             else if (term.Key == QueryClassification.Actions.joke)
             {
                 Jokes joke = new Jokes();
-                joke.TellAJoke();
+                messageSystem.Post(id, joke.TellAJoke());
             }
             else if (term.Key == QueryClassification.Actions.clear)
             {
                 Console.Clear();
             }
+
+
+            SpeechSynthesizer synth = new SpeechSynthesizer();
+            string path = @"C:\Users\Greg\Documents\output.wav";
+            synth.SetOutputToWaveFile(path);
+            //synth.Speak();
+
+            // wait for file to finish being written to.
+            
+            byte[] wav = File.ReadAllBytes(path);
+
+
+            return wav;
         }
     }
 }

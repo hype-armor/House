@@ -30,7 +30,7 @@ namespace OpenEcho
         private static Dictionary<QueryClassification.Actions, Dictionary<int, Stopwatch>> actionTimes
             = new Dictionary<QueryClassification.Actions, Dictionary<int, Stopwatch>>();
 
-        public static int Start(QueryClassification.Actions action)
+        public static int Start(string id, QueryClassification.Actions action, MessageSystem speech)
         {
             Stopwatch sw = new Stopwatch();
             if (!actionTimes.ContainsKey(action))
@@ -44,7 +44,7 @@ namespace OpenEcho
             }
 
             Dictionary<int, Stopwatch> times = actionTimes[action];
-            int id = times.Count();
+            int timerID = times.Count();
             Dictionary<int, Stopwatch>.ValueCollection stopwatches = times.Values;
             
             long sum = 0;
@@ -56,26 +56,26 @@ namespace OpenEcho
             
             if (avg >= 60000)
             {
-                Speech.say("Please wait. I might take a while.");
+                speech.Post(id, "Please wait. I might take a while.");
             }
             else if (avg >= 20000)
             {
-                Speech.say("Please wait.");
+                speech.Post(id, "Please wait.");
             }
             else if (avg >= 10000)
             {
-                Speech.say("hmmmmmm, okay, hold on a second.");
+                speech.Post(id, "hmmmmmm, okay, hold on a second.");
             }
             else if (avg >= 5000)
             {
-                Speech.say("Loading");
+                speech.Post(id, "Loading");
             }
 
-            times.Add(id, sw);
+            times.Add(timerID, sw);
             sw.Start();
             
 
-            return id;
+            return timerID;
         }
 
         public static void Stop(QueryClassification.Actions action, int id)

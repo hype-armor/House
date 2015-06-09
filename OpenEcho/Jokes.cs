@@ -38,7 +38,7 @@ namespace OpenEcho
         }
 
         // http://www.joke-db.com/widgets/src/wp/dad/*/3
-        public void TellAJoke(string type = "dad", string keywords = "*", int index = -1)
+        public string TellAJoke(string type = "dad", string keywords = "*", int index = -1)
         {
             if (index < 0)
             {
@@ -49,8 +49,7 @@ namespace OpenEcho
             string content = wc.DownloadString("http://www.joke-db.com/widgets/src/wp/" + type + "/" + keywords + "/" + index.ToString());
             content = content.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries).Last();
             content = content.CleanText();
-            Speech.say(content);
-
+            return content;
         }
     }
 }

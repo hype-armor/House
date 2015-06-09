@@ -29,70 +29,20 @@ using ExtensionMethods;
 
 namespace OpenEcho
 {
-    class Speech
+    class MessageSystem
     {
-        
-        public static bool Mute
+        enum MessageType { input, output };
+
+        // messages <ID , <MESSAGETYPE, MESSAGE>>
+        private Dictionary<string, Dictionary<MessageType, string>> messages
+            = new Dictionary<string, Dictionary<MessageType, string>>();
+
+        public void Post(string id, string message)
         {
-            set
-            {
-                //public static WindowsMicMute micMute = new WindowsMicMute();
-                // if true then mute else if false then unmute mic.
-            }
-        }
-
-        public static bool Silent = false;
-
-        private static List<Action> q = new List<Action>();
-
-        static Speech()
-        {
-            Task.Factory.StartNew(() =>
-                {
-                    while (true)
-                    {
-                        if (q.Count() > 0)
-                        {
-                            Action a = q.First();
-                            a.Invoke();
-                            q.Remove(a);
-                        }
-                        
-                        Thread.Sleep(5);
-                    }
-                });
-        }
-
-        public static void say(string text, string title = "OpenEcho")
-        {
-            q.Add(new Action(() =>
-                {
-                    text = text.CleanText();
-
-                    if (Silent)
-                    {
-                        PrintMsg(text, title);
-                    }
-                    else
-                    {
-                        try
-                        {
-                            Console.WriteLine(text);
-                        }
-                        catch (Exception e)
-                        {
-                            Silent = true;
-                            PrintMsg(e.Message, e.Source);
-                            PrintMsg(text, title);
-                        } 
-                    }
-                })
-            );
-        }
-
-        private static void PrintMsg(string text, string title)
-        {
-            Console.WriteLine();
+            Dictionary<MessageType, string> messageList = new Dictionary<MessageType,string>();
+            messageList = messages[id];
+            messageList.Add(MessageType.output, message);
+            messages.Add(id, messageList);
         }
     }
 }

@@ -43,27 +43,27 @@ namespace OpenEcho
         {
             actionDatabase = LoadDictionary(saveLocation);
 
-            AddPhraseToAction("what is", Actions.wolframAlpha, true);
-            AddPhraseToAction("what is a", Actions.wolframAlpha, true);
-            AddPhraseToAction("what is an", Actions.wolframAlpha, true);
+            AddPhraseToAction("what is", Actions.wolframAlpha);
+            AddPhraseToAction("what is a", Actions.wolframAlpha);
+            AddPhraseToAction("what is an", Actions.wolframAlpha);
 
-            AddPhraseToAction("add verb", Actions.newPhrase, true);
+            AddPhraseToAction("add verb", Actions.newPhrase);
 
-            AddPhraseToAction("set a timer for", Actions.timer, true);
-            AddPhraseToAction("create a timer for", Actions.timer, true);
+            AddPhraseToAction("set a timer for", Actions.timer);
+            AddPhraseToAction("create a timer for", Actions.timer);
 
-            AddPhraseToAction("help", Actions.help, true);
-            AddPhraseToAction("clear", Actions.clear, true);
+            AddPhraseToAction("help", Actions.help);
+            AddPhraseToAction("clear", Actions.clear);
 
-            AddPhraseToAction("current weather", Actions.weather, true);
-            AddPhraseToAction("weather", Actions.weather, true);
-            AddPhraseToAction("forcast", Actions.weather, true);
+            AddPhraseToAction("current weather", Actions.weather);
+            AddPhraseToAction("weather", Actions.weather);
+            AddPhraseToAction("forcast", Actions.weather);
 
-            AddPhraseToAction("tell me a joke", Actions.joke, true);
-            AddPhraseToAction("joke", Actions.joke, true);
+            AddPhraseToAction("tell me a joke", Actions.joke);
+            AddPhraseToAction("joke", Actions.joke);
         }
 
-        public static void AddPhraseToAction(string phrase, Actions action, bool silent = false)
+        public static string AddPhraseToAction(string phrase, Actions action)
         {
             if (!actionDatabase.Keys.Contains(action))
             {
@@ -78,10 +78,13 @@ namespace OpenEcho
 
             SaveDictionary();
 
-            if (!silent)
+            if (speech != null)
             {
-                Speech.say("I have added " + phrase + " to " + action); 
+                return "I have added " + phrase + " to " + action; 
             }
+
+
+            return "error 9000";
         }
 
         public static void RemovePhraseFromAction(string phrase, Actions action)
@@ -91,11 +94,11 @@ namespace OpenEcho
                 HashSet<string> phrases = actionDatabase[action];
                 phrases.Remove(phrase);
 
-                Speech.say("Removed phrase " + phrase + " from " + action.ToString());
+                Console.WriteLine("Removed phrase " + phrase + " from " + action.ToString());
             }
             else
             {
-                Speech.say("Unable to remove phrase from action list. Action does not exist.");
+                Console.WriteLine("Unable to remove phrase from action list. Action does not exist.");
             }
 
             SaveDictionary();
@@ -167,12 +170,12 @@ namespace OpenEcho
             else if (matchedVerbs.Count() > 1)
             {
                 // more than one classification. List them and have user pick.
-                Speech.say("There is more than one match for your query. Please remove one of the matches from my database.");
+                Console.WriteLine("There is more than one match for your query. Please remove one of the matches from my database.");
 
-                Speech.say("Which would you like to remove?");
+                Console.WriteLine("Which would you like to remove?");
                 foreach (KeyValuePair<Actions, string> item in matchedVerbs)
                 {
-                    Speech.say("Would you like to remove the phrase " + item.Value + " from the action " + item.Key);
+                    Console.WriteLine("Would you like to remove the phrase " + item.Value + " from the action " + item.Key);
 
                     string response = Console.ReadLine();
 
@@ -193,7 +196,7 @@ namespace OpenEcho
             else
             {
                 // no match was found. Ask user for classification and store for next time
-                Speech.say("I can not match your query to anything in my database.");
+                Console.WriteLine("I can not match your query to anything in my database.");
 
                 return new KeyValuePair<Actions, string>(Actions.unknown, "");
             }

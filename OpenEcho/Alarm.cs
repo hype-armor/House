@@ -33,7 +33,7 @@ namespace OpenEcho
 
             private void OnTimedEvent(object sender, ElapsedEventArgs e)
             {
-                Speech.say(name);
+                //Speech.say(name);
                 aTimer.Stop();
             }
         }
@@ -73,7 +73,7 @@ namespace OpenEcho
 
             CreateTimer(new TimeSpan(0, minutes, 0));
 
-            Speech.say("I have created a timer for " + minutes.ToString() + " minutes.");
+            //Speech.say("I have created a timer for " + minutes.ToString() + " minutes.");
         }
 
         private static void CheckAlarms()
@@ -104,7 +104,7 @@ namespace OpenEcho
 
         private static void Buzz(Alarm alarm)
         {
-            Speech.say(alarm.alarmTime.ToShortTimeString(), "Alarm!");
+            //Speech.say(alarm.alarmTime.ToShortTimeString());
         }
 
         public static void CreateAlarm(DateTime alarmTime, string name = "")
@@ -123,7 +123,7 @@ namespace OpenEcho
             timers.Add(t);
             t.Set();
 
-            Speech.say("I've set the timer " + name + " for you");
+            //Speech.say("I've set the timer " + name + " for you");
         }
     }
 

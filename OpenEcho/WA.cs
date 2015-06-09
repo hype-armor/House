@@ -30,14 +30,14 @@ namespace OpenEcho
     class Wolfram
     {
         
-        public string Query(string question)
+        public string Query(string id, string question, MessageSystem speech)
         {
-            int id = ResponseTime.Start(QueryClassification.Actions.wolframAlpha);
+            int ResponseTimeID = ResponseTime.Start(id, QueryClassification.Actions.wolframAlpha, speech);
 
             WolframAlpha wa = new WolframAlpha("API-KEY");
             QueryResult results = wa.Query(question);
 
-            ResponseTime.Stop(QueryClassification.Actions.wolframAlpha, id);
+            ResponseTime.Stop(QueryClassification.Actions.wolframAlpha, ResponseTimeID);
 
             string ret = "";
             if (results.Error != null)
