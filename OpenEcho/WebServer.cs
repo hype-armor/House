@@ -57,9 +57,10 @@ namespace OpenEcho
             {
                 InitializeSocket(ipAddress, port, contentPath);
             }
-            catch
+            catch (Exception e)
             {
-                Console.WriteLine("Error in creating server socker");
+                Console.WriteLine("Error in creating server socket");
+                Console.WriteLine(e.Message);
                 Console.ReadLine();
 
             }
@@ -135,7 +136,7 @@ namespace OpenEcho
             if (requestParser.HttpMethod.Equals("get", StringComparison.InvariantCultureIgnoreCase))
             {
                 var createResponse = new CreateResponse(clientSocket, _contentPath);
-                createResponse.RequestUrl(requestParser.HttpUrl);
+                createResponse.Request(requestParser.HttpUrl);
             }
             else
             {
@@ -158,6 +159,8 @@ namespace OpenEcho
             try
             {
                 receivedBufferlen = clientSocket.Receive(buffer);
+
+                //_charEncoder = MyExtensions.detectTextEncoding(buffer);
             }
             catch (Exception)
             {
@@ -211,10 +214,10 @@ namespace OpenEcho
             FileHandler = new FileHandler(_contentPath);
         }
 
-        public void RequestUrl(string requestedFile)
+        public void Request(string request)
         {
             string guid = Guid.NewGuid().ToString();
-            byte[] result = Program.ProcessInput(requestedFile, guid);
+            byte[] result = Program.ProcessInput(request, guid);
 
             SendResponse(ClientSocket, result, "200 Ok", "audio/wav");
 
