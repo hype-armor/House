@@ -87,7 +87,7 @@
     <Compile Include="QueryClassification.cs" />
     <Compile Include="ResponseTime.cs" />
     <Compile Include="Search.cs" />
-    <Compile Include="Speech.cs" />
+    <Compile Include="MessageSystem.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WA.cs" />
     <Compile Include="Weather.cs" />
