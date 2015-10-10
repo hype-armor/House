@@ -16,14 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using ExtensionMethods;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Windows;
 using System.Xml;
 
 namespace OpenEcho
