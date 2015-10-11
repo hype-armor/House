@@ -36,7 +36,7 @@ namespace OpenEcho
         {
             // start web server...
             WebServer ws = new WebServer();
-            ws.Start(IPAddress.Any, 80, "/");
+            ws.Start(IPAddress.Any, 8008, "/");
 
         }
 
@@ -48,13 +48,13 @@ namespace OpenEcho
 
             if (term.Key == QueryClassification.Actions.help)
             {
-                messageSystem.Post(id, qc.help);
+                messageSystem.Post(id, qc.help, MessageSystem.MessageType.output);
             }
             else if (term.Key == QueryClassification.Actions.wikipedia)
             {
                 input = input.Replace(term.Value, "").Trim();
                 string ret = wikipedia.Search(input);
-                messageSystem.Post(id, ret);
+                messageSystem.Post(id, ret, MessageSystem.MessageType.output);
             }
             else if (term.Key == QueryClassification.Actions.timer)
             {
@@ -88,11 +88,11 @@ namespace OpenEcho
                     if (actionNotFound)
                     {
                         // action does not exist.
-                        messageSystem.Post(id, "The action " + erroredAction + " does not exist.");
+                        messageSystem.Post(id, "The action " + erroredAction + " does not exist.", MessageSystem.MessageType.output);
                     }
                     else
                     {
-                        messageSystem.Post(id, "Error casting word to action. " + e.Message);
+                        messageSystem.Post(id, "Error casting word to action. " + e.Message, MessageSystem.MessageType.output);
                     }
                 }
             }
@@ -100,7 +100,7 @@ namespace OpenEcho
             {
                 Wolfram wolf = new Wolfram();
                 string result = wolf.Query(id, input, messageSystem);
-                messageSystem.Post(id, result);
+                messageSystem.Post(id, result, MessageSystem.MessageType.output);
             }
             else if (term.Key == QueryClassification.Actions.weather)
             {
@@ -109,17 +109,17 @@ namespace OpenEcho
 
                 if (input.CleanText().Contains("forcast"))
                 {
-                    messageSystem.Post(id, weather.Forecast);
+                    messageSystem.Post(id, weather.Forecast, MessageSystem.MessageType.output);
                 }
                 else
                 {
-                    messageSystem.Post(id, "It is currently, " + weather.Temperature + " and " + weather.Condition);
+                    messageSystem.Post(id, "It is currently, " + weather.Temperature + " and " + weather.Condition, MessageSystem.MessageType.output);
                 }
             }
             else if (term.Key == QueryClassification.Actions.joke)
             {
                 Jokes joke = new Jokes();
-                messageSystem.Post(id, joke.TellAJoke());
+                messageSystem.Post(id, joke.TellAJoke(), MessageSystem.MessageType.output);
             }
             else if (term.Key == QueryClassification.Actions.clear)
             {
@@ -130,7 +130,7 @@ namespace OpenEcho
             SpeechSynthesizer synth = new SpeechSynthesizer();
             string path = @"C:\Users\Greg\Documents\output.wav";
             synth.SetOutputToWaveFile(path);
-            //synth.Speak();
+            synth.Speak("this is a test");
 
             // wait for file to finish being written to.
             

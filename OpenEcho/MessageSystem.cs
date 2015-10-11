@@ -22,18 +22,51 @@ namespace OpenEcho
 {
     class MessageSystem
     {
-        enum MessageType { input, output };
+        public enum MessageType { input, output, tempResponse };
 
         // messages <ID , <MESSAGETYPE, MESSAGE>>
         private Dictionary<string, Dictionary<MessageType, string>> messages
             = new Dictionary<string, Dictionary<MessageType, string>>();
 
-        public void Post(string id, string message)
+        public void Post(string id, string message, MessageType messageType)
         {
             Dictionary<MessageType, string> messageList = new Dictionary<MessageType,string>();
+
+            // messages might not have the id so we must check and then add a new id if it does not exist.
+            if (!message.Contains(id))
+            {
+                Dictionary < MessageType, string> queue = new Dictionary<MessageType, string>();
+                queue.Add(messageType, message);
+                messages.Add(id, queue);
+            }
+
             messageList = messages[id];
             messageList.Add(MessageType.output, message);
             messages.Add(id, messageList);
+        }
+
+        public string Get(string id)
+        {
+            // using the guid provided by the web server, you can get the queued messages.
+
+            if (messages.ContainsKey(id))
+            {
+                Dictionary<MessageType, string> ret = messages[id];
+
+                // check if output message has been added, if not, then check for temp response.
+                if (ret.ContainsKey(MessageType.output))
+                {
+                    return ret[MessageType.output];
+                }
+                else if (ret.ContainsKey(MessageType.tempResponse))
+                {
+                    return ret[MessageType.tempResponse];
+                }
+            }
+
+            // if nothing else has triggered, return an empty string.
+            return string.Empty;
+
         }
     }
 }
