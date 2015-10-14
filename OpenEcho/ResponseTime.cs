@@ -53,19 +53,19 @@ namespace OpenEcho
             
             if (avg >= 60000)
             {
-                speech.Post(id, "Please wait. I might take a while.");
+                speech.Post(id, "Please wait. I might take a while.", MessageSystem.MessageType.tempResponse);
             }
             else if (avg >= 20000)
             {
-                speech.Post(id, "Please wait.");
+                speech.Post(id, "Please wait.", MessageSystem.MessageType.tempResponse);
             }
             else if (avg >= 10000)
             {
-                speech.Post(id, "hmmmmmm, okay, hold on a second.");
+                speech.Post(id, "hmmmmmm, okay, hold on a second.", MessageSystem.MessageType.tempResponse);
             }
             else if (avg >= 5000)
             {
-                speech.Post(id, "Loading");
+                speech.Post(id, "Loading", MessageSystem.MessageType.tempResponse);
             }
 
             times.Add(timerID, sw);
