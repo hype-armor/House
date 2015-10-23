@@ -71,7 +71,7 @@ namespace OpenEcho
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);  v
+                Console.WriteLine(e.Message); 
             }
         }
     }
