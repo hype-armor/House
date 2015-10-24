@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace OpenEcho
+namespace EchoServer
 {
     class Quartz
     {

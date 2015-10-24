@@ -18,7 +18,7 @@
 
 using System.Collections.Generic;
 
-namespace OpenEcho
+namespace EchoServer
 {
     class MessageSystem
     {
@@ -28,21 +28,23 @@ namespace OpenEcho
         private Dictionary<string, Dictionary<MessageType, string>> messages
             = new Dictionary<string, Dictionary<MessageType, string>>();
 
-        public void Post(string id, string message, MessageType messageType)
+        public void Post(string id, MessageType messageType, string message)
         {
             Dictionary<MessageType, string> messageList = new Dictionary<MessageType,string>();
 
             // messages might not have the id so we must check and then add a new id if it does not exist.
             if (!message.Contains(id))
             {
-                Dictionary < MessageType, string> queue = new Dictionary<MessageType, string>();
+                Dictionary<MessageType, string> queue = new Dictionary<MessageType, string>();
                 queue.Add(messageType, message);
                 messages.Add(id, queue);
             }
-
-            messageList = messages[id];
-            messageList.Add(MessageType.output, message);
-            messages.Add(id, messageList);
+            else
+            {
+                messageList = messages[id];
+                messageList.Add(MessageType.output, message);
+                messages.Add(id, messageList);
+            }
         }
 
         public string Get(string id)

@@ -22,7 +22,7 @@ using System.Xml;
 using HtmlAgilityPack;
 using System.Text.RegularExpressions;
 
-namespace OpenEcho
+namespace EchoServer
 {
     class Wikipedia
     {

@@ -26,8 +26,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using ExtensionMethods;
+using System.Threading.Tasks;
 
-namespace OpenEcho
+namespace EchoServer
 {
     public class WebServer
     {
@@ -64,11 +65,15 @@ namespace OpenEcho
                 Console.ReadLine();
 
             }
-            while (_running)
+            Task t = new Task(() =>
             {
-                var requestHandler = new RequestHandler(_serverSocket, contentPath);
-                requestHandler.AcceptRequest();
-            }
+                while (_running)
+                {
+                    var requestHandler = new RequestHandler(_serverSocket, contentPath);
+                    requestHandler.AcceptRequest();
+                }
+            });
+            t.Start();
         }
         public void Stop()
         {
@@ -133,7 +138,12 @@ namespace OpenEcho
             string requestString = DecodeRequest(clientSocket);
             requestParser.Parser(requestString);
 
-            if (requestParser.HttpMethod.Equals("get", StringComparison.InvariantCultureIgnoreCase))
+            if (requestParser.HttpMethod == null)
+            {
+                var createResponse = new CreateResponse(clientSocket, _contentPath);
+                createResponse.Request("failed");
+            }
+            else if (requestParser.HttpMethod.Equals("get", StringComparison.InvariantCultureIgnoreCase))
             {
                 var createResponse = new CreateResponse(clientSocket, _contentPath);
                 createResponse.Request(requestParser.HttpUrl);

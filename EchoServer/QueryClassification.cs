@@ -24,7 +24,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using ExtensionMethods;
 
-namespace OpenEcho
+namespace EchoServer
 {
     // for information on saving the object to a file on change. https://msdn.microsoft.com/en-us/library/et91as27.aspx
 

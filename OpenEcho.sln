@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenEcho", "OpenEcho\OpenEcho.csproj", "{4F6039B6-4C54-474A-AA1D-4D6C231388DB}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoServer", "EchoServer\EchoServer.csproj", "{167E320B-723E-4496-B5D3-58265812C378}"
 EndProject
 Global
@@ -13,10 +11,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4F6039B6-4C54-474A-AA1D-4D6C231388DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4F6039B6-4C54-474A-AA1D-4D6C231388DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4F6039B6-4C54-474A-AA1D-4D6C231388DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4F6039B6-4C54-474A-AA1D-4D6C231388DB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{167E320B-723E-4496-B5D3-58265812C378}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{167E320B-723E-4496-B5D3-58265812C378}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{167E320B-723E-4496-B5D3-58265812C378}.Release|Any CPU.ActiveCfg = Release|Any CPU

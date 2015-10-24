@@ -19,7 +19,7 @@
 using System;
 using System.Xml;
 
-namespace OpenEcho
+namespace EchoServer
 {
     class Weather
     {

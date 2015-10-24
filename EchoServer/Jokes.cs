@@ -21,7 +21,7 @@ using System.Linq;
 using System.Net;
 using ExtensionMethods;
 
-namespace OpenEcho
+namespace EchoServer
 {
     class Jokes
     {

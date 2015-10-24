@@ -19,7 +19,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenEcho
+namespace EchoServer
 {
     class WordsToNumbers
     {

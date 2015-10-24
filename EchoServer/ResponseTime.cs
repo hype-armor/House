@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 
-namespace OpenEcho
+namespace EchoServer
 {
     class ResponseTime
     {
@@ -53,19 +53,19 @@ namespace OpenEcho
             
             if (avg >= 60000)
             {
-                speech.Post(id, "Please wait. I might take a while.", MessageSystem.MessageType.tempResponse);
+                speech.Post(id, MessageSystem.MessageType.tempResponse, "Please wait. I might take a while.");
             }
             else if (avg >= 20000)
             {
-                speech.Post(id, "Please wait.", MessageSystem.MessageType.tempResponse);
+                speech.Post(id, MessageSystem.MessageType.tempResponse, "Please wait.");
             }
             else if (avg >= 10000)
             {
-                speech.Post(id, "hmmmmmm, okay, hold on a second.", MessageSystem.MessageType.tempResponse);
+                speech.Post(id, MessageSystem.MessageType.tempResponse, "hmmmmmm, okay, hold on a second.");
             }
             else if (avg >= 5000)
             {
-                speech.Post(id, "Loading", MessageSystem.MessageType.tempResponse);
+                speech.Post(id, MessageSystem.MessageType.tempResponse, "Loading");
             }
 
             times.Add(timerID, sw);

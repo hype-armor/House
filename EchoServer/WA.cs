@@ -20,7 +20,7 @@ using System.Linq;
 using WolframAlphaNET;
 using WolframAlphaNET.Objects;
 
-namespace OpenEcho
+namespace EchoServer
 {
     class Wolfram
     {

@@ -1,6 +1,6 @@
 ﻿namespace EchoServer
 {
-    partial class Service1
+    partial class Echo
     {
         /// <summary> 
         /// Required designer variable.
@@ -28,22 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             // 
-            // notifyIcon1
+            // Echo
             // 
-            this.notifyIcon1.Text = "notifyIcon1";
-            this.notifyIcon1.Visible = true;
-            // 
-            // Service1
-            // 
-            this.ServiceName = "Service1";
+            this.ServiceName = "Echo";
 
         }
 
         #endregion
-
-        private System.Windows.Forms.NotifyIcon notifyIcon1;
     }
 }
