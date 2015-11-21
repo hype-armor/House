@@ -24,7 +24,7 @@ namespace EchoServer
             // start web server...
             
                 // might not be the best way...
-                ws.Start(IPAddress.Any, 80, "/");
+                ws.Start(IPAddress.Any, 8080, "/");
             
         }
 
