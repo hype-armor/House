@@ -128,15 +128,14 @@ namespace EchoServer
 
             byte[] wav = null;
 
+            string response = messageSystem.Get(id);
+
             var t = new System.Threading.Thread(() =>
             {
-                SpeechSynthesizer synth = new SpeechSynthesizer();
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
+                    SpeechSynthesizer synth = new SpeechSynthesizer();
                     synth.SetOutputToWaveStream(memoryStream);
-
-                    string response = messageSystem.Get(id);
-
                     synth.Speak(response);
                     wav = memoryStream.ToArray();
                 }
