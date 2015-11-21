@@ -42,6 +42,9 @@ namespace EchoServer
         {
             actionDatabase = LoadDictionary(saveLocation);
 
+            AddPhraseToAction("look up", Actions.wikipedia);
+            AddPhraseToAction("lookup", Actions.wikipedia);
+
             AddPhraseToAction("what is", Actions.wolframAlpha);
             AddPhraseToAction("what is a", Actions.wolframAlpha);
             AddPhraseToAction("what is an", Actions.wolframAlpha);
