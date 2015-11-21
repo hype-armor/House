@@ -126,9 +126,13 @@ namespace EchoServer
             }
 
 
-            byte[] wav = null;
-
             string response = messageSystem.Get(id);
+            return GetAudio(response, messageSystem);
+        }
+
+        private static byte[] GetAudio(string response, MessageSystem messageSystem)
+        {
+            byte[] wav = null;
 
             var t = new System.Threading.Thread(() =>
             {
@@ -142,9 +146,8 @@ namespace EchoServer
             });
             t.Start();
             t.Join();
-           
+
             return wav;
-            //return new byte[0];
         }
     }
 }
