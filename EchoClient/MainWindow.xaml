@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="135.833" Width="493.333">
     <Grid>
-        <TextBox x:Name="txtQuery" Margin="10,10,10,0" TextWrapping="Wrap" Text="TextBox" Height="39" VerticalAlignment="Top"/>
+        <TextBox x:Name="txtQuery" Margin="10,10,10,0" TextWrapping="Wrap" Text="weather" Height="39" VerticalAlignment="Top"/>
         <Button x:Name="gobtn" Content="Go" Margin="10,54,10,0" Height="28" VerticalAlignment="Top" Click="gobtn_Click"/>
 
     </Grid>

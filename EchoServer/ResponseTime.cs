@@ -19,6 +19,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using System;
 
 namespace EchoServer
 {
@@ -27,7 +28,7 @@ namespace EchoServer
         private static Dictionary<QueryClassification.Actions, Dictionary<int, Stopwatch>> actionTimes
             = new Dictionary<QueryClassification.Actions, Dictionary<int, Stopwatch>>();
 
-        public static int Start(string id, QueryClassification.Actions action, MessageSystem speech)
+        public static int Start(Guid guid, QueryClassification.Actions action, MessageSystem messageSystem)
         {
             Stopwatch sw = new Stopwatch();
             if (!actionTimes.ContainsKey(action))
@@ -53,19 +54,19 @@ namespace EchoServer
             
             if (avg >= 60000)
             {
-                speech.Post(id, MessageSystem.MessageType.tempResponse, "Please wait. I might take a while.");
+                messageSystem.Post(guid, Message.Type.tempResponse, "Please wait. I might take a while.");
             }
             else if (avg >= 20000)
             {
-                speech.Post(id, MessageSystem.MessageType.tempResponse, "Please wait.");
+                messageSystem.Post(guid, Message.Type.tempResponse, "Please wait.");
             }
             else if (avg >= 10000)
             {
-                speech.Post(id, MessageSystem.MessageType.tempResponse, "hmmmmmm, okay, hold on a second.");
+                messageSystem.Post(guid, Message.Type.tempResponse, "hmmmmmm, okay, hold on a second.");
             }
             else if (avg >= 5000)
             {
-                speech.Post(id, MessageSystem.MessageType.tempResponse, "Loading");
+                messageSystem.Post(guid, Message.Type.tempResponse, "Loading");
             }
 
             times.Add(timerID, sw);

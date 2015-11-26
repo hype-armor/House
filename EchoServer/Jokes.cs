@@ -25,7 +25,7 @@ namespace EchoServer
 {
     class Jokes
     {
-        int random 
+        static int random 
         {
             get 
             {
@@ -35,8 +35,13 @@ namespace EchoServer
         }
 
         // http://www.joke-db.com/widgets/src/wp/dad/*/3
-        public string TellAJoke(string type = "dad", string keywords = "*", int index = -1)
+        public static void Go(Guid guid, string question, MessageSystem messageSystem)
         {
+            int ResponseTimeID = ResponseTime.Start(guid, QueryClassification.Actions.joke, messageSystem);
+
+            string type = "dad";
+            string keywords = "*";
+            int index = -1;
             if (index < 0)
             {
                 index = random;
@@ -46,7 +51,9 @@ namespace EchoServer
             string content = wc.DownloadString("http://www.joke-db.com/widgets/src/wp/" + type + "/" + keywords + "/" + index.ToString());
             content = content.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries).Last();
             content = content.CleanText();
-            return content;
+
+            ResponseTime.Stop(QueryClassification.Actions.joke, ResponseTimeID);
+            messageSystem.Post(guid, Message.Type.output, content);
         }
     }
 }

@@ -27,6 +27,7 @@ using System.Text;
 using System.Threading;
 using ExtensionMethods;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace EchoServer
 {
@@ -65,15 +66,13 @@ namespace EchoServer
                 Console.ReadLine();
 
             }
-            Task t = new Task(() =>
+
+            while (_running)
             {
-                while (_running)
-                {
-                    var requestHandler = new RequestHandler(_serverSocket, contentPath);
-                    requestHandler.AcceptRequest();
-                }
-            });
-            t.Start();
+                var requestHandler = new RequestHandler(_serverSocket, contentPath);
+                requestHandler.AcceptRequest();
+            }
+
         }
         public void Stop()
         {
@@ -138,20 +137,20 @@ namespace EchoServer
             string requestString = DecodeRequest(clientSocket);
             requestParser.Parser(requestString);
 
-            if (requestParser.HttpMethod == null)
+            if (requestParser.HttpMethod != null && requestParser.HttpMethod.Equals("get", StringComparison.InvariantCultureIgnoreCase))
             {
+                bool isEchoClient = true;
+                if (requestString.Contains("User-Agent") && 
+                    (requestString.Contains("Mozilla") || 
+                    requestString.Contains("AppleWebKit") || 
+                    requestString.Contains("Chrome") || 
+                    requestString.Contains("Safari")))
+                {
+                    // we have a browser request.
+                    isEchoClient = false;
+                }
                 var createResponse = new CreateResponse(clientSocket, _contentPath);
-                createResponse.Request("failed");
-            }
-            else if (requestParser.HttpMethod.Equals("get", StringComparison.InvariantCultureIgnoreCase))
-            {
-                var createResponse = new CreateResponse(clientSocket, _contentPath);
-                createResponse.Request(requestParser.HttpUrl);
-            }
-            else
-            {
-                Console.WriteLine("unemplimented mothode");
-                Console.ReadLine();
+                createResponse.Request(requestParser.HttpUrl, isEchoClient);
             }
             StopClientSocket(clientSocket);
         }
@@ -224,13 +223,21 @@ namespace EchoServer
             FileHandler = new FileHandler(_contentPath);
         }
 
-        public void Request(string request)
+        public void Request(string request, bool isEchoClient)
         {
-            string guid = Guid.NewGuid().ToString();
-            byte[] result = Program.ProcessInput(request, guid);
+            request = request.CleanText();
+            Program p = new Program();
+            byte[] result = p.Go(request, isEchoClient);
 
-            SendResponse(ClientSocket, result, "200 Ok", "audio/wav");
-
+            // the response is a guid. Server says it will take a bit for the request to complete.
+            if (result.Take(16) == p._guid.ToByteArray())
+            {
+                SendResponse(ClientSocket, result, "200 Ok", "text/plain");
+            }
+            else
+            {
+                SendResponse(ClientSocket, result, "200 Ok", "audio/wav");
+            }
         }
 
         private string GetTypeOfFile(RegistryKey registryKey, string fileName)

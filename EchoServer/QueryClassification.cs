@@ -40,7 +40,7 @@ namespace EchoServer
 
         static QueryClassification()
         {
-            actionDatabase = LoadDictionary(saveLocation);
+            //actionDatabase = LoadDictionary(saveLocation);
 
             AddPhraseToAction("look up", Actions.wikipedia);
             AddPhraseToAction("lookup", Actions.wikipedia);
@@ -78,7 +78,7 @@ namespace EchoServer
             phrases.Add(phrase);
             actionDatabase[action] = phrases;
 
-            SaveDictionary();
+            //SaveDictionary();
 
             if (phrase != null)
             {

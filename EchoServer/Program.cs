@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace EchoServer
 {
-    static class Program
+    class Program
     {
         /// <summary>
         /// The main entry point for the application.
@@ -34,38 +34,45 @@ namespace EchoServer
                 ServiceBase.Run(new Echo());
             }
         }
+        static private Guid guid;
 
-        static Quartz quartz = new Quartz();
-        static QueryClassification qc = new QueryClassification();
-        static Wikipedia wikipedia = new Wikipedia();
-
-        public static byte[] ProcessInput(string input, string id)
+        public Guid _guid
         {
+            get { return guid; }
+        }
+
+        public byte[] Go(string input, bool isEchoClient)
+        {
+            input = input == string.Empty ? "help" : input;
+
             MessageSystem messageSystem = new MessageSystem();
 
+            // check message system for input if input is a guid
+            guid = Guid.NewGuid();
+            bool isGuid = input.Length == 16 && Guid.TryParse(input, out guid);
+            if (!isGuid)
+            {
+                guid = Guid.NewGuid();
+                ProcessInput(guid, input, messageSystem);
+            }
+
+            string response = messageSystem.Get(guid).CleanText();
+            return GetAudio(response);
+        }
+
+        private static void ProcessInput(Guid guid, string input, MessageSystem messageSystem)
+        {
+            QueryClassification qc = new QueryClassification();
             KeyValuePair<QueryClassification.Actions, string> term = qc.Classify(input);
 
             if (term.Key == QueryClassification.Actions.help)
             {
-                messageSystem.Post(id, MessageSystem.MessageType.output, qc.help);
+                messageSystem.Post(guid, Message.Type.output, qc.help);
             }
             else if (term.Key == QueryClassification.Actions.wikipedia)
             {
                 input = input.Replace(term.Value, "").Trim();
-                string ret = wikipedia.Search(input);
-                messageSystem.Post(id, MessageSystem.MessageType.output, ret);
-            }
-            else if (term.Key == QueryClassification.Actions.timer)
-            {
-                WordsToNumbers wtn = new WordsToNumbers();
-
-                wtn.ToLong(input);
-                var value = term.Value.ToString();
-                var key = term.Key.ToString();
-
-                input = input.Replace(value, key);
-
-                quartz.Understand(input);
+                Wikipedia.Go(guid, messageSystem, input);
             }
             else if (term.Key == QueryClassification.Actions.newPhrase)
             {
@@ -87,65 +94,58 @@ namespace EchoServer
                     if (actionNotFound)
                     {
                         // action does not exist.
-                        messageSystem.Post(id, MessageSystem.MessageType.output, "The action " + erroredAction + " does not exist.");
+                        messageSystem.Post(guid, Message.Type.output, "The action " + erroredAction + " does not exist.");
                     }
                     else
                     {
-                        messageSystem.Post(id, MessageSystem.MessageType.output, "Error casting word to action. " + e.Message);
+                        messageSystem.Post(guid, Message.Type.output, "Error casting word to action. " + e.Message);
                     }
                 }
             }
             else if (term.Key == QueryClassification.Actions.wolframAlpha)
             {
-                Wolfram wolf = new Wolfram();
-                string result = wolf.Query(id, input, messageSystem);
-                messageSystem.Post(id, MessageSystem.MessageType.output, result);
+                Wolfram.Go(guid, input, messageSystem);
             }
             else if (term.Key == QueryClassification.Actions.weather)
             {
-                Weather weather = new Weather();
-                weather.Update();
-
-                if (input.CleanText().Contains("forcast"))
-                {
-                    messageSystem.Post(id, MessageSystem.MessageType.output, weather.Forecast);
-                }
-                else
-                {
-                    messageSystem.Post(id, MessageSystem.MessageType.output, "It is currently, " + weather.Temperature + " and " + weather.Condition);
-                }
+                Weather.Go(guid, input, messageSystem);
             }
             else if (term.Key == QueryClassification.Actions.joke)
             {
-                Jokes joke = new Jokes();
-                messageSystem.Post(id, MessageSystem.MessageType.output, joke.TellAJoke());
+                Jokes.Go(guid, input, messageSystem);
             }
             else if (term.Key == QueryClassification.Actions.clear)
             {
                 Console.Clear();
             }
+        }
 
-
+        private static byte[] GetAudio(string response)
+        {
             byte[] wav = null;
 
             var t = new System.Threading.Thread(() =>
             {
-                SpeechSynthesizer synth = new SpeechSynthesizer();
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
+                    SpeechSynthesizer synth = new SpeechSynthesizer();
                     synth.SetOutputToWaveStream(memoryStream);
-
-                    string response = messageSystem.Get(id);
-
                     synth.Speak(response);
                     wav = memoryStream.ToArray();
                 }
             });
             t.Start();
             t.Join();
-           
+
             return wav;
-            //return new byte[0];
+        }
+
+        public static byte[] Combine(byte[] first, byte[] second)
+        {
+            byte[] ret = new byte[first.Length + second.Length];
+            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
+            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
+            return ret;
         }
     }
 }
