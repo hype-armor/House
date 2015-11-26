@@ -22,10 +22,11 @@ namespace EchoServer
         protected override void OnStart(string[] args)
         {
             // start web server...
-            
-                // might not be the best way...
+            var t = new System.Threading.Thread(() =>
+            {
                 ws.Start(IPAddress.Any, 8080, "/");
-            
+            });
+            t.Start();
         }
 
         protected override void OnStop()
