@@ -16,53 +16,46 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Collections.Generic;
 
 namespace EchoServer
 {
     class MessageSystem
     {
-        public enum MessageType { input, output, tempResponse };
+        private List<Message> messages = new List<Message>();
 
-        // messages <ID , <MESSAGETYPE, MESSAGE>>
-        private Dictionary<string, Dictionary<MessageType, string>> messages
-            = new Dictionary<string, Dictionary<MessageType, string>>();
-
-        public void Post(string id, MessageType messageType, string message)
+        public bool ContainsTempResponse(string guid)
         {
-            Dictionary<MessageType, string> messageList = new Dictionary<MessageType,string>();
-
-            // messages might not have the id so we must check and then add a new id if it does not exist.
-            if (!message.Contains(id))
-            {
-                Dictionary<MessageType, string> queue = new Dictionary<MessageType, string>();
-                queue.Add(messageType, message);
-                messages.Add(id, queue);
-            }
-            else
-            {
-                messageList = messages[id];
-                messageList.Add(MessageType.output, message);
-                messages.Add(id, messageList);
-            }
+            return true;
         }
 
-        public string Get(string id)
+        public void Post(Guid guid, Message.Type messageType, string message)
         {
-            // using the guid provided by the web server, you can get the queued messages.
+            Message newMessage = new Message();
+            newMessage.guid = guid;
+            newMessage.MessageType = messageType;
+            newMessage.message = message;
+            messages.Add(newMessage);
+            return;
+        }
 
-            if (messages.ContainsKey(id))
+        public string Get(Guid guid)
+        {
+        // using the guid provided by the web server, you can get the queued messages.
+            foreach (Message _message in messages)
             {
-                Dictionary<MessageType, string> ret = messages[id];
-
-                // check if output message has been added, if not, then check for temp response.
-                if (ret.ContainsKey(MessageType.output))
+                if (_message.guid == guid)
                 {
-                    return ret[MessageType.output];
-                }
-                else if (ret.ContainsKey(MessageType.tempResponse))
-                {
-                    return ret[MessageType.tempResponse];
+                    // check if output message has been added, if not, then check for temp response.
+                    if (_message.MessageType == Message.Type.output)
+                    {
+                        return _message.message;
+                    }
+                    else if (_message.MessageType == Message.Type.tempResponse)
+                    {
+                        return _message.message;
+                    }
                 }
             }
 
@@ -70,5 +63,13 @@ namespace EchoServer
             return string.Empty;
 
         }
+    }
+
+    public class Message
+    {
+        public Guid guid = Guid.NewGuid();
+        public enum Type { input, output, tempResponse };
+        public Type MessageType;
+        public string message;
     }
 }

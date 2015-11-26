@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Linq;
 using WolframAlphaNET;
 using WolframAlphaNET.Objects;
@@ -24,20 +25,17 @@ namespace EchoServer
 {
     class Wolfram
     {
-        
-        public string Query(string id, string question, MessageSystem speech)
+        public static void Go(Guid guid, string question, MessageSystem messageSystem)
         {
-            int ResponseTimeID = ResponseTime.Start(id, QueryClassification.Actions.wolframAlpha, speech);
+            int ResponseTimeID = ResponseTime.Start(guid, QueryClassification.Actions.wolframAlpha, messageSystem);
 
             WolframAlpha wa = new WolframAlpha("API-KEY");
             QueryResult results = wa.Query(question);
 
-            ResponseTime.Stop(QueryClassification.Actions.wolframAlpha, ResponseTimeID);
-
             string ret = "";
             if (results.Error != null)
             {
-                return results.Error.Message;
+                ret = results.Error.Message;
             }
             else if (results.Pods.Count <= 0)
             {
@@ -47,8 +45,9 @@ namespace EchoServer
 	        {
                 ret = results.Pods[1].SubPods[0].Plaintext;
 	        }
-            
-            return ret.Replace(" | ", ", ");
+
+            ResponseTime.Stop(QueryClassification.Actions.wolframAlpha, ResponseTimeID);
+            messageSystem.Post(guid, Message.Type.output, ret.Replace(" | ", ", ")); ;
         }
     }
 }

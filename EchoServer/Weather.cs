@@ -18,25 +18,24 @@
 
 using System;
 using System.Xml;
+using ExtensionMethods;
 
 namespace EchoServer
 {
     class Weather
     {
-        private string ZIP = "74037";
-        private string _Temperature;
-        public string Temperature { get { return _Temperature; } }
-        private string _Condition;
-        public string Condition { get { return _Condition; } }
-        private string _Forecast;
-        public string Forecast { get { return _Forecast; } }
-        private string _Hazards;
-        public string Hazards { get { return _Hazards; } }
-
-        public void Update()
+        public static void Go(Guid guid, string input, MessageSystem messageSystem)
         {
+            string ZIP = "74037";
+            string Temperature;
+            string Condition;
+            string Forecast;
+            string Hazards;
+
             try
             {
+                int ResponseTimeID = ResponseTime.Start(guid, QueryClassification.Actions.weather, messageSystem);
+
                 string SavedLocation = "http://weather.yahooapis.com/forecastrss?z=" + ZIP;
                 // Create a new XmlDocument
                 XmlDocument Weather = new XmlDocument();
@@ -50,15 +49,14 @@ namespace EchoServer
 
                 // Get forecast with XPath
                 XmlNodeList condition = Weather.SelectNodes("/rss/channel/item/yweather:condition", NameSpaceMgr);
-                //XmlNodeList location = Weather.SelectNodes("/rss/channel/yweather:location", NameSpaceMgr);
                 XmlNodeList forecast = Weather.SelectNodes("/rss/channel/item/yweather:forecast", NameSpaceMgr);
 
-                _Condition = condition[0].Attributes["text"].Value;
-                _Temperature = condition[0].Attributes["temp"].Value + " degrees";
+                Condition = condition[0].Attributes["text"].Value;
+                Temperature = condition[0].Attributes["temp"].Value + " degrees";
                 string Fcast = "Today, " + forecast[0].Attributes["text"].Value + " with a high a " +
                     forecast[0].Attributes["high"].Value + " and a low of " +
                     forecast[0].Attributes["low"].Value;
-                _Forecast = Fcast;
+                Forecast = Fcast;
 
                 // Hazards
                 SavedLocation = "http://alerts.weather.gov/cap/wwaatmget.php?x=OKZ060&y=0";
@@ -67,7 +65,18 @@ namespace EchoServer
                 NameSpaceMgr = new XmlNamespaceManager(Weather.NameTable);
 
                 XmlElement hazards = Weather.DocumentElement["entry"]["summary"]; //Weather.SelectNodes("//feed/entry/summary", NameSpaceMgr);
-                _Hazards = hazards == null ? "" : hazards.InnerText;
+                Hazards = hazards == null ? "" : hazards.InnerText;
+
+                if (input.CleanText().Contains("forcast"))
+                {
+                    messageSystem.Post(guid, Message.Type.output, Forecast);
+                }
+                else
+                {
+                    messageSystem.Post(guid, Message.Type.output, "It is currently, " + Temperature + " and " + Condition);
+                }
+
+                ResponseTime.Stop(QueryClassification.Actions.wolframAlpha, ResponseTimeID);
             }
             catch (Exception e)
             {
@@ -75,5 +84,4 @@ namespace EchoServer
             }
         }
     }
-    
 }

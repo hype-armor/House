@@ -74,7 +74,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Alarm.cs" />
     <Compile Include="Jokes.cs" />
     <Compile Include="MessageSystem.cs" />
     <Compile Include="ProjectInstaller.cs">

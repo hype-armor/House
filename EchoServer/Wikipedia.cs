@@ -21,20 +21,21 @@ using System.Net;
 using System.Xml;
 using HtmlAgilityPack;
 using System.Text.RegularExpressions;
+using System;
 
 namespace EchoServer
 {
     class Wikipedia
     {
-        string url = "";
-        public string Search(string Subject, bool Short = false)
+        public static void Go(Guid guid, MessageSystem messageSystem, string input)
         {
-            url = FormatURL(Subject);
+            int id = ResponseTime.Start(guid, QueryClassification.Actions.wikipedia, messageSystem);
+            string url = FormatURL(input);
 
             HtmlDocument doc = GetDocument(url);
             if (!doc.DocumentNode.HasChildNodes)
             {
-                return "Wikipedia did not return a valid result.";
+                messageSystem.Post(guid, Message.Type.output, "Wikipedia did not return a valid result.");
             }
             string p = doc.DocumentNode.SelectSingleNode("/p").InnerText;
 
@@ -46,15 +47,15 @@ namespace EchoServer
             Regex bracket = new Regex("\\[.*?\\]");
             p = bracket.Replace(p, "");
 
-            if (Short)
-            {
-                p = p.Split(new char[] { '.' }).First();
-            }
+            // just always make it short.
+            p = p.Split(new char[] { '.' }).First();
 
-            return p;
+            messageSystem.Post(guid, Message.Type.output, p);
+
+            ResponseTime.Stop(QueryClassification.Actions.wikipedia, id);
         }
 
-        private string FormatURL(string Subject, int Section = 0)
+        private static string FormatURL(string Subject, int Section = 0)
         {
             return "http://en.wikipedia.org/w/api.php?action=parse&page=" + Subject + "&format=xml&prop=text&section=" +
                 Section.ToString() + "&redirects";

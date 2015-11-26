@@ -23,7 +23,7 @@ namespace EchoServer
 {
     class WordsToNumbers
     {
-        public int retInt(string word)
+        public static int ToInt(string word)
         {
 
             Dictionary<string, int> wordList = new Dictionary<string, int>();
