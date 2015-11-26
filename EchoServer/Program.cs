@@ -88,9 +88,9 @@ namespace EchoServer
             {
                 Jokes.Go(guid, input, messageSystem);
             }
-            else if (query.Key == QueryClassification.Actions.clear)
+            else if (query.Key == QueryClassification.Actions.unknown)
             {
-                Console.Clear();
+                messageSystem.Post(guid, Message.Type.output, query.Value);
             }
 
             responseTime.Stop(query.Key, responseTimeID);
