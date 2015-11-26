@@ -34,8 +34,6 @@ namespace EchoServer
 
             try
             {
-                int ResponseTimeID = ResponseTime.Start(guid, QueryClassification.Actions.weather, messageSystem);
-
                 string SavedLocation = "http://weather.yahooapis.com/forecastrss?z=" + ZIP;
                 // Create a new XmlDocument
                 XmlDocument Weather = new XmlDocument();
@@ -75,8 +73,6 @@ namespace EchoServer
                 {
                     messageSystem.Post(guid, Message.Type.output, "It is currently, " + Temperature + " and " + Condition);
                 }
-
-                ResponseTime.Stop(QueryClassification.Actions.wolframAlpha, ResponseTimeID);
             }
             catch (Exception e)
             {

@@ -27,8 +27,6 @@ namespace EchoServer
     {
         public static void Go(Guid guid, string question, MessageSystem messageSystem)
         {
-            int ResponseTimeID = ResponseTime.Start(guid, QueryClassification.Actions.wolframAlpha, messageSystem);
-
             WolframAlpha wa = new WolframAlpha("API-KEY");
             QueryResult results = wa.Query(question);
 
@@ -46,7 +44,6 @@ namespace EchoServer
                 ret = results.Pods[1].SubPods[0].Plaintext;
 	        }
 
-            ResponseTime.Stop(QueryClassification.Actions.wolframAlpha, ResponseTimeID);
             messageSystem.Post(guid, Message.Type.output, ret.Replace(" | ", ", ")); ;
         }
     }

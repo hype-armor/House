@@ -29,7 +29,6 @@ namespace EchoServer
     {
         public static void Go(Guid guid, MessageSystem messageSystem, string input)
         {
-            int id = ResponseTime.Start(guid, QueryClassification.Actions.wikipedia, messageSystem);
             string url = FormatURL(input);
 
             HtmlDocument doc = GetDocument(url);
@@ -51,8 +50,6 @@ namespace EchoServer
             p = p.Split(new char[] { '.' }).First();
 
             messageSystem.Post(guid, Message.Type.output, p);
-
-            ResponseTime.Stop(QueryClassification.Actions.wikipedia, id);
         }
 
         private static string FormatURL(string Subject, int Section = 0)

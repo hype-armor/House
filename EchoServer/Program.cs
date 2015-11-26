@@ -61,61 +61,39 @@ namespace EchoServer
         private static void ProcessInput(Guid guid, string input, MessageSystem messageSystem)
         {
             QueryClassification qc = new QueryClassification();
-            KeyValuePair<QueryClassification.Actions, string> term = qc.Classify(input);
+            KeyValuePair<QueryClassification.Actions, string> query = qc.Classify(input);
 
-            if (term.Key == QueryClassification.Actions.help)
+            ResponseTime responseTime = new ResponseTime();
+            int responseTimeID = responseTime.Start(guid, query.Key, messageSystem);
+
+
+            if (query.Key == QueryClassification.Actions.help)
             {
                 messageSystem.Post(guid, Message.Type.output, qc.help);
             }
-            else if (term.Key == QueryClassification.Actions.wikipedia)
+            else if (query.Key == QueryClassification.Actions.wikipedia)
             {
-                input = input.Replace(term.Value, "").Trim();
+                input = input.Replace(query.Value, "").Trim();
                 Wikipedia.Go(guid, messageSystem, input);
             }
-            else if (term.Key == QueryClassification.Actions.newPhrase)
-            {
-                // usage: add search term, x to y.
-                input = input.Replace(term.Value, "").Trim();
-                string[] words = input.Split(new string[] { " to " }, StringSplitOptions.RemoveEmptyEntries);
-
-                string verb = words[0];
-
-                try
-                {
-                    QueryClassification.Actions action = QueryClassification.ParseAction(words[1]);
-                    QueryClassification.AddPhraseToAction(verb, action);
-                }
-                catch (ArgumentException e)
-                {
-                    string erroredAction = e.Message.Replace("Requested value ", "").Replace(" was not found.", "").Replace("'", "");
-                    bool actionNotFound = erroredAction == words[1];
-                    if (actionNotFound)
-                    {
-                        // action does not exist.
-                        messageSystem.Post(guid, Message.Type.output, "The action " + erroredAction + " does not exist.");
-                    }
-                    else
-                    {
-                        messageSystem.Post(guid, Message.Type.output, "Error casting word to action. " + e.Message);
-                    }
-                }
-            }
-            else if (term.Key == QueryClassification.Actions.wolframAlpha)
+            else if (query.Key == QueryClassification.Actions.wolframAlpha)
             {
                 Wolfram.Go(guid, input, messageSystem);
             }
-            else if (term.Key == QueryClassification.Actions.weather)
+            else if (query.Key == QueryClassification.Actions.weather)
             {
                 Weather.Go(guid, input, messageSystem);
             }
-            else if (term.Key == QueryClassification.Actions.joke)
+            else if (query.Key == QueryClassification.Actions.joke)
             {
                 Jokes.Go(guid, input, messageSystem);
             }
-            else if (term.Key == QueryClassification.Actions.clear)
+            else if (query.Key == QueryClassification.Actions.clear)
             {
                 Console.Clear();
             }
+
+            responseTime.Stop(query.Key, responseTimeID);
         }
 
         private static byte[] GetAudio(string response)
