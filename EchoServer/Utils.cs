@@ -238,7 +238,7 @@ namespace ExtensionMethods
                         'w','x','y','z','1','2','3','4','5','6','7','8','9','0',
                         '.',',',' ','?','\''
                     };
-
+            text = text.Replace("%20", " ");
             text = text.RemoveHTMLTags();
             string result = "";
             foreach (char c in text)
