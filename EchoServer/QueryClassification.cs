@@ -76,8 +76,9 @@ namespace EchoServer
 
         }
 
-        public KeyValuePair<Actions, string> Classify(string Query)
+        public KeyValuePair<Actions, string> Classify(string input)
         {
+            input = ApplyEnglish(input);
             Dictionary<Actions, string> matchedVerbs = new Dictionary<Actions, string>();
 
             foreach (KeyValuePair<Actions, HashSet<string>> item in actionDatabase)
@@ -87,11 +88,11 @@ namespace EchoServer
 
                 foreach (string verb in verbs)
                 {
-                    if (Query.Contains(verb) && !matchedVerbs.Keys.Contains(term))
+                    if (input.Contains(verb) && !matchedVerbs.Keys.Contains(term))
                     {
                         matchedVerbs.Add(term, verb);
                     }
-                    else if (Query.Contains(verb) && matchedVerbs.Keys.Contains(term) && matchedVerbs[term].Length < verb.Length)
+                    else if (input.Contains(verb) && matchedVerbs.Keys.Contains(term) && matchedVerbs[term].Length < verb.Length)
                     {
                         matchedVerbs[term] = verb;
                     }
@@ -111,6 +112,13 @@ namespace EchoServer
             {
                 return new KeyValuePair<Actions, string>(Actions.unknown, "I can not match your query to anything in my database.");
             }
+        }
+
+        private string ApplyEnglish(string input)
+        {
+            input = input.Replace("s is", " is");
+
+            return input;
         }
 
         // we might need this for plugins. 
