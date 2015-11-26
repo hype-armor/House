@@ -28,6 +28,8 @@ using System.Threading;
 using ExtensionMethods;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Windows.Forms;
+using System.ServiceProcess;
 
 namespace EchoServer
 {
@@ -41,6 +43,25 @@ namespace EchoServer
 
         // Directory to host our contents
         private string _contentPath;
+
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        static void Main()
+        {
+            if (Environment.UserInteractive)
+            {
+
+                MessageBox.Show("This application is a service. Please install it.", "OpenEcho", MessageBoxButtons.OK, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+                //ManagedInstallerClass.InstallHelper(new string[] { "/u", Assembly.GetExecutingAssembly().Location });
+                //ManagedInstallerClass.InstallHelper(new string[] {Assembly.GetExecutingAssembly().Location });
+
+            }
+            else
+            {
+                ServiceBase.Run(new Echo());
+            }
+        }
 
         //create socket and initialization
         private void InitializeSocket(IPAddress ipAddress, int port, string contentPath) //create socket
