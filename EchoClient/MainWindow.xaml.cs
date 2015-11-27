@@ -15,8 +15,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ExtensionMethods;
-using System.Threading;
 using System.Windows.Threading;
+using System.Timers;
 
 namespace EchoClient
 {
@@ -25,20 +25,37 @@ namespace EchoClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Timer aTimer;
         public MainWindow()
         {
             InitializeComponent();
+
+            // Create a timer with a two second interval.
+            aTimer = new System.Timers.Timer(5000);
+            // Hook up the Elapsed event for the timer. 
+            aTimer.Elapsed += OnTimedEvent;
+            aTimer.AutoReset = true;
+            aTimer.Enabled = true;
+            
         }
+
+        private string Update = "updateupdate";
+        private void OnTimedEvent(Object source, ElapsedEventArgs e)
+        {
+            aTimer.Stop();
+            HitServer(Update);
+            aTimer.Start();
+        }
+
+        private static Guid guid = Guid.NewGuid();
 
         private void gobtn_Click(object sender, RoutedEventArgs e)
         {
+            gobtn.IsEnabled = false;
             string text = txtQuery.Text.CleanText();
 
-            //Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-            //{
-            //    HitServer(text);
-            //}));
             HitServer(text);
+            
         }
 
         public void HitServer(string query)
@@ -54,31 +71,31 @@ namespace EchoClient
 
             if (!string.IsNullOrWhiteSpace(query))
             {
-                do
+                string address = serverPath + "guid=" + guid.ToString() + ";query=" + query + ";";
+                byte[] data = client.DownloadData(address);
+
+                if (data.GetString() == Update)
                 {
-                    byte[] data = client.DownloadData(serverPath + query);
-                    MediaPlayer mp = new MediaPlayer(data);
-                    byte[] guid = data.Take(16).ToArray();
-                    data = data.Skip(16).ToArray();
-
-                    Guid _guid = new Guid();
-                    // check if 16 bytes are a guid.
-                    if (Guid.TryParse(guid.ToString(), out _guid))
+                    // update only
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                     {
-                        // server said the request will take a second. Check back with this GUID.
-                        query = guid.GetString();
-
-                        mp.Play();
-                        Thread.Sleep(500);
-                        continue;
-                    }
-                    else
-                    {
-                        mp.Play();
-                        return;
-                    }
+                        lblUpdateTime.Content = DateTime.Now.ToLongTimeString();
+                    }));
                 }
-                while (true);
+                else if (data.Length > 0)
+                {
+                    MediaPlayer mp = new MediaPlayer(data);
+                    mp.Play();
+
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    {
+                        gobtn.IsEnabled = true;
+                    }));
+                }
+                else
+                {
+                    MessageBox.Show("query: " + query + Environment.NewLine + "Did not send guid", "Error");
+                }
             }
         }
 
@@ -94,7 +111,7 @@ namespace EchoClient
 
             public void Play()
             {
-                soundPlayer.Play();
+                soundPlayer.PlaySync();
             }
         }
     }

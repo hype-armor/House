@@ -40,6 +40,7 @@ namespace EchoServer
         private int _timeout = 5;
         private Encoding _charEncoder = Encoding.UTF8;
         private Socket _serverSocket;
+        
 
         // Directory to host our contents
         private string _contentPath;
@@ -47,6 +48,8 @@ namespace EchoServer
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
+
+        [STAThread]
         static void Main()
         {
             if (Environment.UserInteractive)
@@ -88,9 +91,10 @@ namespace EchoServer
 
             }
 
+            Program p = new Program();
             while (_running)
             {
-                var requestHandler = new RequestHandler(_serverSocket, contentPath);
+                var requestHandler = new RequestHandler(_serverSocket, contentPath, p);
                 requestHandler.AcceptRequest();
             }
 
@@ -119,12 +123,14 @@ namespace EchoServer
         private int _timeout;
         private string _contentPath;
         private Encoding _charEncoder = Encoding.UTF8;
+        public Program _p;
 
-        public RequestHandler(Socket serverSocket, String contentPath)
+        public RequestHandler(Socket serverSocket, String contentPath, Program p)
         {
             _serverSocket = serverSocket;
             _timeout = 5;
             _contentPath = contentPath;
+            _p = p;
         }
 
         public void AcceptRequest()
@@ -170,8 +176,8 @@ namespace EchoServer
                     // we have a browser request.
                     isEchoClient = false;
                 }
-                var createResponse = new CreateResponse(clientSocket, _contentPath);
-                createResponse.Request(requestParser.HttpUrl, isEchoClient);
+                var createResponse = new CreateResponse(clientSocket, _contentPath, _p);
+                createResponse.Request(requestParser.queryString, isEchoClient);
             }
             StopClientSocket(clientSocket);
         }
@@ -205,7 +211,7 @@ namespace EchoServer
     {
         private Encoding _charEncoder = Encoding.UTF8;
         public string HttpMethod;
-        public string HttpUrl;
+        public string[] queryString;
         public string HttpProtocolVersion;
 
 
@@ -213,11 +219,12 @@ namespace EchoServer
         {
             try
             {
+                //"GET /guid=asdf-asdf-asdf-asdf;query=weather; HTTP/1.1\r\nHost: 192.168.0.50:8080\r\nConnection: keep-alive\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36\r\nDNT: 1\r\nAccept-Encoding: gzip, deflate, sdch\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n"
                 string[] tokens = requestString.Split(' ');
 
                 tokens[1] = tokens[1].Replace("/", "\\");
                 HttpMethod = tokens[0].ToUpper();
-                HttpUrl = tokens[1];
+                queryString = tokens[1].Split(new char[] {';'}, StringSplitOptions.RemoveEmptyEntries);
                 HttpProtocolVersion = tokens[2];
             }
             catch (Exception ex)
@@ -236,28 +243,41 @@ namespace EchoServer
         private Encoding _charEncoder = Encoding.UTF8;
         private string _contentPath;
         public FileHandler FileHandler;
-
-        public CreateResponse(Socket clientSocket, string contentPath)
+        public Program _p;
+        public CreateResponse(Socket clientSocket, string contentPath, Program p)
         {
             _contentPath = contentPath;
             ClientSocket = clientSocket;
             FileHandler = new FileHandler(_contentPath);
+            _p = p;
         }
 
-        public void Request(string request, bool isEchoClient)
+        public void Request(string[] queryString, bool isEchoClient)
         {
-            request = request.CleanText();
-            Program p = new Program();
-            byte[] result = p.Go(request, isEchoClient);
-
-            // the response is a guid. Server says it will take a bit for the request to complete.
-            if (result.Take(16) == p._guid.ToByteArray())
+            
+            bool validQueryString = queryString != null && queryString.Count() == 2;
+            Guid guid;
+            if (validQueryString)
             {
-                SendResponse(ClientSocket, result, "200 Ok", "text/plain");
+                string _guid = queryString[0].Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Last().CleanText();
+                bool isGuidValid = Guid.TryParse(_guid, out guid);
+
+                //"query=%3CUPDATE%3E"
+                string query = queryString[1].Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Last();
+
+                if (isGuidValid)
+                {
+                    
+                    byte[] result = _p.Go(guid, query);
+                    SendResponse(ClientSocket, result, "200 Ok", "audio/wav");
+                }
             }
             else
             {
-                SendResponse(ClientSocket, result, "200 Ok", "audio/wav");
+                SendErrorResponce(ClientSocket, new Exception("ERROR: PLEASE USE ECHOCLIENT!" + Environment.NewLine +
+                    "http://192.168.0.50:8080/guid=99d793a5-4de9-47e0-b812-9d23c0dfb9e6;query=forcast;"));
             }
         }
 

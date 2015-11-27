@@ -50,7 +50,7 @@ namespace EchoServer
             content = content.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries).Last();
             content = content.CleanText();
 
-            messageSystem.Post(guid, Message.Type.output, content);
+            messageSystem.Post(guid, content);
         }
     }
 }

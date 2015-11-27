@@ -67,11 +67,11 @@ namespace EchoServer
 
                 if (input.CleanText().Contains("forcast"))
                 {
-                    messageSystem.Post(guid, Message.Type.output, Forecast);
+                    messageSystem.Post(guid, Forecast);
                 }
                 else
                 {
-                    messageSystem.Post(guid, Message.Type.output, "It is currently, " + Temperature + " and " + Condition);
+                    messageSystem.Post(guid, "It is currently, " + Temperature + " and " + Condition);
                 }
             }
             catch (Exception e)

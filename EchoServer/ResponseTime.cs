@@ -54,19 +54,19 @@ namespace EchoServer
             
             if (avg >= 60000)
             {
-                messageSystem.Post(guid, Message.Type.tempResponse, "Please wait. I might take a while.");
+                messageSystem.Post(guid, "Please wait. I might take a while.");
             }
             else if (avg >= 20000)
             {
-                messageSystem.Post(guid, Message.Type.tempResponse, "Please wait.");
+                messageSystem.Post(guid, "Please wait.");
             }
             else if (avg >= 10000)
             {
-                messageSystem.Post(guid, Message.Type.tempResponse, "hmmmmmm, okay, hold on a second.");
+                messageSystem.Post(guid, "hmmmmmm, okay, hold on a second.");
             }
             else if (avg >= 5000)
             {
-                messageSystem.Post(guid, Message.Type.tempResponse, "Loading");
+                messageSystem.Post(guid, "Loading");
             }
 
             times.Add(timerID, sw);

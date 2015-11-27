@@ -30,11 +30,10 @@ namespace EchoServer
             return true;
         }
 
-        public void Post(Guid guid, Message.Type messageType, string message)
+        public void Post(Guid guid, string message)
         {
             Message newMessage = new Message();
             newMessage.guid = guid;
-            newMessage.MessageType = messageType;
             newMessage.message = message;
             messages.Add(newMessage);
             return;
@@ -42,20 +41,13 @@ namespace EchoServer
 
         public string Get(Guid guid)
         {
-        // using the guid provided by the web server, you can get the queued messages.
+            // using the guid provided by the web server, you can get the queued messages.
             foreach (Message _message in messages)
             {
                 if (_message.guid == guid)
                 {
-                    // check if output message has been added, if not, then check for temp response.
-                    if (_message.MessageType == Message.Type.output)
-                    {
-                        return _message.message;
-                    }
-                    else if (_message.MessageType == Message.Type.tempResponse)
-                    {
-                        return _message.message;
-                    }
+                    messages.Remove(_message);
+                    return _message.message;
                 }
             }
 
@@ -68,8 +60,6 @@ namespace EchoServer
     public class Message
     {
         public Guid guid = Guid.NewGuid();
-        public enum Type { input, output, tempResponse };
-        public Type MessageType;
         public string message;
     }
 }

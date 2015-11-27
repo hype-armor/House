@@ -30,32 +30,31 @@ using System.Threading;
 
 namespace EchoServer
 {
-    class Program
+    public class Program
     {
-        static private Guid guid;
+        private MessageSystem messageSystem = new MessageSystem();
 
-        public Guid _guid
-        {
-            get { return guid; }
-        }
-
-        public byte[] Go(string input, bool isEchoClient)
+        public byte[] Go(Guid guid, string input)
         {
             input = input == string.Empty ? "help" : input;
 
-            MessageSystem messageSystem = new MessageSystem();
+            string updateOnly = "updateupdate";
+            bool updateRequest = input == updateOnly;
 
-            // check message system for input if input is a guid
-            guid = Guid.NewGuid();
-            bool isGuid = input.Length == 16 && Guid.TryParse(input, out guid);
-            if (!isGuid)
+            if (updateRequest)
             {
-                guid = Guid.NewGuid();
+                string response = messageSystem.Get(guid);
+                if (response != string.Empty)
+                {
+                    return GetAudio(response);
+                }
+            }
+            else
+            {
                 ProcessInput(guid, input, messageSystem);
             }
 
-            string response = messageSystem.Get(guid).CleanText();
-            return GetAudio(response);
+            return updateOnly.GetBytes();
         }
 
         private static void ProcessInput(Guid guid, string input, MessageSystem messageSystem)
@@ -69,7 +68,7 @@ namespace EchoServer
 
             if (query.Key == QueryClassification.Actions.help)
             {
-                messageSystem.Post(guid, Message.Type.output, qc.help);
+                messageSystem.Post(guid, qc.help);
             }
             else if (query.Key == QueryClassification.Actions.wikipedia)
             {
@@ -90,7 +89,7 @@ namespace EchoServer
             }
             else if (query.Key == QueryClassification.Actions.unknown)
             {
-                messageSystem.Post(guid, Message.Type.output, query.Value);
+                messageSystem.Post(guid, query.Value);
             }
 
             responseTime.Stop(query.Key, responseTimeID);
@@ -98,20 +97,23 @@ namespace EchoServer
 
         private static byte[] GetAudio(string response)
         {
-            byte[] wav = null;
+            byte[] wav = new byte[0];
 
-            var t = new System.Threading.Thread(() =>
+            if (!string.IsNullOrWhiteSpace(response))
             {
-                using (MemoryStream memoryStream = new MemoryStream())
+                var t = new System.Threading.Thread(() =>
                 {
-                    SpeechSynthesizer synth = new SpeechSynthesizer();
-                    synth.SetOutputToWaveStream(memoryStream);
-                    synth.Speak(response);
-                    wav = memoryStream.ToArray();
-                }
-            });
-            t.Start();
-            t.Join();
+                    using (MemoryStream memoryStream = new MemoryStream())
+                    {
+                        SpeechSynthesizer synth = new SpeechSynthesizer();
+                        synth.SetOutputToWaveStream(memoryStream);
+                        synth.Speak(response.CleanText());
+                        wav = memoryStream.ToArray();
+                    }
+                });
+                t.Start();
+                t.Join();
+            }
 
             return wav;
         }

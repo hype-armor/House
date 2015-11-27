@@ -32,7 +32,7 @@ namespace EchoServer
 
             if (apikey == "API-KEY")
             {
-                messageSystem.Post(guid, Message.Type.output, "I am not currently setup to handle WolframAlpha. Please add an a p i key");
+                messageSystem.Post(guid, "I am not currently setup to handle WolframAlpha. Please add an a p i key");
             }
             QueryResult results = wa.Query(question);
 
@@ -50,7 +50,7 @@ namespace EchoServer
                 ret = results.Pods[1].SubPods[0].Plaintext;
 	        }
 
-            messageSystem.Post(guid, Message.Type.output, ret.Replace(" | ", ", "));
+            messageSystem.Post(guid, ret.Replace(" | ", ", "));
         }
     }
 }

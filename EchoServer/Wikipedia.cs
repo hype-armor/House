@@ -34,7 +34,7 @@ namespace EchoServer
             HtmlDocument doc = GetDocument(url);
             if (!doc.DocumentNode.HasChildNodes)
             {
-                messageSystem.Post(guid, Message.Type.output, "Wikipedia did not return a valid result.");
+                messageSystem.Post(guid, "Wikipedia did not return a valid result.");
             }
             string p = doc.DocumentNode.SelectSingleNode("/p").InnerText;
 
@@ -49,7 +49,7 @@ namespace EchoServer
             // just always make it short.
             p = p.Split(new char[] { '.' }).First();
 
-            messageSystem.Post(guid, Message.Type.output, p);
+            messageSystem.Post(guid, p);
         }
 
         private static string FormatURL(string Subject, int Section = 0)
