@@ -93,32 +93,21 @@ namespace EchoServer
             ResponseTime responseTime = new ResponseTime();
             int responseTimeID = responseTime.Start(guid, query.Key, messageSystem);
 
+            foreach (var plugin in _Plugins)
+            {
+                if (query.Key == plugin.Key)
+                {
+                    messageSystem.Post(guid, plugin.Value.Go(input));
+                }
+            }
 
             if (query.Key == "help")
             {
                 messageSystem.Post(guid, qc.help);
             }
-            else if (query.Key == "wikipedia")
-            {
-                input = input.Replace(query.Value, "").Trim();
-                //Wikipedia.Go(guid, messageSystem, input);
-                IPlugin plugin = _Plugins["Wikipedia"];
-                messageSystem.Post(guid, plugin.Go(input));
-
-            }
             else if (query.Key == "wolframAlpha")
             {
                 Wolfram.Go(guid, input, messageSystem);
-            }
-            else if (query.Key == "weather")
-            {
-                IPlugin plugin = _Plugins["Weather"];
-                messageSystem.Post(guid, plugin.Go(input));
-            }
-            else if (query.Key == "joke")
-            {
-                IPlugin plugin = _Plugins["Joke"];
-                messageSystem.Post(guid, plugin.Go(input));
             }
             else if (query.Key == "unknown")
             {
