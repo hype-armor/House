@@ -117,7 +117,8 @@ namespace EchoServer
             }
             else if (query.Key == "joke")
             {
-                Jokes.Go(guid, input, messageSystem);
+                IPlugin plugin = _Plugins["Joke"];
+                messageSystem.Post(guid, plugin.Go(input));
             }
             else if (query.Key == "unknown")
             {

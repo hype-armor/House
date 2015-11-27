@@ -47,18 +47,8 @@ namespace EchoServer
             AddPhraseToAction("what is a", "wolframAlpha");
             AddPhraseToAction("what is an", "wolframAlpha");
 
-            AddPhraseToAction("add verb", "newPhrase");
-
-            AddPhraseToAction("set a timer for", "timer");
-            AddPhraseToAction("create a timer for", "timer");
-
             AddPhraseToAction("help", "help");
             AddPhraseToAction("clear", "clear");
-
-            
-
-            AddPhraseToAction("tell me a joke", "joke");
-            AddPhraseToAction("joke", "joke");
         }
 
         public static void AddPhraseToAction(string phrase, Actions action)
