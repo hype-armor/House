@@ -88,17 +88,17 @@ namespace EchoServer
         private void ProcessInput(Guid guid, string input, MessageSystem messageSystem)
         {
             
-            KeyValuePair<QueryClassification.Actions, string> query = qc.Classify(input);
+            KeyValuePair<string, string> query = qc.Classify(input);
 
             ResponseTime responseTime = new ResponseTime();
             int responseTimeID = responseTime.Start(guid, query.Key, messageSystem);
 
 
-            if (query.Key == QueryClassification.Actions.help)
+            if (query.Key == "help")
             {
                 messageSystem.Post(guid, qc.help);
             }
-            else if (query.Key == QueryClassification.Actions.wikipedia)
+            else if (query.Key == "wikipedia")
             {
                 input = input.Replace(query.Value, "").Trim();
                 //Wikipedia.Go(guid, messageSystem, input);
@@ -106,19 +106,20 @@ namespace EchoServer
                 messageSystem.Post(guid, plugin.Go(input));
 
             }
-            else if (query.Key == QueryClassification.Actions.wolframAlpha)
+            else if (query.Key == "wolframAlpha")
             {
                 Wolfram.Go(guid, input, messageSystem);
             }
-            else if (query.Key == QueryClassification.Actions.weather)
+            else if (query.Key == "weather")
             {
-                Weather.Go(guid, input, messageSystem);
+                IPlugin plugin = _Plugins["Weather"];
+                messageSystem.Post(guid, plugin.Go(input));
             }
-            else if (query.Key == QueryClassification.Actions.joke)
+            else if (query.Key == "joke")
             {
                 Jokes.Go(guid, input, messageSystem);
             }
-            else if (query.Key == QueryClassification.Actions.unknown)
+            else if (query.Key == "unknown")
             {
                 messageSystem.Post(guid, query.Value);
             }

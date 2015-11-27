@@ -36,60 +36,58 @@ namespace EchoServer
         public List<string> _Actions = new List<string>();
 
         [field: NonSerialized()]
-        private static Dictionary<Actions, HashSet<string>> actionDatabase = new Dictionary<Actions, HashSet<string>>();
-        private Dictionary<string, HashSet<string>> _actionDatabase = new Dictionary<string, HashSet<string>>();
+        //private static Dictionary<Actions, HashSet<string>> actionDatabase = new Dictionary<Actions, HashSet<string>>();
+        private Dictionary<string, HashSet<string>> actionDatabase = new Dictionary<string, HashSet<string>>();
 
-        static QueryClassification()
+        void QueryClassificationf()
         {
             
 
-            AddPhraseToAction("what is", Actions.wolframAlpha);
-            AddPhraseToAction("what is a", Actions.wolframAlpha);
-            AddPhraseToAction("what is an", Actions.wolframAlpha);
+            AddPhraseToAction("what is", "wolframAlpha");
+            AddPhraseToAction("what is a", "wolframAlpha");
+            AddPhraseToAction("what is an", "wolframAlpha");
 
-            AddPhraseToAction("add verb", Actions.newPhrase);
+            AddPhraseToAction("add verb", "newPhrase");
 
-            AddPhraseToAction("set a timer for", Actions.timer);
-            AddPhraseToAction("create a timer for", Actions.timer);
+            AddPhraseToAction("set a timer for", "timer");
+            AddPhraseToAction("create a timer for", "timer");
 
-            AddPhraseToAction("help", Actions.help);
-            AddPhraseToAction("clear", Actions.clear);
+            AddPhraseToAction("help", "help");
+            AddPhraseToAction("clear", "clear");
 
-            AddPhraseToAction("current weather", Actions.weather);
-            AddPhraseToAction("weather", Actions.weather);
-            AddPhraseToAction("forcast", Actions.weather);
+            
 
-            AddPhraseToAction("tell me a joke", Actions.joke);
-            AddPhraseToAction("joke", Actions.joke);
+            AddPhraseToAction("tell me a joke", "joke");
+            AddPhraseToAction("joke", "joke");
         }
 
         public static void AddPhraseToAction(string phrase, Actions action)
         {
-            if (!actionDatabase.Keys.Contains(action))
-            {
-                actionDatabase.Add(action, new HashSet<string>());
-            }
+            //if (!actionDatabase.Keys.Contains(action))
+            //{
+            //    actionDatabase.Add(action, new HashSet<string>());
+            //}
 
-            phrase = phrase.CleanText();
+            //phrase = phrase.CleanText();
 
-            HashSet<string> phrases = actionDatabase[action];
-            phrases.Add(phrase);
-            actionDatabase[action] = phrases;
+            //HashSet<string> phrases = actionDatabase[action];
+            //phrases.Add(phrase);
+            //actionDatabase[action] = phrases;
 
         }
 
         public void AddPhraseToAction(string phrase, string _action)
         {
-            if (!_actionDatabase.Keys.Contains(_action))
+            if (!actionDatabase.Keys.Contains(_action))
             {
-                _actionDatabase.Add(_action, new HashSet<string>());
+                actionDatabase.Add(_action, new HashSet<string>());
             }
 
             phrase = phrase.CleanText();
 
-            HashSet<string> phrases = _actionDatabase[_action];
+            HashSet<string> phrases = actionDatabase[_action];
             phrases.Add(phrase);
-            _actionDatabase[_action] = phrases;
+            actionDatabase[_action] = phrases;
 
         }
 
@@ -98,14 +96,14 @@ namespace EchoServer
             
         }
 
-        public KeyValuePair<Actions, string> Classify(string input)
+        public KeyValuePair<string, string> Classify(string input)
         {
             input = ApplyEnglish(input);
-            Dictionary<Actions, string> matchedVerbs = new Dictionary<Actions, string>();
+            Dictionary<string, string> matchedVerbs = new Dictionary<string, string>();
 
-            foreach (KeyValuePair<Actions, HashSet<string>> item in actionDatabase)
+            foreach (KeyValuePair<string, HashSet<string>> item in actionDatabase)
             {
-                Actions term = item.Key;
+                string term = item.Key;
                 HashSet<string> verbs = item.Value;
 
                 foreach (string verb in verbs)
@@ -127,12 +125,12 @@ namespace EchoServer
             }
             else if (matchedVerbs.Count() > 1)
             {
-                return new KeyValuePair<Actions, string>
-                    (Actions.unknown, "There is more than one match for your query. Please remove one of the matches from my database.");
+                return new KeyValuePair<string, string>
+                    ("unknown", "There is more than one match for your query. Please remove one of the matches from my database.");
             }
             else
             {
-                return new KeyValuePair<Actions, string>(Actions.unknown, "I can not match your query to anything in my database.");
+                return new KeyValuePair<string, string>("unknown", "I can not match your query to anything in my database.");
             }
         }
 
