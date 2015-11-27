@@ -31,8 +31,6 @@ namespace EchoServer
     [Serializable()]
     class QueryClassification
     {
-        private const string saveLocation = "QueryClassification.bin";
-
         public enum Actions { help, wikipedia, newPhrase, alarm, timer, clear, wolframAlpha, weather, joke, unknown };
 
         [field: NonSerialized()]
@@ -40,8 +38,6 @@ namespace EchoServer
 
         static QueryClassification()
         {
-            //actionDatabase = LoadDictionary(saveLocation);
-
             AddPhraseToAction("look up", Actions.wikipedia);
             AddPhraseToAction("lookup", Actions.wikipedia);
 
@@ -65,7 +61,7 @@ namespace EchoServer
             AddPhraseToAction("joke", Actions.joke);
         }
 
-        public static string AddPhraseToAction(string phrase, Actions action)
+        public static void AddPhraseToAction(string phrase, Actions action)
         {
             if (!actionDatabase.Keys.Contains(action))
             {
@@ -78,73 +74,11 @@ namespace EchoServer
             phrases.Add(phrase);
             actionDatabase[action] = phrases;
 
-            //SaveDictionary();
-
-            if (phrase != null)
-            {
-                return "I have added " + phrase + " to " + action; 
-            }
-
-
-            return "error 9000";
         }
 
-        public static void RemovePhraseFromAction(string phrase, Actions action)
+        public KeyValuePair<Actions, string> Classify(string input)
         {
-            if (actionDatabase.Keys.Contains(action))
-            {
-                HashSet<string> phrases = actionDatabase[action];
-                phrases.Remove(phrase);
-
-                Console.WriteLine("Removed phrase " + phrase + " from " + action.ToString());
-            }
-            else
-            {
-                Console.WriteLine("Unable to remove phrase from action list. Action does not exist.");
-            }
-
-            SaveDictionary();
-        }
-
-        private static Dictionary<Actions, HashSet<string>> LoadDictionary(string name)
-        {
-            Dictionary<Actions, HashSet<string>> dict = new Dictionary<Actions, HashSet<string>>();
-
-            if (File.Exists(saveLocation))
-            {
-                Stream FileStream = File.OpenRead(saveLocation);
-                BinaryFormatter deserializer = new BinaryFormatter();
-                dict = (Dictionary<Actions, HashSet<string>>)deserializer.Deserialize(FileStream);
-                FileStream.Close();
-            }
-            return dict;
-        }
-
-        private static void SaveDictionary()
-        {
-            if (File.Exists(saveLocation))
-            {
-                // save old dict
-                string newFileName = saveLocation.Replace(".bin", " ") + 
-                    DateTime.Now + 
-                    ".bin";
-                newFileName = newFileName
-                    .Replace('/', '.')
-                    .Replace(':','.');
-
-                if (!File.Exists(newFileName))
-                {
-                    System.IO.File.Move(saveLocation, newFileName);
-                }
-            }
-            Stream FileStream = File.Create(saveLocation);
-            BinaryFormatter serializer = new BinaryFormatter();
-            serializer.Serialize(FileStream, actionDatabase);
-            FileStream.Close();
-        }
-
-        public KeyValuePair<Actions, string> Classify(string Query)
-        {
+            input = ApplyEnglish(input);
             Dictionary<Actions, string> matchedVerbs = new Dictionary<Actions, string>();
 
             foreach (KeyValuePair<Actions, HashSet<string>> item in actionDatabase)
@@ -154,11 +88,11 @@ namespace EchoServer
 
                 foreach (string verb in verbs)
                 {
-                    if (Query.Contains(verb) && !matchedVerbs.Keys.Contains(term))
+                    if (input.Contains(verb) && !matchedVerbs.Keys.Contains(term))
                     {
                         matchedVerbs.Add(term, verb);
                     }
-                    else if (Query.Contains(verb) && matchedVerbs.Keys.Contains(term) && matchedVerbs[term].Length < verb.Length)
+                    else if (input.Contains(verb) && matchedVerbs.Keys.Contains(term) && matchedVerbs[term].Length < verb.Length)
                     {
                         matchedVerbs[term] = verb;
                     }
@@ -171,41 +105,23 @@ namespace EchoServer
             }
             else if (matchedVerbs.Count() > 1)
             {
-                // more than one classification. List them and have user pick.
-                Console.WriteLine("There is more than one match for your query. Please remove one of the matches from my database.");
-
-                Console.WriteLine("Which would you like to remove?");
-                foreach (KeyValuePair<Actions, string> item in matchedVerbs)
-                {
-                    Console.WriteLine("Would you like to remove the phrase " + item.Value + " from the action " + item.Key);
-
-                    string response = Console.ReadLine();
-
-                    if (response.CleanText() == "yes")
-                    {
-                        RemovePhraseFromAction(item.Value, item.Key);
-                    }
-                }
-
-                if (matchedVerbs.Count() == 1)
-                {
-                    // yay we cleaned up that action listing.
-                    return matchedVerbs.First();
-                }
-
-                return new KeyValuePair<Actions, string>(Actions.unknown, "");
+                return new KeyValuePair<Actions, string>
+                    (Actions.unknown, "There is more than one match for your query. Please remove one of the matches from my database.");
             }
             else
             {
-                // no match was found. Ask user for classification and store for next time
-                Console.WriteLine("I can not match your query to anything in my database.");
-
-                return new KeyValuePair<Actions, string>(Actions.unknown, "");
+                return new KeyValuePair<Actions, string>(Actions.unknown, "I can not match your query to anything in my database.");
             }
-
-            throw new Exception("I was unable to find a match.");
         }
 
+        private string ApplyEnglish(string input)
+        {
+            input = input.Replace("s is", " is");
+
+            return input;
+        }
+
+        // we might need this for plugins. 
         public static Actions ParseAction(string word)
         {
             QueryClassification.Actions action =

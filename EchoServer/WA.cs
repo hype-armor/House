@@ -27,9 +27,13 @@ namespace EchoServer
     {
         public static void Go(Guid guid, string question, MessageSystem messageSystem)
         {
-            int ResponseTimeID = ResponseTime.Start(guid, QueryClassification.Actions.wolframAlpha, messageSystem);
+            string apikey = "API-KEY";
+            WolframAlpha wa = new WolframAlpha(apikey);
 
-            WolframAlpha wa = new WolframAlpha("API-KEY");
+            if (apikey == "API-KEY")
+            {
+                messageSystem.Post(guid, "I am not currently setup to handle WolframAlpha. Please add an a p i key");
+            }
             QueryResult results = wa.Query(question);
 
             string ret = "";
@@ -46,8 +50,7 @@ namespace EchoServer
                 ret = results.Pods[1].SubPods[0].Plaintext;
 	        }
 
-            ResponseTime.Stop(QueryClassification.Actions.wolframAlpha, ResponseTimeID);
-            messageSystem.Post(guid, Message.Type.output, ret.Replace(" | ", ", ")); ;
+            messageSystem.Post(guid, ret.Replace(" | ", ", "));
         }
     }
 }
