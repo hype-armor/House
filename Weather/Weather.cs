@@ -22,7 +22,7 @@ using ExtensionMethods;
 using System.Collections.Generic;
 using PluginContracts;
 
-namespace EchoServer
+namespace Weather
 {
     public class Weather : IPlugin
     {
