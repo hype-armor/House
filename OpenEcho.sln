@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginContracts", "PluginCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wikipedia", "Wikipedia\Wikipedia.csproj", "{49D05737-D111-4EA5-97FB-9E46B0E16528}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Weather", "Weather\Weather.csproj", "{6A5A7616-F877-43D0-94BD-4F4DEC03DE17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,10 @@ Global
 		{49D05737-D111-4EA5-97FB-9E46B0E16528}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49D05737-D111-4EA5-97FB-9E46B0E16528}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49D05737-D111-4EA5-97FB-9E46B0E16528}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A5A7616-F877-43D0-94BD-4F4DEC03DE17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A5A7616-F877-43D0-94BD-4F4DEC03DE17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A5A7616-F877-43D0-94BD-4F4DEC03DE17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A5A7616-F877-43D0-94BD-4F4DEC03DE17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
