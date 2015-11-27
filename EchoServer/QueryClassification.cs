@@ -33,13 +33,15 @@ namespace EchoServer
     {
         public enum Actions { help, wikipedia, newPhrase, alarm, timer, clear, wolframAlpha, weather, joke, unknown };
 
+        public List<string> _Actions = new List<string>();
+
         [field: NonSerialized()]
         private static Dictionary<Actions, HashSet<string>> actionDatabase = new Dictionary<Actions, HashSet<string>>();
+        private Dictionary<string, HashSet<string>> _actionDatabase = new Dictionary<string, HashSet<string>>();
 
         static QueryClassification()
         {
-            AddPhraseToAction("look up", Actions.wikipedia);
-            AddPhraseToAction("lookup", Actions.wikipedia);
+            
 
             AddPhraseToAction("what is", Actions.wolframAlpha);
             AddPhraseToAction("what is a", Actions.wolframAlpha);
@@ -74,6 +76,26 @@ namespace EchoServer
             phrases.Add(phrase);
             actionDatabase[action] = phrases;
 
+        }
+
+        public void AddPhraseToAction(string phrase, string _action)
+        {
+            if (!_actionDatabase.Keys.Contains(_action))
+            {
+                _actionDatabase.Add(_action, new HashSet<string>());
+            }
+
+            phrase = phrase.CleanText();
+
+            HashSet<string> phrases = _actionDatabase[_action];
+            phrases.Add(phrase);
+            _actionDatabase[_action] = phrases;
+
+        }
+
+        public void AddAction()
+        {
+            
         }
 
         public KeyValuePair<Actions, string> Classify(string input)

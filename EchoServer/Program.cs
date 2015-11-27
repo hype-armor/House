@@ -27,12 +27,40 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.Speech.Synthesis;
 using System.Threading;
+using PluginContracts;
 
 namespace EchoServer
 {
     public class Program
     {
         private MessageSystem messageSystem = new MessageSystem();
+        private QueryClassification qc = new QueryClassification();
+        private Dictionary<string, IPlugin> _Plugins;
+        public Program()
+        {
+            try
+            {
+                _Plugins = new Dictionary<string, IPlugin>();
+                //ICollection<IPlugin> plugins = PluginLoader.LoadPlugins("Plugins");
+                ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins("Plugins");
+                foreach (var item in plugins)
+                {
+                    _Plugins.Add(item.Name, item);
+
+                    List<string> actions = _Plugins[item.Name].Actions;
+
+                    foreach (string action in actions)
+                    {
+                        qc.AddPhraseToAction(action, item.Name);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            
+        }
 
         public byte[] Go(Guid guid, string input)
         {
@@ -57,9 +85,9 @@ namespace EchoServer
             return updateOnly.GetBytes();
         }
 
-        private static void ProcessInput(Guid guid, string input, MessageSystem messageSystem)
+        private void ProcessInput(Guid guid, string input, MessageSystem messageSystem)
         {
-            QueryClassification qc = new QueryClassification();
+            
             KeyValuePair<QueryClassification.Actions, string> query = qc.Classify(input);
 
             ResponseTime responseTime = new ResponseTime();
@@ -73,7 +101,10 @@ namespace EchoServer
             else if (query.Key == QueryClassification.Actions.wikipedia)
             {
                 input = input.Replace(query.Value, "").Trim();
-                Wikipedia.Go(guid, messageSystem, input);
+                //Wikipedia.Go(guid, messageSystem, input);
+                IPlugin plugin = _Plugins["Wikipedia"];
+                messageSystem.Post(guid, plugin.Go(input));
+
             }
             else if (query.Key == QueryClassification.Actions.wolframAlpha)
             {
