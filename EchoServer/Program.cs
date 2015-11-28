@@ -28,6 +28,7 @@ using System.Windows.Forms;
 using System.Speech.Synthesis;
 using System.Threading;
 using PluginContracts;
+using System.Diagnostics;
 
 namespace EchoServer
 {
@@ -38,11 +39,12 @@ namespace EchoServer
         private Dictionary<string, IPlugin> _Plugins;
         public Program()
         {
+
             try
             {
                 _Plugins = new Dictionary<string, IPlugin>();
-                //ICollection<IPlugin> plugins = PluginLoader.LoadPlugins("Plugins");
-                ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins("Plugins");
+                string path = @"C:\Program Files (x86)\EchoServer\Plugins";
+                ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins(path);
                 foreach (var item in plugins)
                 {
                     _Plugins.Add(item.Name, item);
@@ -65,6 +67,7 @@ namespace EchoServer
         public byte[] Go(Guid guid, string input)
         {
             input = input == string.Empty ? "help" : input;
+            input = input.CleanText();
 
             string updateOnly = "updateupdate";
             bool updateRequest = input == updateOnly;
@@ -97,6 +100,7 @@ namespace EchoServer
             {
                 if (query.Key == plugin.Key)
                 {
+                    input = input.CleanText();
                     messageSystem.Post(guid, plugin.Value.Go(input));
                 }
             }

@@ -29,9 +29,6 @@ namespace EchoServer
         {
             string[] dllFileNames = null;
 
-            //string[] dirs = Directory.GetDirectories(path);
-            //MessageBox.Show(dirs[0]);
-            path = @"C:\Users\Greg\Documents\GitHubVisualStudio\OpenEcho\Wikipedia\bin\Debug";
             if (Directory.Exists(path))
             {
                 dllFileNames = Directory.GetFiles(path, "*.dll");
