@@ -49,10 +49,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="HtmlAgilityPack, Version=1.4.9.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <HintPath>..\packages\HtmlAgilityPack.1.4.9\lib\Net45\HtmlAgilityPack.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="RestSharp">
       <HintPath>..\..\..\..\Source\Repos\WolframAlpha.NET\WolframAlpha.NET\bin\Debug\RestSharp.dll</HintPath>
     </Reference>
@@ -75,7 +71,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GenericPluginLoader.cs" />
-    <Compile Include="Jokes.cs" />
     <Compile Include="MessageSystem.cs" />
     <Compile Include="PluginLoader.cs" />
     <Compile Include="ProjectInstaller.cs">
@@ -94,7 +89,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utils.cs" />
     <Compile Include="WA.cs" />
     <Compile Include="WebServer.cs" />
     <Compile Include="WordsToNumbers.cs" />
@@ -124,6 +118,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Extentions\Extentions.csproj">
+      <Project>{d33d4222-0f09-4d5a-a066-92fdfe5f05cf}</Project>
+      <Name>Extentions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PluginContracts\PluginContracts.csproj">
       <Project>{93ec9d95-1ef0-4a5d-bd86-f7e3972cca7b}</Project>
       <Name>PluginContracts</Name>
@@ -134,7 +132,7 @@
     <PreBuildEvent>net stop echoserver|echo.</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>net start echoserver</PostBuildEvent>
+    <PostBuildEvent>net start echoserver|echo.</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

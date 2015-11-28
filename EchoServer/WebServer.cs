@@ -25,7 +25,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using ExtensionMethods;
+using Extensions;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Windows.Forms;

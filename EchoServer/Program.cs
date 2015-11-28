@@ -22,7 +22,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using ExtensionMethods;
+using Extensions;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Speech.Synthesis;
