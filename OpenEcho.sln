@@ -4,19 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoServer", "EchoServer\EchoServer.csproj", "{167E320B-723E-4496-B5D3-58265812C378}"
-	ProjectSection(ProjectDependencies) = postProject
-		{49D05737-D111-4EA5-97FB-9E46B0E16528} = {49D05737-D111-4EA5-97FB-9E46B0E16528}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoClient", "EchoClient\EchoClient.csproj", "{64B37484-33FB-4BD7-A189-8600EFE54905}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginContracts", "PluginContracts\PluginContracts.csproj", "{93EC9D95-1EF0-4A5D-BD86-F7E3972CCA7B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wikipedia", "Wikipedia\Wikipedia.csproj", "{49D05737-D111-4EA5-97FB-9E46B0E16528}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Weather", "Weather\Weather.csproj", "{6A5A7616-F877-43D0-94BD-4F4DEC03DE17}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joke", "Joke\Joke.csproj", "{62B25D6E-C8C3-4154-BFF1-A712A3B24FD8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,18 +27,6 @@ Global
 		{93EC9D95-1EF0-4A5D-BD86-F7E3972CCA7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93EC9D95-1EF0-4A5D-BD86-F7E3972CCA7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93EC9D95-1EF0-4A5D-BD86-F7E3972CCA7B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{49D05737-D111-4EA5-97FB-9E46B0E16528}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{49D05737-D111-4EA5-97FB-9E46B0E16528}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{49D05737-D111-4EA5-97FB-9E46B0E16528}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{49D05737-D111-4EA5-97FB-9E46B0E16528}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6A5A7616-F877-43D0-94BD-4F4DEC03DE17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6A5A7616-F877-43D0-94BD-4F4DEC03DE17}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6A5A7616-F877-43D0-94BD-4F4DEC03DE17}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6A5A7616-F877-43D0-94BD-4F4DEC03DE17}.Release|Any CPU.Build.0 = Release|Any CPU
-		{62B25D6E-C8C3-4154-BFF1-A712A3B24FD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{62B25D6E-C8C3-4154-BFF1-A712A3B24FD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{62B25D6E-C8C3-4154-BFF1-A712A3B24FD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{62B25D6E-C8C3-4154-BFF1-A712A3B24FD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
