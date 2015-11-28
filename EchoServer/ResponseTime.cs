@@ -25,10 +25,10 @@ namespace EchoServer
 {
     class ResponseTime
     {
-        private Dictionary<QueryClassification.Actions, Dictionary<int, Stopwatch>> actionTimes
-            = new Dictionary<QueryClassification.Actions, Dictionary<int, Stopwatch>>();
+        private Dictionary<string, Dictionary<int, Stopwatch>> actionTimes
+            = new Dictionary<string, Dictionary<int, Stopwatch>>();
 
-        public int Start(Guid guid, QueryClassification.Actions action, MessageSystem messageSystem)
+        public int Start(Guid guid, string action, MessageSystem messageSystem)
         {
             Stopwatch sw = new Stopwatch();
             if (!actionTimes.ContainsKey(action))
@@ -76,7 +76,7 @@ namespace EchoServer
             return timerID;
         }
 
-        public void Stop(QueryClassification.Actions action, int id)
+        public void Stop(string action, int id)
         {
             Dictionary<int, Stopwatch> times = actionTimes[action];
             Stopwatch sw = times[id];

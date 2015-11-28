@@ -30,6 +30,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Windows.Forms;
 using System.ServiceProcess;
+using System.Diagnostics;
 
 namespace EchoServer
 {
@@ -59,6 +60,11 @@ namespace EchoServer
                 //ManagedInstallerClass.InstallHelper(new string[] { "/u", Assembly.GetExecutingAssembly().Location });
                 //ManagedInstallerClass.InstallHelper(new string[] {Assembly.GetExecutingAssembly().Location });
 
+                if (Debugger.IsAttached)
+                {
+                    Program d = new Program();
+                    d.Go(Guid.NewGuid(), "look up water");
+                }
             }
             else
             {

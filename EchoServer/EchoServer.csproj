@@ -74,8 +74,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GenericPluginLoader.cs" />
     <Compile Include="Jokes.cs" />
     <Compile Include="MessageSystem.cs" />
+    <Compile Include="PluginLoader.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -94,9 +96,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WA.cs" />
-    <Compile Include="Weather.cs" />
     <Compile Include="WebServer.cs" />
-    <Compile Include="Wikipedia.cs" />
     <Compile Include="WordsToNumbers.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -122,6 +122,12 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PluginContracts\PluginContracts.csproj">
+      <Project>{93ec9d95-1ef0-4a5d-bd86-f7e3972cca7b}</Project>
+      <Name>PluginContracts</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

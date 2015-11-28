@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoServer", "EchoServer\Ec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoClient", "EchoClient\EchoClient.csproj", "{64B37484-33FB-4BD7-A189-8600EFE54905}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginContracts", "PluginContracts\PluginContracts.csproj", "{93EC9D95-1EF0-4A5D-BD86-F7E3972CCA7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{64B37484-33FB-4BD7-A189-8600EFE54905}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64B37484-33FB-4BD7-A189-8600EFE54905}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64B37484-33FB-4BD7-A189-8600EFE54905}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93EC9D95-1EF0-4A5D-BD86-F7E3972CCA7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93EC9D95-1EF0-4A5D-BD86-F7E3972CCA7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93EC9D95-1EF0-4A5D-BD86-F7E3972CCA7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93EC9D95-1EF0-4A5D-BD86-F7E3972CCA7B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

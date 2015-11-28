@@ -27,16 +27,47 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.Speech.Synthesis;
 using System.Threading;
+using PluginContracts;
+using System.Diagnostics;
 
 namespace EchoServer
 {
     public class Program
     {
         private MessageSystem messageSystem = new MessageSystem();
+        private QueryClassification qc = new QueryClassification();
+        private Dictionary<string, IPlugin> _Plugins;
+        public Program()
+        {
+
+            try
+            {
+                _Plugins = new Dictionary<string, IPlugin>();
+                string path = @"C:\Program Files (x86)\EchoServer\Plugins";
+                ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins(path);
+                foreach (var item in plugins)
+                {
+                    _Plugins.Add(item.Name, item);
+
+                    List<string> actions = _Plugins[item.Name].Actions;
+
+                    foreach (string action in actions)
+                    {
+                        qc.AddPhraseToAction(action, item.Name);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            
+        }
 
         public byte[] Go(Guid guid, string input)
         {
             input = input == string.Empty ? "help" : input;
+            input = input.CleanText();
 
             string updateOnly = "updateupdate";
             bool updateRequest = input == updateOnly;
@@ -57,37 +88,32 @@ namespace EchoServer
             return updateOnly.GetBytes();
         }
 
-        private static void ProcessInput(Guid guid, string input, MessageSystem messageSystem)
+        private void ProcessInput(Guid guid, string input, MessageSystem messageSystem)
         {
-            QueryClassification qc = new QueryClassification();
-            KeyValuePair<QueryClassification.Actions, string> query = qc.Classify(input);
+            
+            KeyValuePair<string, string> query = qc.Classify(input);
 
             ResponseTime responseTime = new ResponseTime();
             int responseTimeID = responseTime.Start(guid, query.Key, messageSystem);
 
+            foreach (var plugin in _Plugins)
+            {
+                if (query.Key == plugin.Key)
+                {
+                    input = input.CleanText();
+                    messageSystem.Post(guid, plugin.Value.Go(input));
+                }
+            }
 
-            if (query.Key == QueryClassification.Actions.help)
+            if (query.Key == "help")
             {
                 messageSystem.Post(guid, qc.help);
             }
-            else if (query.Key == QueryClassification.Actions.wikipedia)
-            {
-                input = input.Replace(query.Value, "").Trim();
-                Wikipedia.Go(guid, messageSystem, input);
-            }
-            else if (query.Key == QueryClassification.Actions.wolframAlpha)
+            else if (query.Key == "wolframAlpha")
             {
                 Wolfram.Go(guid, input, messageSystem);
             }
-            else if (query.Key == QueryClassification.Actions.weather)
-            {
-                Weather.Go(guid, input, messageSystem);
-            }
-            else if (query.Key == QueryClassification.Actions.joke)
-            {
-                Jokes.Go(guid, input, messageSystem);
-            }
-            else if (query.Key == QueryClassification.Actions.unknown)
+            else if (query.Key == "unknown")
             {
                 messageSystem.Post(guid, query.Value);
             }
