@@ -41,7 +41,7 @@ namespace EchoServer
         private int _timeout = 5;
         private Encoding _charEncoder = Encoding.UTF8;
         private Socket _serverSocket;
-        private MessageSystem messageSystem = new MessageSystem();
+        private static MessageSystem messageSystem = new MessageSystem();
 
         // Directory to host our contents
         private string _contentPath;
@@ -53,7 +53,35 @@ namespace EchoServer
         [STAThread]
         static void Main()
         {
-            if (Environment.UserInteractive && !Debugger.IsAttached)
+            if (Debugger.IsAttached)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    Guid TestClientGuid = Guid.NewGuid();
+                    messageSystem.CreateRequest(TestClientGuid, "forcast");
+
+                    Program program = new Program(messageSystem);
+                    while (true)
+                    {
+                        Message response = messageSystem.GetResponse(TestClientGuid);
+
+                        if (response.status == Message.Status.closed)
+                        {
+                            //Debugger.Break();
+                            break;
+                        }
+                        else if (response.status == Message.Status.processing)
+                        {
+                            Debugger.Break();
+                        }
+                        else if (response.status == Message.Status.ready)
+                        {
+                            Debugger.Break();
+                        }
+                    } 
+                }
+            }
+            else if (Environment.UserInteractive)
             {
 
                 MessageBox.Show("This application is a service. Please install it.", "OpenEcho", MessageBoxButtons.OK, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
