@@ -36,7 +36,6 @@ namespace EchoServer
             newMessage.guid = guid;
             newMessage.message = message;
             messages.Add(newMessage);
-            return;
         }
 
         public string Get(Guid guid)
