@@ -19,82 +19,96 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Extensions;
 
 namespace EchoServer
 {
     public class MessageSystem
     {
-        private List<Message> messages = new List<Message>();
+        private List<Message> queue = new List<Message>();
 
-        public void CreateRequest(Guid guid, string message)
+        public Message CreateRequest(Guid ClientGuid, string message) // called from client
         {
-            Message newMessage = new Message();
-            newMessage.guid = guid;
-            newMessage.message = message;
-            messages.Add(newMessage);
+            message = message.CleanText();
+            Message newMessage;
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                newMessage = new Message(ClientGuid, message);
+                queue.Add(newMessage);
+                return newMessage;
+            }
+            newMessage = new Message(ClientGuid, "error!!");
+            newMessage.status = Message.Status.error;
+            return newMessage;
         }
 
-        public string CreateResponse(Guid guid)
+        public Message GetNextMessage() // called from server
         {
-            // using the guid provided by the web server, you can get the queued messages.
-            foreach (Message _message in messages)
+            IEnumerable<Message> Messages =
+                (from Message in queue
+                 orderby Message.PostTime
+                 where Message.status == Message.Status.queued
+                 select Message);
+
+            if (Messages.Count() > 0)
             {
-                if (_message.guid == guid)
+                Message message = Messages.Last();
+                message.status = Message.Status.processing;
+                return message;
+            }
+
+            return null;
+        }
+
+        public Message GetResponse(Guid ClientGuid) // called from client
+        {
+            IEnumerable<Message> Messages =
+                   (from Message in queue
+                    orderby Message.PostTime
+                    where Message.ClientGuid == ClientGuid
+                    && (Message.status == Message.Status.ready
+                    || Message.status == Message.Status.delayed)
+                    select Message);
+            if (Messages.Count() > 0)
+            {
+                Message message = Messages.Last();
+                if (message.status == Message.Status.ready)
                 {
-                    messages.Remove(_message);
-                    return _message.message;
+                    message.status = Message.Status.closed;
+                    return message;
+                }
+                else if (message.status == Message.Status.delayed)
+                {
+                    message.status = Message.Status.processing;
+                    return message;
                 }
             }
-
-            // Nothing to respond with.
-            return string.Empty;
-        }
-
-        public string GetRequest()
-        {
-            var requests = (from message in messages
-                           orderby message.PostTime
-                           where message.type == Message.Type.request
-                           select message);
-
-            if (requests.Count() > 0)
-            {
-                return requests.Last().message;
-            }
-            else
-            {
-                return string.Empty;
-            }
-        }
-
-        public string GetResponse(Guid guid) // this is from client
-        {
-            var responses = (from message in messages
-                                orderby message.PostTime
-                                where message.type == Message.Type.response 
-                                & message.guid == guid
-                                select message);
-
-            if (responses.Count() > 0)
-            {
-                return responses.Last().message;
-            }
-            else
-            {
-                return string.Empty;
-            }
+            return new Message(ClientGuid, "error!!"); // need a way to tell client, we are will working on it.
         }
     }
 
     public class Message
     {
-        public Guid guid = Guid.NewGuid();
-        public string message;
-        public enum Type {request, response};
-        public Type type;
+        private Guid _ClientGuid = Guid.Empty;
+        public Guid ClientGuid { get { return _ClientGuid; }  }
+
+        private Guid _MessageGuid = Guid.NewGuid();
+        public Guid MessageGuid { get { return _MessageGuid; } }
+
+        public string request = string.Empty;
+        public string textResponse = string.Empty;
+        public byte[] response = new byte[0];
+
         private DateTime _postTime = DateTime.Now;
         public DateTime PostTime { get { return _postTime; } }
 
-        // add auto destroy after timeout? Might be only for month old client guids.
+        public enum Status { queued, processing, delayed, ready, closed, error};
+        public Status status = Status.queued;
+
+        public Message(Guid pClientGuid, string pRequest)
+        {
+            _ClientGuid = pClientGuid;
+            request = pRequest;
+        }
     }
 }
