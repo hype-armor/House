@@ -14,9 +14,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using ExtensionMethods;
+using Extensions;
 using System.Windows.Threading;
 using System.Timers;
+using System.Speech.Recognition;
 
 namespace EchoClient
 {
@@ -36,7 +37,7 @@ namespace EchoClient
             aTimer.Elapsed += OnTimedEvent;
             aTimer.AutoReset = true;
             aTimer.Enabled = true;
-            
+            Listen();
         }
 
         private string Update = "updateupdate";
@@ -56,6 +57,35 @@ namespace EchoClient
 
             HitServer(text);
             
+        }
+
+        private void Listen()
+        {
+
+            // Create a new SpeechRecognitionEngine instance.
+            SpeechRecognizer recognizer = new SpeechRecognizer();
+
+            // Create a simple grammar that recognizes "red", "green", or "blue".
+            Choices Names = new Choices();
+            Names.Add(new string[] { "house" });
+
+            // Create a GrammarBuilder object and append the Choices object.
+            GrammarBuilder gb = new GrammarBuilder();
+            gb.Append(Names);
+
+            // Create the Grammar instance and load it into the speech recognition engine.
+            Grammar g = new Grammar(gb);
+            recognizer.LoadGrammar(g);
+
+            // Register a handler for the SpeechRecognized event.
+            recognizer.SpeechRecognized +=
+              new EventHandler<SpeechRecognizedEventArgs>(sre_SpeechRecognized);
+        }
+
+        // Create a simple handler for the SpeechRecognized event.
+        void sre_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            MessageBox.Show("Speech recognized: " + e.Result.Text);
         }
 
         public void HitServer(string query)

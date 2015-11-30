@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EchoClient"
         mc:Ignorable="d"
-        Title="OpenEcho Client" Height="135.833" Width="213.794">
-    <Grid>
+        Title="OpenEcho Client" Height="140.703" Width="348.693">
+    <Grid Height="130" VerticalAlignment="Top">
         <TextBox x:Name="txtQuery" Margin="10,10,10,0" TextWrapping="Wrap" Text="weather" Height="39" VerticalAlignment="Top"/>
         <Button x:Name="gobtn" Content="Go" Margin="10,54,112,0" Height="28" VerticalAlignment="Top" Click="gobtn_Click"/>
-        <Label x:Name="lblUpdateTime" Content="Loading..." HorizontalAlignment="Right" Margin="0,56,10,20" VerticalAlignment="Center" Width="102"/>
+        <Label x:Name="lblUpdateTime" Content="Loading..." HorizontalAlignment="Right" Margin="0,54,10,50" VerticalAlignment="Center" Width="102"/>
 
     </Grid>
 </Window>

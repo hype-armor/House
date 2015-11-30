@@ -24,84 +24,84 @@ using System.Text;
 using HtmlAgilityPack;
 using System.IO;
 
-namespace ExtensionMethods
+namespace Extensions
 {
-	public static class MyExtensions
-	{
+    public static class MyExtensions
+    {
 
-		public static string ToDate(this object value)
-		{
-			DateTime Datet;
-			if (value.ToString() != "")
-			{
-				if (!DateTime.TryParse(value.ToString(), out Datet))
-				{
-					value = "Invalid Date! " + value;
-					return null;
-				}
-				else
-				{
-					return Datet.ToString();
-				}
-			}
-			else
-			{
-				return null;
-			}
-		}
+        public static string ToDate(this object value)
+        {
+            DateTime Datet;
+            if (value.ToString() != "")
+            {
+                if (!DateTime.TryParse(value.ToString(), out Datet))
+                {
+                    value = "Invalid Date! " + value;
+                    return null;
+                }
+                else
+                {
+                    return Datet.ToString();
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
 
-		public static bool IsDecimal(this object value)
-		{
-			decimal result;
-			if (Decimal.TryParse(value.ToString(), out result))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
+        public static bool IsDecimal(this object value)
+        {
+            decimal result;
+            if (Decimal.TryParse(value.ToString(), out result))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		public static decimal ToDecimal(this object value)
-		{
-			decimal result;
-			if (Decimal.TryParse(value.ToString(), out result))
-			{
-				return result;
-			}
-			else
-			{
-				return decimal.MinValue;
-			}
-		}
+        public static decimal ToDecimal(this object value)
+        {
+            decimal result;
+            if (Decimal.TryParse(value.ToString(), out result))
+            {
+                return result;
+            }
+            else
+            {
+                return decimal.MinValue;
+            }
+        }
 
-		public static bool IsInt(this object value)
-		{
-			int Number;
-			if (int.TryParse(value.ToString(), out Number))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+        public static bool IsInt(this object value)
+        {
+            int Number;
+            if (int.TryParse(value.ToString(), out Number))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
 
-		}
+        }
 
-		public static int ToInt(this object value)
-		{
-			int Number;
-			if (int.TryParse(value.ToString(), out Number))
-			{
-				return Number;
-			}
-			else
-			{
-				return Number;
-			}
-		}
+        public static int ToInt(this object value)
+        {
+            int Number;
+            if (int.TryParse(value.ToString(), out Number))
+            {
+                return Number;
+            }
+            else
+            {
+                return Number;
+            }
+        }
 
         public static string ToWords(this int number)
         {
@@ -189,7 +189,7 @@ namespace ExtensionMethods
         public static string ReplaceWithNumbers(this string numberString)
         {
             StringBuilder sb = new StringBuilder();
-            string[] words = numberString.Split(new char[] {' '});
+            string[] words = numberString.Split(new char[] { ' ' });
             long prevNumber = 0;
             bool add = false;
             foreach (string word in words)
@@ -211,7 +211,7 @@ namespace ExtensionMethods
                     {
                         wordToAdd = word.ToLong().ToString();
                     }
-                    
+
                 }
                 else if (word.Trim().Contains("zero"))
                 {
@@ -231,8 +231,8 @@ namespace ExtensionMethods
 
         public static string CleanText(this string text)
         {
-            char[] alphaNumeric = new char[] 
-                    { 
+            char[] alphaNumeric = new char[]
+                    {
                         'a','b','c','d','e','f','g','h','i','j','k',
                         'l','m','n','o','p','q','r','s','t','u','v',
                         'w','x','y','z','1','2','3','4','5','6','7','8','9','0',

@@ -22,7 +22,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using ExtensionMethods;
+using Extensions;
 
 namespace EchoServer
 {
