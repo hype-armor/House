@@ -74,7 +74,7 @@ namespace EchoServer
 
             if (updateRequest)
             {
-                string response = messageSystem.Get(guid);
+                string response = messageSystem.CreateResponse(guid);
                 if (response != string.Empty)
                 {
                     return GetAudio(response);
@@ -101,13 +101,13 @@ namespace EchoServer
                 if (query.Key == plugin.Key)
                 {
                     input = input.CleanText();
-                    messageSystem.Post(guid, plugin.Value.Go(input));
+                    messageSystem.CreateRequest(guid, plugin.Value.Go(input));
                 }
             }
 
             if (query.Key == "help")
             {
-                messageSystem.Post(guid, qc.help);
+                messageSystem.CreateRequest(guid, qc.help);
             }
             else if (query.Key == "wolframAlpha")
             {
@@ -115,7 +115,7 @@ namespace EchoServer
             }
             else if (query.Key == "unknown")
             {
-                messageSystem.Post(guid, query.Value);
+                messageSystem.CreateRequest(guid, query.Value);
             }
 
             responseTime.Stop(query.Key, responseTimeID);

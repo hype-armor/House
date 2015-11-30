@@ -41,7 +41,7 @@ namespace EchoServer
         private int _timeout = 5;
         private Encoding _charEncoder = Encoding.UTF8;
         private Socket _serverSocket;
-        
+        private MessageSystem messageSystem = new MessageSystem();
 
         // Directory to host our contents
         private string _contentPath;
@@ -53,18 +53,12 @@ namespace EchoServer
         [STAThread]
         static void Main()
         {
-            if (Environment.UserInteractive)
+            if (Environment.UserInteractive && !Debugger.IsAttached)
             {
 
                 MessageBox.Show("This application is a service. Please install it.", "OpenEcho", MessageBoxButtons.OK, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
                 //ManagedInstallerClass.InstallHelper(new string[] { "/u", Assembly.GetExecutingAssembly().Location });
                 //ManagedInstallerClass.InstallHelper(new string[] {Assembly.GetExecutingAssembly().Location });
-
-                if (Debugger.IsAttached)
-                {
-                    Program d = new Program();
-                    d.Go(Guid.NewGuid(), "look up water");
-                }
             }
             else
             {
@@ -91,16 +85,14 @@ namespace EchoServer
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error in creating server socket");
-                Console.WriteLine(e.Message);
-                Console.ReadLine();
-
+                MessageBox.Show("Error in creating server socket");
+                MessageBox.Show(e.Message);
             }
 
-            Program p = new Program();
             while (_running)
             {
-                var requestHandler = new RequestHandler(_serverSocket, contentPath, p);
+                var requestHandler = new RequestHandler(_serverSocket, contentPath);
+                requestHandler.messageSystem = messageSystem;
                 requestHandler.AcceptRequest();
             }
 
@@ -114,8 +106,7 @@ namespace EchoServer
             }
             catch
             {
-                Console.WriteLine("Error in closing server or server already closed");
-                Console.ReadLine();
+                MessageBox.Show("Error in closing server or server already closed");
 
             }
             _serverSocket = null;
@@ -129,14 +120,13 @@ namespace EchoServer
         private int _timeout;
         private string _contentPath;
         private Encoding _charEncoder = Encoding.UTF8;
-        public Program _p;
+        public MessageSystem messageSystem;
 
-        public RequestHandler(Socket serverSocket, String contentPath, Program p)
+        public RequestHandler(Socket serverSocket, String contentPath)
         {
             _serverSocket = serverSocket;
             _timeout = 5;
             _contentPath = contentPath;
-            _p = p;
         }
 
         public void AcceptRequest()
@@ -157,8 +147,7 @@ namespace EchoServer
             }
             catch
             {
-                Console.WriteLine("Error in accepting client request");
-                Console.ReadLine();
+                MessageBox.Show("Error in accepting client request");
                 if (clientSocket != null)
                     clientSocket.Close();
             }
@@ -182,7 +171,8 @@ namespace EchoServer
                     // we have a browser request.
                     isEchoClient = false;
                 }
-                var createResponse = new CreateResponse(clientSocket, _contentPath, _p);
+                var createResponse = new CreateResponse(clientSocket, _contentPath);
+                createResponse.messageSystem = messageSystem;
                 createResponse.Request(requestParser.queryString, isEchoClient);
             }
             StopClientSocket(clientSocket);
@@ -206,8 +196,7 @@ namespace EchoServer
             }
             catch (Exception)
             {
-                //Console.WriteLine("buffer full");
-                Console.ReadLine();
+                MessageBox.Show("buffer full");
             }
             return _charEncoder.GetString(buffer, 0, receivedBufferlen);
         }
@@ -235,9 +224,9 @@ namespace EchoServer
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
-                Console.WriteLine(ex.InnerException == null ? "" : ex.InnerException.Message);
-                Console.WriteLine("Bad Request");
+                MessageBox.Show(ex.ToString());
+                MessageBox.Show(ex.InnerException == null ? "" : ex.InnerException.Message);
+                MessageBox.Show("Bad Request");
             }
         }
     }
@@ -249,13 +238,13 @@ namespace EchoServer
         private Encoding _charEncoder = Encoding.UTF8;
         private string _contentPath;
         public FileHandler FileHandler;
-        public Program _p;
-        public CreateResponse(Socket clientSocket, string contentPath, Program p)
+        public MessageSystem messageSystem;
+
+        public CreateResponse(Socket clientSocket, string contentPath)
         {
             _contentPath = contentPath;
             ClientSocket = clientSocket;
             FileHandler = new FileHandler(_contentPath);
-            _p = p;
         }
 
         public void Request(string[] queryString, bool isEchoClient)
@@ -275,9 +264,14 @@ namespace EchoServer
 
                 if (isGuidValid)
                 {
-                    
-                    byte[] result = _p.Go(guid, query);
-                    SendResponse(ClientSocket, result, "200 Ok", "audio/wav");
+                    messageSystem.CreateRequest(guid, "");
+                    //byte[] result = _p.Go(guid, query);
+                    //SendResponse(ClientSocket, result, "200 Ok", "audio/wav");
+                }
+                else
+                {
+                    SendErrorResponce(ClientSocket, new Exception("ERROR: PLEASE USE ECHOCLIENT!" + Environment.NewLine +
+                    "http://192.168.0.50:8080/guid=99d793a5-4de9-47e0-b812-9d23c0dfb9e6;query=forcast;"));
                 }
             }
             else
@@ -344,7 +338,7 @@ namespace EchoServer
             //return File.ReadAllBytes(path);
             if (ServerCache.Contains(_contentPath + path))
             {
-                Console.WriteLine("cache hit");
+                MessageBox.Show("cache hit");
                 return ServerCache.Get(_contentPath + path);
             }
             else

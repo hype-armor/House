@@ -18,19 +18,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EchoServer
 {
-    class MessageSystem
+    public class MessageSystem
     {
         private List<Message> messages = new List<Message>();
 
-        public bool ContainsTempResponse(string guid)
-        {
-            return true;
-        }
-
-        public void Post(Guid guid, string message)
+        public void CreateRequest(Guid guid, string message)
         {
             Message newMessage = new Message();
             newMessage.guid = guid;
@@ -38,7 +34,7 @@ namespace EchoServer
             messages.Add(newMessage);
         }
 
-        public string Get(Guid guid)
+        public string CreateResponse(Guid guid)
         {
             // using the guid provided by the web server, you can get the queued messages.
             foreach (Message _message in messages)
@@ -50,9 +46,43 @@ namespace EchoServer
                 }
             }
 
-            // if nothing else has triggered, return an empty string.
+            // Nothing to respond with.
             return string.Empty;
+        }
 
+        public string GetRequest()
+        {
+            var requests = (from message in messages
+                           orderby message.PostTime
+                           where message.type == Message.Type.request
+                           select message);
+
+            if (requests.Count() > 0)
+            {
+                return requests.Last().message;
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+        public string GetResponse(Guid guid) // this is from client
+        {
+            var responses = (from message in messages
+                                orderby message.PostTime
+                                where message.type == Message.Type.response 
+                                & message.guid == guid
+                                select message);
+
+            if (responses.Count() > 0)
+            {
+                return responses.Last().message;
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
     }
 
@@ -60,5 +90,11 @@ namespace EchoServer
     {
         public Guid guid = Guid.NewGuid();
         public string message;
+        public enum Type {request, response};
+        public Type type;
+        private DateTime _postTime = DateTime.Now;
+        public DateTime PostTime { get { return _postTime; } }
+
+        // add auto destroy after timeout? Might be only for month old client guids.
     }
 }
