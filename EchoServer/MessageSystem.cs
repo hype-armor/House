@@ -27,7 +27,7 @@ namespace EchoServer
     {
         private List<Message> queue = new List<Message>();
 
-        public Message CreateRequest(Guid ClientGuid, string message) // called from client
+        public void CreateRequest(Guid ClientGuid, string message) // called from client
         {
             message = message.CleanText();
             Message newMessage;
@@ -35,11 +35,7 @@ namespace EchoServer
             {
                 newMessage = new Message(ClientGuid, message);
                 queue.Add(newMessage);
-                return newMessage;
             }
-            newMessage = new Message(ClientGuid, "error!!");
-            newMessage.status = Message.Status.error;
-            return newMessage;
         }
 
         public Message GetNextMessage() // called from server
@@ -83,7 +79,7 @@ namespace EchoServer
                     return message;
                 }
             }
-            return new Message(ClientGuid, "error!!"); // need a way to tell client, we are will working on it.
+            return null; // need a way to tell client, we are will working on it.
         }
     }
 

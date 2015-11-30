@@ -247,7 +247,7 @@ namespace EchoServer
 
                 tokens[1] = tokens[1].Replace("/", "\\");
                 HttpMethod = tokens[0].ToUpper();
-                queryString = tokens[1].Split(new char[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+                queryString = tokens[1].Split(new char[] {'&'}, StringSplitOptions.RemoveEmptyEntries);
                 HttpProtocolVersion = tokens[2];
             }
             catch (Exception ex)
@@ -279,12 +279,12 @@ namespace EchoServer
         {
             
             bool validQueryString = queryString != null && queryString.Count() == 2;
-            Guid guid;
+            Guid ClientGuid;
             if (validQueryString)
             {
                 string _guid = queryString[0].Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries)
                     .Last().CleanText();
-                bool isGuidValid = Guid.TryParse(_guid, out guid);
+                bool isGuidValid = Guid.TryParse(_guid, out ClientGuid);
 
                 //"query=%3CUPDATE%3E"
                 string query = queryString[1].Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries)
@@ -292,20 +292,35 @@ namespace EchoServer
 
                 if (isGuidValid)
                 {
-                    messageSystem.CreateRequest(guid, "");
-                    //byte[] result = _p.Go(guid, query);
-                    //SendResponse(ClientSocket, result, "200 Ok", "audio/wav");
+                    string update = "updateupdate";
+                    if (query == update)
+                    {
+                        Message message = messageSystem.GetResponse(ClientGuid);
+                        if (message == null)
+                        {
+                            SendResponse(ClientSocket, update.GetBytes(), "200 Ok", "text/html");
+                        }
+                        else
+                        {
+                            SendResponse(ClientSocket, message.response, "200 Ok", "audio/wav");
+                        }
+                    }
+                    else
+                    {
+                        messageSystem.CreateRequest(ClientGuid, query);
+                        SendResponse(ClientSocket, new byte[0], "200 Ok", "audio/wav");
+                    }
                 }
                 else
                 {
                     SendErrorResponce(ClientSocket, new Exception("ERROR: PLEASE USE ECHOCLIENT!" + Environment.NewLine +
-                    "http://192.168.0.50:8080/guid=99d793a5-4de9-47e0-b812-9d23c0dfb9e6;query=forcast;"));
+                    "http://192.168.0.50:8080/guid=99d793a5-4de9-47e0-b812-9d23c0dfb9e6&query=forcast;"));
                 }
             }
             else
             {
                 SendErrorResponce(ClientSocket, new Exception("ERROR: PLEASE USE ECHOCLIENT!" + Environment.NewLine +
-                    "http://192.168.0.50:8080/guid=99d793a5-4de9-47e0-b812-9d23c0dfb9e6;query=forcast;"));
+                    "http://192.168.0.50:8080/guid=99d793a5-4de9-47e0-b812-9d23c0dfb9e6&query=forcast;"));
             }
         }
 

@@ -62,24 +62,24 @@ namespace EchoClient
         private void Listen()
         {
 
-            // Create a new SpeechRecognitionEngine instance.
-            SpeechRecognizer recognizer = new SpeechRecognizer();
-
-            // Create a simple grammar that recognizes "red", "green", or "blue".
-            Choices Names = new Choices();
-            Names.Add(new string[] { "house" });
-
-            // Create a GrammarBuilder object and append the Choices object.
-            GrammarBuilder gb = new GrammarBuilder();
-            gb.Append(Names);
-
-            // Create the Grammar instance and load it into the speech recognition engine.
-            Grammar g = new Grammar(gb);
-            recognizer.LoadGrammar(g);
-
-            // Register a handler for the SpeechRecognized event.
-            recognizer.SpeechRecognized +=
-              new EventHandler<SpeechRecognizedEventArgs>(sre_SpeechRecognized);
+            //// Create a new SpeechRecognitionEngine instance.
+            //SpeechRecognizer recognizer = new SpeechRecognizer();
+            //
+            //// Create a simple grammar that recognizes "red", "green", or "blue".
+            //Choices Names = new Choices();
+            //Names.Add(new string[] { "house" });
+            //
+            //// Create a GrammarBuilder object and append the Choices object.
+            //GrammarBuilder gb = new GrammarBuilder();
+            //gb.Append(Names);
+            //
+            //// Create the Grammar instance and load it into the speech recognition engine.
+            //Grammar g = new Grammar(gb);
+            //recognizer.LoadGrammar(g);
+            //
+            //// Register a handler for the SpeechRecognized event.
+            //recognizer.SpeechRecognized +=
+            //  new EventHandler<SpeechRecognizedEventArgs>(sre_SpeechRecognized);
         }
 
         // Create a simple handler for the SpeechRecognized event.
@@ -101,7 +101,7 @@ namespace EchoClient
 
             if (!string.IsNullOrWhiteSpace(query))
             {
-                string address = serverPath + "guid=" + guid.ToString() + ";query=" + query + ";";
+                string address = serverPath + "guid=" + guid.ToString() + "&query=" + query;
                 byte[] data = client.DownloadData(address);
 
                 if (data.GetString() == Update)
@@ -116,16 +116,16 @@ namespace EchoClient
                 {
                     MediaPlayer mp = new MediaPlayer(data);
                     mp.Play();
-
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                    {
-                        gobtn.IsEnabled = true;
-                    }));
                 }
                 else
                 {
                     MessageBox.Show("query: " + query + Environment.NewLine + "Did not send guid", "Error");
                 }
+
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    gobtn.IsEnabled = true;
+                }));
             }
         }
 
