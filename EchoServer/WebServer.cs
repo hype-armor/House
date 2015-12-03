@@ -65,7 +65,11 @@ namespace EchoServer
                     {
                         Message response = messageSystem.GetResponse(TestClientGuid);
 
-                        if (response.status == Message.Status.closed)
+                        if (response == null)
+                        {
+                            continue;
+                        }
+                        else if (response.status == Message.Status.closed)
                         {
                             //Debugger.Break();
                             break;
