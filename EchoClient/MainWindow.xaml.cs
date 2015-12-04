@@ -17,7 +17,8 @@ using System.Windows.Shapes;
 using Extensions;
 using System.Windows.Threading;
 using System.Timers;
-using System.Speech.Recognition;
+using NAudio;
+using NAudio.Wave;
 
 namespace EchoClient
 {
@@ -27,6 +28,9 @@ namespace EchoClient
     public partial class MainWindow : Window
     {
         private Timer aTimer;
+        private static Guid guid;
+        private string Update = "updateupdate";
+
         public MainWindow()
         {
             InitializeComponent();
@@ -36,32 +40,16 @@ namespace EchoClient
             // Hook up the Elapsed event for the timer. 
             aTimer.Elapsed += OnTimedEvent;
             aTimer.AutoReset = true;
-            aTimer.Enabled = true;
+            //aTimer.Enabled = true;
+
+            guid = Guid.NewGuid();
         }
 
-        private string Update = "updateupdate";
         private void OnTimedEvent(Object source, ElapsedEventArgs e)
         {
             aTimer.Stop();
             HitServer(Update);
             aTimer.Start();
-        }
-
-        private static Guid guid = Guid.NewGuid();
-
-        private void gobtn_Click(object sender, RoutedEventArgs e)
-        {
-            gobtn.IsEnabled = false;
-            string text = txtQuery.Text.CleanText();
-
-            HitServer(text);
-            
-        }
-
-        // Create a simple handler for the SpeechRecognized event.
-        void sre_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        {
-            MessageBox.Show("Speech recognized: " + e.Result.Text);
         }
 
         public void HitServer(string query)
@@ -97,14 +85,45 @@ namespace EchoClient
                 {
                     MessageBox.Show("query: " + query + Environment.NewLine + "Did not send guid", "Error");
                 }
-
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                {
-                    gobtn.IsEnabled = true;
-                }));
             }
         }
 
+        public void HitServer(byte[] query)
+        {
+            WebClient client = new WebClient();
+
+            // Add a user agent header in case the 
+            // requested URI contains a query.
+
+            client.Headers.Add("user-agent", "EchoClient_version=0.2");
+
+            string serverPath = "http://192.168.0.50:8080/";
+
+            if (query.Length > 0)
+            {
+                string result = System.Text.Encoding.UTF8.GetString(query);
+                string address = serverPath + "guid=" + guid.ToString() + "&query=" + result;
+                byte[] data = client.DownloadData(address);
+
+                if (data.GetString() == Update)
+                {
+                    // update only
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    {
+                        lblUpdateTime.Content = DateTime.Now.ToLongTimeString();
+                    }));
+                }
+                else if (data.Length > 0)
+                {
+                    MediaPlayer mp = new MediaPlayer(data);
+                    mp.Play();
+                }
+                else
+                {
+                    MessageBox.Show("query: " + query + Environment.NewLine + "Did not send guid", "Error");
+                }
+            }
+        }
         public class MediaPlayer
         {
             System.Media.SoundPlayer soundPlayer;
@@ -119,6 +138,62 @@ namespace EchoClient
             {
                 soundPlayer.PlaySync();
             }
+        }
+
+        public WaveIn waveSource = null;
+        private byte[] buffer = null;
+        private void waveSource_RecordingStopped(object sender, StoppedEventArgs e)
+        {
+            if (waveSource != null)
+            {
+                waveSource.Dispose();
+                waveSource = null;
+            }
+
+            startBtn.IsEnabled = true;
+        }
+
+        private void waveSource_DataAvailable(object sender, WaveInEventArgs e)
+        {
+            if (buffer == null)
+            {
+                buffer = e.Buffer;
+            }
+            else
+            {
+                buffer = Combine(buffer, e.Buffer);
+            }
+        }
+
+        private void startBtn_Click(object sender, RoutedEventArgs e)
+        {
+            waveSource = new WaveIn();
+            waveSource.WaveFormat = new WaveFormat(44100, 1);
+
+            waveSource.DataAvailable += new EventHandler<WaveInEventArgs>(waveSource_DataAvailable);
+            waveSource.RecordingStopped += new EventHandler<StoppedEventArgs>(waveSource_RecordingStopped);
+
+            waveSource.StartRecording();
+            startBtn.IsEnabled = false;
+            stopBtn.IsEnabled = true;
+        }
+
+        private void stopBtn_Click(object sender, RoutedEventArgs e)
+        {
+            stopBtn.IsEnabled = false;
+            startBtn.IsEnabled = true;
+            waveSource.StopRecording();
+
+            // prep for transfer to server
+            HitServer(buffer);
+        }
+
+        public static byte[] Combine(byte[] first, byte[] second)
+        {
+            byte[] ret = new byte[first.Length + second.Length];
+            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
+            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
+            return ret;
         }
     }
 }
