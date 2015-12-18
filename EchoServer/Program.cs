@@ -73,7 +73,7 @@ namespace EchoServer
                         continue;
                     }
 
-                    KeyValuePair<string, string> query = qc.Classify(message.request);
+                    KeyValuePair<string, string> query = qc.Classify(message.textRequest);
 
                     int responseTimeID = responseTime.Start(query.Key);
                     string delaymsg = responseTime.GetDelayMessage(query.Key);
@@ -99,7 +99,7 @@ namespace EchoServer
                             }
                             else
                             {
-                                response = plugin.Value.Go(message.request);
+                                response = plugin.Value.Go(message.textRequest);
                                 Thread.Sleep(5000);
                             }
                             message.textResponse = response;

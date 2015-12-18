@@ -55,35 +55,37 @@ namespace EchoServer
         {
             if (Debugger.IsAttached)
             {
-                for (int i = 0; i < 2; i++)
-                {
-                    Guid TestClientGuid = Guid.NewGuid();
-                    messageSystem.CreateRequest(TestClientGuid, "forcast");
+                // there is a file in c temp for testing
 
-                    Program program = new Program(messageSystem);
-                    while (true)
-                    {
-                        Message response = messageSystem.GetResponse(TestClientGuid);
-
-                        if (response == null)
-                        {
-                            continue;
-                        }
-                        else if (response.status == Message.Status.closed)
-                        {
-                            //Debugger.Break();
-                            break;
-                        }
-                        else if (response.status == Message.Status.processing)
-                        {
-                            Debugger.Break();
-                        }
-                        else if (response.status == Message.Status.ready)
-                        {
-                            Debugger.Break();
-                        }
-                    } 
-                }
+                //for (int i = 0; i < 2; i++)
+                //{
+                //    Guid TestClientGuid = Guid.NewGuid();
+                //    messageSystem.CreateRequest(TestClientGuid, "forcast");
+                //
+                //    Program program = new Program(messageSystem);
+                //    while (true)
+                //    {
+                //        Message response = messageSystem.GetResponse(TestClientGuid);
+                //
+                //        if (response == null)
+                //        {
+                //            continue;
+                //        }
+                //        else if (response.status == Message.Status.closed)
+                //        {
+                //            //Debugger.Break();
+                //            break;
+                //        }
+                //        else if (response.status == Message.Status.processing)
+                //        {
+                //            Debugger.Break();
+                //        }
+                //        else if (response.status == Message.Status.ready)
+                //        {
+                //            Debugger.Break();
+                //        }
+                //    } 
+                //}
             }
             else if (Environment.UserInteractive)
             {
@@ -111,15 +113,7 @@ namespace EchoServer
         }
         public void Start(IPAddress ipAddress, int port, string contentPath)
         {
-            try
-            {
-                InitializeSocket(ipAddress, port, contentPath);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("Error in creating server socket");
-                MessageBox.Show(e.Message);
-            }
+            InitializeSocket(ipAddress, port, contentPath);
 
             while (_running)
             {
@@ -164,25 +158,17 @@ namespace EchoServer
         public void AcceptRequest()
         {
             Socket clientSocket = null;
-            try
-            {
-                // Create new thread to handle the request and continue to listen the socket.
-                clientSocket = _serverSocket.Accept();
 
-                var requestHandler = new Thread(() =>
-                {
-                    clientSocket.ReceiveTimeout = _timeout;
-                    clientSocket.SendTimeout = _timeout;
-                    HandleTheRequest(clientSocket);
-                });
-                requestHandler.Start();
-            }
-            catch
+            // Create new thread to handle the request and continue to listen the socket.
+            clientSocket = _serverSocket.Accept();
+
+            var requestHandler = new Thread(() =>
             {
-                MessageBox.Show("Error in accepting client request");
-                if (clientSocket != null)
-                    clientSocket.Close();
-            }
+                clientSocket.ReceiveTimeout = _timeout;
+                clientSocket.SendTimeout = _timeout;
+                HandleTheRequest(clientSocket);
+            });
+            requestHandler.Start();
         }
 
         private void HandleTheRequest(Socket clientSocket)
@@ -193,19 +179,15 @@ namespace EchoServer
 
             if (requestParser.HttpMethod != null && requestParser.HttpMethod.Equals("get", StringComparison.InvariantCultureIgnoreCase))
             {
-                bool isEchoClient = true;
-                if (requestString.Contains("User-Agent") && 
-                    (requestString.Contains("Mozilla") || 
-                    requestString.Contains("AppleWebKit") || 
-                    requestString.Contains("Chrome") || 
-                    requestString.Contains("Safari")))
-                {
-                    // we have a browser request.
-                    isEchoClient = false;
-                }
                 var createResponse = new CreateResponse(clientSocket, _contentPath);
                 createResponse.messageSystem = messageSystem;
-                createResponse.Request(requestParser.queryString, isEchoClient);
+                createResponse.Get(requestParser.queryString);
+            }
+            else if (requestParser.HttpMethod != null && requestParser.HttpMethod.Equals("post", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var createResponse = new CreateResponse(clientSocket, _contentPath);
+                createResponse.messageSystem = messageSystem;
+                createResponse.Post(requestParser.queryString);
             }
             StopClientSocket(clientSocket);
         }
@@ -220,16 +202,7 @@ namespace EchoServer
         {
             var receivedBufferlen = 0;
             var buffer = new byte[10240];
-            try
-            {
-                receivedBufferlen = clientSocket.Receive(buffer);
-
-                //_charEncoder = MyExtensions.detectTextEncoding(buffer);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("buffer full");
-            }
+            receivedBufferlen = clientSocket.Receive(buffer);
             return _charEncoder.GetString(buffer, 0, receivedBufferlen);
         }
     }
@@ -244,22 +217,12 @@ namespace EchoServer
 
         public void Parser(string requestString)
         {
-            try
-            {
-                //"GET /guid=asdf-asdf-asdf-asdf;query=weather; HTTP/1.1\r\nHost: 192.168.0.50:8080\r\nConnection: keep-alive\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36\r\nDNT: 1\r\nAccept-Encoding: gzip, deflate, sdch\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n"
-                string[] tokens = requestString.Split(' ');
+            string[] tokens = requestString.Split(' ');
 
-                tokens[1] = tokens[1].Replace("/", "\\");
-                HttpMethod = tokens[0].ToUpper();
-                queryString = tokens[1].Split(new char[] {'&'}, StringSplitOptions.RemoveEmptyEntries);
-                HttpProtocolVersion = tokens[2];
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-                MessageBox.Show(ex.InnerException == null ? "" : ex.InnerException.Message);
-                MessageBox.Show("Bad Request");
-            }
+            tokens[1] = tokens[1].Replace("/", "\\");
+            HttpMethod = tokens[0].ToUpper();
+            queryString = tokens[1].Split(new char[] {'&'}, StringSplitOptions.RemoveEmptyEntries);
+            HttpProtocolVersion = tokens[2];
         }
     }
 
@@ -279,12 +242,11 @@ namespace EchoServer
             FileHandler = new FileHandler(_contentPath);
         }
 
-        public void Request(string[] queryString, bool isEchoClient)
+        public void Get(string[] queryString)
         {
             
-            bool validQueryString = queryString != null && queryString.Count() == 2;
             Guid ClientGuid;
-            if (validQueryString)
+            if (queryString != null && queryString.Count() == 2)
             {
                 string _guid = queryString[0].Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries)
                     .Last().CleanText();
@@ -311,20 +273,62 @@ namespace EchoServer
                     }
                     else
                     {
-                        messageSystem.CreateRequest(ClientGuid, query);
-                        SendResponse(ClientSocket, new byte[0], "200 Ok", "audio/wav");
+                        
                     }
                 }
-                else
+            }
+
+            else
+            {
+                SendErrorResponce(ClientSocket, new Exception("ERROR: PLEASE USE ECHOCLIENT!"));
+            }
+        }
+
+        public void Post(string[] queryString)
+        {
+            Guid ClientGuid;
+            if (queryString != null && queryString.Count() == 1)
+            {
+                string _guid = queryString[0].Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Last().CleanText();
+                bool isGuidValid = Guid.TryParse(_guid, out ClientGuid);
+
+                if (isGuidValid)
                 {
-                    SendErrorResponce(ClientSocket, new Exception("ERROR: PLEASE USE ECHOCLIENT!" + Environment.NewLine +
-                    "http://192.168.0.50:8080/guid=99d793a5-4de9-47e0-b812-9d23c0dfb9e6&query=forcast;"));
+                    int bytesRead = 0;
+                    Stream stream = new MemoryStream();
+                    ClientSocket.ReceiveTimeout = 50;
+                    try
+                    {
+                        
+                        do
+                        {
+                            byte[] buffer = new byte[1024];
+                            bytesRead = ClientSocket.Receive(buffer, buffer.Length, SocketFlags.None);
+                            
+                            stream.Write(buffer, 0, buffer.Length);
+                        } while (bytesRead > 0);
+                        stream.Flush();
+                        stream.Position = 0;
+                        messageSystem.CreateRequest(ClientGuid, stream);
+                        stream.Close();
+                    }
+                    catch (SocketException se)
+                    {
+                        Debugger.Launch();
+                    }
+                    finally
+                    {
+                        stream.Dispose();
+                    }
+                    
+
+                    
                 }
             }
             else
             {
-                SendErrorResponce(ClientSocket, new Exception("ERROR: PLEASE USE ECHOCLIENT!" + Environment.NewLine +
-                    "http://192.168.0.50:8080/guid=99d793a5-4de9-47e0-b812-9d23c0dfb9e6&query=forcast;"));
+                SendErrorResponce(ClientSocket, new Exception("ERROR: PLEASE USE ECHOCLIENT!"));
             }
         }
 
@@ -344,16 +348,10 @@ namespace EchoServer
 
         private void SendResponse(Socket clientSocket, byte[] byteContent, string responseCode, string contentType)
         {
-            try
-            {
-                byte[] byteHeader = CreateHeader(responseCode, byteContent.Length, contentType);
-                clientSocket.Send(byteHeader);
-                clientSocket.Send(byteContent);
-                clientSocket.Close();
-            }
-            catch
-            {
-            }
+            byte[] byteHeader = CreateHeader(responseCode, byteContent.Length, contentType);
+            clientSocket.Send(byteHeader);
+            clientSocket.Send(byteContent);
+            clientSocket.Close();
         }
 
         private byte[] CreateHeader(string responseCode, int contentLength, string contentType)
