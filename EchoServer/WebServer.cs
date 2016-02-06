@@ -36,26 +36,30 @@ public class StateObject
     public StringBuilder sb = new StringBuilder();
 }
 
-public class AsynchronousSocketListener
+public class WebServer
 {
     // Thread signal.
     public static ManualResetEvent allDone = new ManualResetEvent(false);
+    public static bool run = true;
 
-    public AsynchronousSocketListener()
-    {
-    }
-
-    public static void StartListening()
+    public void StartListening()
     {
         // Data buffer for incoming data.
         byte[] bytes = new Byte[1024];
 
         // Establish the local endpoint for the socket.
         // The DNS name of the computer
-        // running the listener is "host.contoso.com".
         IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-        IPAddress ipAddress = ipHostInfo.AddressList[0];
-        IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
+        IPAddress ipAddress = null;//ipHostInfo.AddressList[0];
+        foreach (var Address in ipHostInfo.AddressList)
+        {
+            if (Address.AddressFamily == AddressFamily.InterNetwork && Address.ToString().Contains("192"))
+            {
+                ipAddress = Address;
+            }
+        }
+
+        IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 8080);
 
         // Create a TCP/IP socket.
         Socket listener = new Socket(AddressFamily.InterNetwork,
@@ -67,7 +71,7 @@ public class AsynchronousSocketListener
             listener.Bind(localEndPoint);
             listener.Listen(100);
 
-            while (true)
+            while (run)
             {
                 // Set the event to nonsignaled state.
                 allDone.Reset();
@@ -91,6 +95,11 @@ public class AsynchronousSocketListener
         Console.WriteLine("\nPress ENTER to continue...");
         Console.Read();
 
+    }
+
+    public void StopListenting()
+    {
+        run = false;
     }
 
     public static void AcceptCallback(IAsyncResult ar)
@@ -177,12 +186,5 @@ public class AsynchronousSocketListener
         {
             Console.WriteLine(e.ToString());
         }
-    }
-
-
-    public static int Main(String[] args)
-    {
-        StartListening();
-        return 0;
     }
 }
