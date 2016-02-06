@@ -17,461 +17,174 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using Extensions;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Windows.Forms;
-using System.ServiceProcess;
-using System.Diagnostics;
 
-namespace EchoServer
+// State object for reading client data asynchronously
+public class StateObject
 {
-    public class WebServer
+    // Client  socket.
+    public Socket workSocket = null;
+    // Size of receive buffer.
+    public const int BufferSize = 1024;
+    // Receive buffer.
+    public byte[] buffer = new byte[BufferSize];
+    // Received data string.
+    public StringBuilder sb = new StringBuilder();
+}
+
+public class WebServer
+{
+    // Thread signal.
+    public static ManualResetEvent allDone = new ManualResetEvent(false);
+    public static bool run = true;
+
+    public void StartListening()
     {
-        // check for already running
-        private bool _running = false;
-        private int _timeout = 5;
-        private Encoding _charEncoder = Encoding.UTF8;
-        private Socket _serverSocket;
-        private static MessageSystem messageSystem = new MessageSystem();
+        // Data buffer for incoming data.
+        byte[] bytes = new Byte[1024];
 
-        // Directory to host our contents
-        private string _contentPath;
-
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-
-        [STAThread]
-        static void Main()
+        // Establish the local endpoint for the socket.
+        // The DNS name of the computer
+        IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+        IPAddress ipAddress = null;//ipHostInfo.AddressList[0];
+        foreach (var Address in ipHostInfo.AddressList)
         {
-            if (Debugger.IsAttached)
+            if (Address.AddressFamily == AddressFamily.InterNetwork && Address.ToString().Contains("192"))
             {
-                for (int i = 0; i < 2; i++)
-                {
-                    Guid TestClientGuid = Guid.NewGuid();
-                    messageSystem.CreateRequest(TestClientGuid, "forcast");
-
-                    Program program = new Program(messageSystem);
-                    while (true)
-                    {
-                        Message response = messageSystem.GetResponse(TestClientGuid);
-
-                        if (response == null)
-                        {
-                            continue;
-                        }
-                        else if (response.status == Message.Status.closed)
-                        {
-                            //Debugger.Break();
-                            break;
-                        }
-                        else if (response.status == Message.Status.processing)
-                        {
-                            Debugger.Break();
-                        }
-                        else if (response.status == Message.Status.ready)
-                        {
-                            Debugger.Break();
-                        }
-                    } 
-                }
+                ipAddress = Address;
             }
-            else if (Environment.UserInteractive)
-            {
+        }
 
-                MessageBox.Show("This application is a service. Please install it.", "OpenEcho", MessageBoxButtons.OK, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
-                //ManagedInstallerClass.InstallHelper(new string[] { "/u", Assembly.GetExecutingAssembly().Location });
-                //ManagedInstallerClass.InstallHelper(new string[] {Assembly.GetExecutingAssembly().Location });
+        IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 8080);
+
+        // Create a TCP/IP socket.
+        Socket listener = new Socket(AddressFamily.InterNetwork,
+            SocketType.Stream, ProtocolType.Tcp);
+
+        // Bind the socket to the local endpoint and listen for incoming connections.
+        try
+        {
+            listener.Bind(localEndPoint);
+            listener.Listen(100);
+
+            while (run)
+            {
+                // Set the event to nonsignaled state.
+                allDone.Reset();
+
+                // Start an asynchronous socket to listen for connections.
+                Console.WriteLine("Waiting for a connection...");
+                listener.BeginAccept(
+                    new AsyncCallback(AcceptCallback),
+                    listener);
+
+                // Wait until a connection is made before continuing.
+                allDone.WaitOne();
+            }
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.ToString());
+        }
+
+        Console.WriteLine("\nPress ENTER to continue...");
+        Console.Read();
+
+    }
+
+    public void StopListenting()
+    {
+        run = false;
+    }
+
+    public static void AcceptCallback(IAsyncResult ar)
+    {
+        // Signal the main thread to continue.
+        allDone.Set();
+
+        // Get the socket that handles the client request.
+        Socket listener = (Socket)ar.AsyncState;
+        Socket handler = listener.EndAccept(ar);
+
+        // Create the state object.
+        StateObject state = new StateObject();
+        state.workSocket = handler;
+        handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+            new AsyncCallback(ReadCallback), state);
+    }
+
+    public static void ReadCallback(IAsyncResult ar)
+    {
+        String content = String.Empty;
+
+        // Retrieve the state object and the handler socket
+        // from the asynchronous state object.
+        StateObject state = (StateObject)ar.AsyncState;
+        Socket handler = state.workSocket;
+
+        // Read data from the client socket. 
+        int bytesRead = handler.EndReceive(ar);
+
+        if (bytesRead > 0)
+        {
+            // There  might be more data, so store the data received so far.
+            state.sb.Append(Encoding.ASCII.GetString(
+                state.buffer, 0, bytesRead));
+
+            // Check for end-of-file tag. If it is not there, read 
+            // more data.
+            content = state.sb.ToString();
+            if (content.IndexOf("<EOF>") > -1)
+            {
+                // All the data has been read from the 
+                // client. Display it on the console.
+                Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
+                    content.Length, content);
+                // Echo the data back to the client.
+                Send(handler, content);
             }
             else
             {
-                ServiceBase.Run(new Echo());
-            }
-        }
-
-        //create socket and initialization
-        private void InitializeSocket(IPAddress ipAddress, int port, string contentPath) //create socket
-        {
-            _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _serverSocket.Bind(new IPEndPoint(ipAddress, port));
-            _serverSocket.Listen(10);    //no of request in queue
-            _serverSocket.ReceiveTimeout = _timeout;
-            _serverSocket.SendTimeout = _timeout;
-            _running = true; //socket created
-            _contentPath = contentPath;
-        }
-        public void Start(IPAddress ipAddress, int port, string contentPath)
-        {
-            try
-            {
-                InitializeSocket(ipAddress, port, contentPath);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("Error in creating server socket");
-                MessageBox.Show(e.Message);
-            }
-
-            while (_running)
-            {
-                var requestHandler = new RequestHandler(_serverSocket, contentPath);
-                requestHandler.messageSystem = messageSystem;
-                requestHandler.AcceptRequest();
-            }
-
-        }
-        public void Stop()
-        {
-            _running = false;
-            try
-            {
-                _serverSocket.Close();
-            }
-            catch
-            {
-                MessageBox.Show("Error in closing server or server already closed");
-
-            }
-            _serverSocket = null;
-        }
-
-    }
-
-    class RequestHandler
-    {
-        private Socket _serverSocket;
-        private int _timeout;
-        private string _contentPath;
-        private Encoding _charEncoder = Encoding.UTF8;
-        public MessageSystem messageSystem;
-
-        public RequestHandler(Socket serverSocket, String contentPath)
-        {
-            _serverSocket = serverSocket;
-            _timeout = 5;
-            _contentPath = contentPath;
-        }
-
-        public void AcceptRequest()
-        {
-            Socket clientSocket = null;
-            try
-            {
-                // Create new thread to handle the request and continue to listen the socket.
-                clientSocket = _serverSocket.Accept();
-
-                var requestHandler = new Thread(() =>
-                {
-                    clientSocket.ReceiveTimeout = _timeout;
-                    clientSocket.SendTimeout = _timeout;
-                    HandleTheRequest(clientSocket);
-                });
-                requestHandler.Start();
-            }
-            catch
-            {
-                MessageBox.Show("Error in accepting client request");
-                if (clientSocket != null)
-                    clientSocket.Close();
-            }
-        }
-
-        private void HandleTheRequest(Socket clientSocket)
-        {
-            var requestParser = new RequestParser();
-            string requestString = DecodeRequest(clientSocket);
-            requestParser.Parser(requestString);
-
-            if (requestParser.HttpMethod != null && requestParser.HttpMethod.Equals("get", StringComparison.InvariantCultureIgnoreCase))
-            {
-                bool isEchoClient = true;
-                if (requestString.Contains("User-Agent") && 
-                    (requestString.Contains("Mozilla") || 
-                    requestString.Contains("AppleWebKit") || 
-                    requestString.Contains("Chrome") || 
-                    requestString.Contains("Safari")))
-                {
-                    // we have a browser request.
-                    isEchoClient = false;
-                }
-                var createResponse = new CreateResponse(clientSocket, _contentPath);
-                createResponse.messageSystem = messageSystem;
-                createResponse.Request(requestParser.queryString, isEchoClient);
-            }
-            StopClientSocket(clientSocket);
-        }
-
-        public void StopClientSocket(Socket clientSocket)
-        {
-            if (clientSocket != null)
-                clientSocket.Close();
-        }
-
-        private string DecodeRequest(Socket clientSocket)
-        {
-            var receivedBufferlen = 0;
-            var buffer = new byte[10240];
-            try
-            {
-                receivedBufferlen = clientSocket.Receive(buffer);
-
-                //_charEncoder = MyExtensions.detectTextEncoding(buffer);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("buffer full");
-            }
-            return _charEncoder.GetString(buffer, 0, receivedBufferlen);
-        }
-    }
-
-    public class RequestParser
-    {
-        private Encoding _charEncoder = Encoding.UTF8;
-        public string HttpMethod;
-        public string[] queryString;
-        public string HttpProtocolVersion;
-
-
-        public void Parser(string requestString)
-        {
-            try
-            {
-                //"GET /guid=asdf-asdf-asdf-asdf;query=weather; HTTP/1.1\r\nHost: 192.168.0.50:8080\r\nConnection: keep-alive\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36\r\nDNT: 1\r\nAccept-Encoding: gzip, deflate, sdch\r\nAccept-Language: en-US,en;q=0.8\r\n\r\n"
-                string[] tokens = requestString.Split(' ');
-
-                tokens[1] = tokens[1].Replace("/", "\\");
-                HttpMethod = tokens[0].ToUpper();
-                queryString = tokens[1].Split(new char[] {'&'}, StringSplitOptions.RemoveEmptyEntries);
-                HttpProtocolVersion = tokens[2];
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-                MessageBox.Show(ex.InnerException == null ? "" : ex.InnerException.Message);
-                MessageBox.Show("Bad Request");
+                // Not all data received. Get more.
+                handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                new AsyncCallback(ReadCallback), state);
             }
         }
     }
 
-    public class CreateResponse
+    private static void Send(Socket handler, String data)
     {
-        RegistryKey registryKey = Registry.ClassesRoot;
-        public Socket ClientSocket = null;
-        private Encoding _charEncoder = Encoding.UTF8;
-        private string _contentPath;
-        public FileHandler FileHandler;
-        public MessageSystem messageSystem;
+        // Convert the string data to byte data using ASCII encoding.
+        byte[] byteData = Encoding.ASCII.GetBytes(data);
 
-        public CreateResponse(Socket clientSocket, string contentPath)
-        {
-            _contentPath = contentPath;
-            ClientSocket = clientSocket;
-            FileHandler = new FileHandler(_contentPath);
-        }
-
-        public void Request(string[] queryString, bool isEchoClient)
-        {
-            
-            bool validQueryString = queryString != null && queryString.Count() == 2;
-            Guid ClientGuid;
-            if (validQueryString)
-            {
-                string _guid = queryString[0].Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Last().CleanText();
-                bool isGuidValid = Guid.TryParse(_guid, out ClientGuid);
-
-                //"query=%3CUPDATE%3E"
-                string query = queryString[1].Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Last();
-
-                if (isGuidValid)
-                {
-                    string update = "updateupdate";
-                    if (query == update)
-                    {
-                        Message message = messageSystem.GetResponse(ClientGuid);
-                        if (message == null)
-                        {
-                            SendResponse(ClientSocket, update.GetBytes(), "200 Ok", "text/html");
-                        }
-                        else
-                        {
-                            SendResponse(ClientSocket, message.response, "200 Ok", "audio/wav");
-                        }
-                    }
-                    else
-                    {
-                        messageSystem.CreateRequest(ClientGuid, query);
-                        SendResponse(ClientSocket, new byte[0], "200 Ok", "audio/wav");
-                    }
-                }
-                else
-                {
-                    SendErrorResponce(ClientSocket, new Exception("ERROR: PLEASE USE ECHOCLIENT!" + Environment.NewLine +
-                    "http://192.168.0.50:8080/guid=99d793a5-4de9-47e0-b812-9d23c0dfb9e6&query=forcast;"));
-                }
-            }
-            else
-            {
-                SendErrorResponce(ClientSocket, new Exception("ERROR: PLEASE USE ECHOCLIENT!" + Environment.NewLine +
-                    "http://192.168.0.50:8080/guid=99d793a5-4de9-47e0-b812-9d23c0dfb9e6&query=forcast;"));
-            }
-        }
-
-        private string GetTypeOfFile(RegistryKey registryKey, string fileName)
-        {
-            RegistryKey fileClass = registryKey.OpenSubKey(Path.GetExtension(fileName));
-            return fileClass.GetValue("Content Type").ToString();
-        }
-
-        private void SendErrorResponce(Socket clientSocket, Exception e)
-        {
-            string Error = e.Message;
-            
-            SendResponse(clientSocket, Error.GetBytes(), "404 Not Found", "text/html");
-        }
-
-
-        private void SendResponse(Socket clientSocket, byte[] byteContent, string responseCode, string contentType)
-        {
-            try
-            {
-                byte[] byteHeader = CreateHeader(responseCode, byteContent.Length, contentType);
-                clientSocket.Send(byteHeader);
-                clientSocket.Send(byteContent);
-                clientSocket.Close();
-            }
-            catch
-            {
-            }
-        }
-
-        private byte[] CreateHeader(string responseCode, int contentLength, string contentType)
-        {
-            return _charEncoder.GetBytes("HTTP/1.1 " + responseCode + "\r\n"
-                                  + "Server: Simple Web Server\r\n"
-                                  + "Content-Length: " + contentLength + "\r\n"
-                                  + "Connection: close\r\n"
-                                  + "Content-Type: " + contentType + "\r\n\r\n");
-        }
+        // Begin sending the data to the remote device.
+        handler.BeginSend(byteData, 0, byteData.Length, 0,
+            new AsyncCallback(SendCallback), handler);
     }
 
-    public class FileHandler
+    private static void SendCallback(IAsyncResult ar)
     {
-        private string _contentPath;
-
-        public FileHandler(string contentPath)
+        try
         {
-            _contentPath = contentPath;
-        }
+            // Retrieve the socket from the state object.
+            Socket handler = (Socket)ar.AsyncState;
 
-        internal bool DoesFileExists(string directory)
-        {
-            return File.Exists(_contentPath + directory);
-        }
+            // Complete sending the data to the remote device.
+            int bytesSent = handler.EndSend(ar);
+            Console.WriteLine("Sent {0} bytes to client.", bytesSent);
 
-        internal byte[] ReadFile(string path)
-        {
-            //return File.ReadAllBytes(path);
-            if (ServerCache.Contains(_contentPath + path))
-            {
-                MessageBox.Show("cache hit");
-                return ServerCache.Get(_contentPath + path);
-            }
-            else
-            {
-                byte[] content = File.ReadAllBytes(_contentPath + path);
-                ServerCache.Insert(_contentPath + path, content);
-                return content;
-            }
+            handler.Shutdown(SocketShutdown.Both);
+            handler.Close();
 
         }
-    }
-
-    class ServerCache
-    {
-        public struct Content
+        catch (Exception e)
         {
-            internal byte[] ResponseContent;
-            internal int RequestCount;
-        };
-        private static readonly object SyncRoot = new object();
-        private static int _capacity = 15;
-        private static Dictionary<string, Content> _cache = new Dictionary<string,Content>(StringComparer.OrdinalIgnoreCase) { };
-
-        public static bool Insert(string url, byte[] body)
-        {
-            lock (SyncRoot)
-            {
-                if (IsFull())
-                    CreateEmptySpace();
-
-                var content = new Content {RequestCount = 0, ResponseContent = new byte[body.Length]};
-                Buffer.BlockCopy(body, 0, content.ResponseContent, 0, body.Length);
-                if (!_cache.ContainsKey(url))
-                {
-                    _cache.Add(url, content);
-                    return false;
-                }
-
-                return true;
-            }
-
-        }
-
-        public static bool IsFull()
-        {
-            return _cache.Count >= _capacity;
-        }
-
-        public static byte[] Get(string url)
-        {
-            if (_cache.ContainsKey(url))
-            {
-                Content content = _cache[url];
-                content.RequestCount++;
-                _cache[url] = content;
-                return content.ResponseContent;
-            }
-
-            return null;
-        }
-
-        public static bool Contains(string url)
-        {
-            return _cache.ContainsKey(url);
-        }
-
-        private static void CreateEmptySpace()
-        {
-            var minRequestCount = Int32.MaxValue;
-            var url = String.Empty;
-            foreach (var entry in _cache)
-            {
-                Content content = entry.Value;
-                if (content.RequestCount < minRequestCount)
-                {
-                    minRequestCount = content.RequestCount;
-                    url = entry.Key;
-                }
-            }
-
-            _cache.Remove(url);
-        }
-
-        public static int CacheCount()
-        {
-            return _cache.Count;
+            Console.WriteLine(e.ToString());
         }
     }
 }

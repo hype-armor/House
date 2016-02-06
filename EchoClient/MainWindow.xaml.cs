@@ -19,6 +19,8 @@ using System.Windows.Threading;
 using System.Timers;
 using NAudio;
 using NAudio.Wave;
+using System.Speech.AudioFormat;
+using System.Net.Cache;
 
 namespace EchoClient
 {
@@ -48,11 +50,11 @@ namespace EchoClient
         private void OnTimedEvent(Object source, ElapsedEventArgs e)
         {
             aTimer.Stop();
-            HitServer(Update);
+            Get(Update);
             aTimer.Start();
         }
 
-        public void HitServer(string query)
+        public void Get(string query)
         {
             WebClient client = new WebClient();
 
@@ -88,40 +90,64 @@ namespace EchoClient
             }
         }
 
-        public void HitServer(byte[] query)
+        public void Post(byte[] query)
         {
             WebClient client = new WebClient();
-
+            
             // Add a user agent header in case the 
             // requested URI contains a query.
 
             client.Headers.Add("user-agent", "EchoClient_version=0.2");
-
             string serverPath = "http://192.168.0.50:8080/";
 
             if (query.Length > 0)
             {
                 string result = System.Text.Encoding.UTF8.GetString(query);
-                string address = serverPath + "guid=" + guid.ToString() + "&query=" + result;
-                byte[] data = client.DownloadData(address);
+                //string address = serverPath + "guid=" + guid.ToString() + "&query=" + result;
+                string address = serverPath + "guid=" + guid.ToString();
 
-                if (data.GetString() == Update)
-                {
-                    // update only
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                    {
-                        lblUpdateTime.Content = DateTime.Now.ToLongTimeString();
-                    }));
-                }
-                else if (data.Length > 0)
-                {
-                    MediaPlayer mp = new MediaPlayer(data);
-                    mp.Play();
-                }
-                else
-                {
-                    MessageBox.Show("query: " + query + Environment.NewLine + "Did not send guid", "Error");
-                }
+                Uri myUri = new Uri(address, UriKind.Absolute);
+
+                test t = new test();
+                t.star(myUri, query);
+
+                //var qhat = client.UploadData(myUri, query);
+                //try
+                //{
+                //    var qhat = client.UploadData(myUri, new byte[5] { 00, 11, 22, 33, 44 });
+                //}
+                //catch (WebException we)
+                //{
+                //    if (we.Status != WebExceptionStatus.ReceiveFailure)
+                //    {
+                //        System.Diagnostics.Debugger.Launch();
+                //    }
+                //    // normal failure due to server closing the connection.
+                //}
+                //finally
+                //{
+                //
+                //}
+
+                //byte[] data = client.DownloadData(address);
+                //
+                //if (data.GetString() == Update)
+                //{
+                //    // update only
+                //    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                //    {
+                //        lblUpdateTime.Content = DateTime.Now.ToLongTimeString();
+                //    }));
+                //}
+                //else if (data.Length > 0)
+                //{
+                //    MediaPlayer mp = new MediaPlayer(data);
+                //    mp.Play();
+                //}
+                //else
+                //{
+                //    MessageBox.Show("query: " + query + Environment.NewLine + "Did not send guid", "Error");
+                //}
             }
         }
         public class MediaPlayer
@@ -165,35 +191,98 @@ namespace EchoClient
             }
         }
 
-        private void startBtn_Click(object sender, RoutedEventArgs e)
-        {
-            waveSource = new WaveIn();
-            waveSource.WaveFormat = new WaveFormat(44100, 1);
-
-            waveSource.DataAvailable += new EventHandler<WaveInEventArgs>(waveSource_DataAvailable);
-            waveSource.RecordingStopped += new EventHandler<StoppedEventArgs>(waveSource_RecordingStopped);
-
-            waveSource.StartRecording();
-            startBtn.IsEnabled = false;
-            stopBtn.IsEnabled = true;
-        }
-
-        private void stopBtn_Click(object sender, RoutedEventArgs e)
-        {
-            stopBtn.IsEnabled = false;
-            startBtn.IsEnabled = true;
-            waveSource.StopRecording();
-
-            // prep for transfer to server
-            HitServer(buffer);
-        }
-
         public static byte[] Combine(byte[] first, byte[] second)
         {
             byte[] ret = new byte[first.Length + second.Length];
             Buffer.BlockCopy(first, 0, ret, 0, first.Length);
             Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
             return ret;
+        }
+
+        private void startBtn_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            waveSource = new WaveIn();
+            WaveFormat wf = new WaveFormat(44100, 16, 1);
+            waveSource.WaveFormat = wf;//new WaveFormat(44100, 1);
+
+            waveSource.DataAvailable += new EventHandler<WaveInEventArgs>(waveSource_DataAvailable);
+            waveSource.RecordingStopped += new EventHandler<StoppedEventArgs>(waveSource_RecordingStopped);
+
+            waveSource.StartRecording();
+        }
+
+        private void startBtn_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            waveSource.StopRecording();
+
+            // prep for transfer to server
+            Post(buffer);
+        }
+    }
+
+    public class WebClientEx : WebClient
+    {
+        public int Timeout { get; set; }
+
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            var request = base.GetWebRequest(address);
+            request.Timeout = Timeout;
+            //request.KeepAlive = false;
+            //request.ProtocolVersion = HttpVersion.Version10;
+            //request.ServicePoint.ConnectionLimit = 12;
+            return request;
+        }
+    }
+
+    public class test
+    {
+        public void star(Uri uri, byte[] data)
+        {
+            var request = (HttpWebRequest)WebRequest.Create(uri);
+            if (request != null)
+            {
+                request.Method = "POST";
+                if (data.Length > 0)
+                {
+
+                    request.ContentLength = data.Length;
+                    request.ContentType = "application/json";
+                    using (var requestStream = request.GetRequestStream())
+                    {
+                        requestStream.Write(data, 0, data.Length);
+                    }
+                }
+                else
+                {
+                    request.ContentLength = 0;
+                }
+                request.Timeout = 15000;
+                request.CachePolicy = new RequestCachePolicy(RequestCacheLevel.BypassCache);
+
+                string output = string.Empty;
+                try
+                {
+                    using (var response = (HttpWebResponse)request.GetResponse())
+                    {
+                        using (var stream = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding(1252)))
+                        {
+                            if (response.StatusCode == HttpStatusCode.OK)
+                            {
+                                while (!stream.EndOfStream)
+                                {
+                                    output += stream.ReadLine();
+                                }
+                                output = stream.ReadToEnd();
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message);
+                }
+            }
         }
     }
 }
