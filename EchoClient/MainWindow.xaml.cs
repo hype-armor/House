@@ -1,26 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Extensions;
-using System.Windows.Threading;
 using System.Timers;
-using NAudio;
-using NAudio.Wave;
-using System.Speech.AudioFormat;
-using System.Net.Cache;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace EchoClient
 {
@@ -29,259 +14,201 @@ namespace EchoClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Timer aTimer;
         private static Guid guid;
-        private string Update = "updateupdate";
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Create a timer with a two second interval.
-            aTimer = new System.Timers.Timer(1000);
-            // Hook up the Elapsed event for the timer. 
-            aTimer.Elapsed += OnTimedEvent;
-            aTimer.AutoReset = true;
-            //aTimer.Enabled = true;
 
             guid = Guid.NewGuid();
-        }
 
-        private void OnTimedEvent(Object source, ElapsedEventArgs e)
-        {
-            aTimer.Stop();
-            Get(Update);
-            aTimer.Start();
-        }
-
-        public void Get(string query)
-        {
-            WebClient client = new WebClient();
-
-            // Add a user agent header in case the 
-            // requested URI contains a query.
-
-            client.Headers.Add("user-agent", "EchoClient_version=1.1");
-
-            string serverPath = "http://192.168.0.50:8080/";
-
-            if (!string.IsNullOrWhiteSpace(query))
-            {
-                string address = serverPath + "guid=" + guid.ToString() + "&query=" + query;
-                byte[] data = client.DownloadData(address);
-
-                if (data.GetString() == Update)
-                {
-                    // update only
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                    {
-                        lblUpdateTime.Content = DateTime.Now.ToLongTimeString();
-                    }));
-                }
-                else if (data.Length > 0)
-                {
-                    MediaPlayer mp = new MediaPlayer(data);
-                    mp.Play();
-                }
-                else
-                {
-                    MessageBox.Show("query: " + query + Environment.NewLine + "Did not send guid", "Error");
-                }
-            }
-        }
-
-        public void Post(byte[] query)
-        {
-            WebClient client = new WebClient();
             
-            // Add a user agent header in case the 
-            // requested URI contains a query.
-
-            client.Headers.Add("user-agent", "EchoClient_version=0.2");
-            string serverPath = "http://192.168.0.50:8080/";
-
-            if (query.Length > 0)
-            {
-                string result = System.Text.Encoding.UTF8.GetString(query);
-                //string address = serverPath + "guid=" + guid.ToString() + "&query=" + result;
-                string address = serverPath + "guid=" + guid.ToString();
-
-                Uri myUri = new Uri(address, UriKind.Absolute);
-
-                test t = new test();
-                t.star(myUri, query);
-
-                //var qhat = client.UploadData(myUri, query);
-                //try
-                //{
-                //    var qhat = client.UploadData(myUri, new byte[5] { 00, 11, 22, 33, 44 });
-                //}
-                //catch (WebException we)
-                //{
-                //    if (we.Status != WebExceptionStatus.ReceiveFailure)
-                //    {
-                //        System.Diagnostics.Debugger.Launch();
-                //    }
-                //    // normal failure due to server closing the connection.
-                //}
-                //finally
-                //{
-                //
-                //}
-
-                //byte[] data = client.DownloadData(address);
-                //
-                //if (data.GetString() == Update)
-                //{
-                //    // update only
-                //    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                //    {
-                //        lblUpdateTime.Content = DateTime.Now.ToLongTimeString();
-                //    }));
-                //}
-                //else if (data.Length > 0)
-                //{
-                //    MediaPlayer mp = new MediaPlayer(data);
-                //    mp.Play();
-                //}
-                //else
-                //{
-                //    MessageBox.Show("query: " + query + Environment.NewLine + "Did not send guid", "Error");
-                //}
-            }
-        }
-        public class MediaPlayer
-        {
-            System.Media.SoundPlayer soundPlayer;
-
-            public MediaPlayer(byte[] buffer)
-            {
-                var memoryStream = new MemoryStream(buffer, true);
-                soundPlayer = new System.Media.SoundPlayer(memoryStream);
-            }
-
-            public void Play()
-            {
-                soundPlayer.PlaySync();
-            }
         }
 
-        public WaveIn waveSource = null;
-        private byte[] buffer = null;
-        private void waveSource_RecordingStopped(object sender, StoppedEventArgs e)
+        private void startBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (waveSource != null)
-            {
-                waveSource.Dispose();
-                waveSource = null;
-            }
-
-            startBtn.IsEnabled = true;
-        }
-
-        private void waveSource_DataAvailable(object sender, WaveInEventArgs e)
-        {
-            if (buffer == null)
-            {
-                buffer = e.Buffer;
-            }
-            else
-            {
-                buffer = Combine(buffer, e.Buffer);
-            }
-        }
-
-        public static byte[] Combine(byte[] first, byte[] second)
-        {
-            byte[] ret = new byte[first.Length + second.Length];
-            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
-            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
-            return ret;
-        }
-
-        private void startBtn_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            waveSource = new WaveIn();
-            WaveFormat wf = new WaveFormat(44100, 16, 1);
-            waveSource.WaveFormat = wf;//new WaveFormat(44100, 1);
-
-            waveSource.DataAvailable += new EventHandler<WaveInEventArgs>(waveSource_DataAvailable);
-            waveSource.RecordingStopped += new EventHandler<StoppedEventArgs>(waveSource_RecordingStopped);
-
-            waveSource.StartRecording();
-        }
-
-        private void startBtn_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            waveSource.StopRecording();
-
-            // prep for transfer to server
-            Post(buffer);
+            AsynchronousClient c = new AsynchronousClient();
+            c.StartClient();
+            lblUpdateTime.Content = c.response;
         }
     }
 
-    public class WebClientEx : WebClient
-    {
-        public int Timeout { get; set; }
 
-        protected override WebRequest GetWebRequest(Uri address)
-        {
-            var request = base.GetWebRequest(address);
-            request.Timeout = Timeout;
-            //request.KeepAlive = false;
-            //request.ProtocolVersion = HttpVersion.Version10;
-            //request.ServicePoint.ConnectionLimit = 12;
-            return request;
-        }
+
+    // State object for receiving data from remote device.
+    public class StateObject
+    {
+        // Client socket.
+        public Socket workSocket = null;
+        // Size of receive buffer.
+        public const int BufferSize = 256;
+        // Receive buffer.
+        public byte[] buffer = new byte[BufferSize];
+        // Received data string.
+        public StringBuilder sb = new StringBuilder();
     }
 
-    public class test
+    public class AsynchronousClient
     {
-        public void star(Uri uri, byte[] data)
+        // The port number for the remote device.
+        private const int port = 8080;
+
+        // ManualResetEvent instances signal completion.
+        private static ManualResetEvent connectDone =
+            new ManualResetEvent(false);
+        private static ManualResetEvent sendDone =
+            new ManualResetEvent(false);
+        private static ManualResetEvent receiveDone =
+            new ManualResetEvent(false);
+
+        // The response from the remote device.
+        public String response = String.Empty;
+
+        public void StartClient()
         {
-            var request = (HttpWebRequest)WebRequest.Create(uri);
-            if (request != null)
+            // Connect to a remote device.
+            try
             {
-                request.Method = "POST";
-                if (data.Length > 0)
-                {
+                // Establish the remote endpoint for the socket.
+                // The name of the 
+                // remote device is "host.contoso.com".
+                IPHostEntry ipHostInfo = Dns.GetHostEntry("sky.ibang.us");
+                IPAddress ipAddress = ipHostInfo.AddressList[0];
+                IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
-                    request.ContentLength = data.Length;
-                    request.ContentType = "application/json";
-                    using (var requestStream = request.GetRequestStream())
-                    {
-                        requestStream.Write(data, 0, data.Length);
-                    }
-                }
-                else
-                {
-                    request.ContentLength = 0;
-                }
-                request.Timeout = 15000;
-                request.CachePolicy = new RequestCachePolicy(RequestCacheLevel.BypassCache);
+                // Create a TCP/IP socket.
+                Socket client = new Socket(AddressFamily.InterNetwork,
+                    SocketType.Stream, ProtocolType.Tcp);
 
-                string output = string.Empty;
-                try
+                // Connect to the remote endpoint.
+                client.BeginConnect(remoteEP,
+                    new AsyncCallback(ConnectCallback), client);
+                connectDone.WaitOne();
+
+                // Send test data to the remote device.
+                Send(client, DateTime.Now.ToString() + " <EOF>");
+                sendDone.WaitOne();
+
+                // Receive the response from the remote device.
+                Receive(client);
+                receiveDone.WaitOne();
+
+                // Release the socket.
+                client.Shutdown(SocketShutdown.Both);
+                client.Close();
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        private void ConnectCallback(IAsyncResult ar)
+        {
+            try
+            {
+                // Retrieve the socket from the state object.
+                Socket client = (Socket)ar.AsyncState;
+
+                // Complete the connection.
+                client.EndConnect(ar);
+
+                Console.WriteLine("Socket connected to {0}",
+                    client.RemoteEndPoint.ToString());
+
+                // Signal that the connection has been made.
+                connectDone.Set();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        private void Receive(Socket client)
+        {
+            try
+            {
+                // Create the state object.
+                StateObject state = new StateObject();
+                state.workSocket = client;
+
+                // Begin receiving the data from the remote device.
+                client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(ReceiveCallback), state);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        private void ReceiveCallback(IAsyncResult ar)
+        {
+            try
+            {
+                // Retrieve the state object and the client socket 
+                // from the asynchronous state object.
+                StateObject state = (StateObject)ar.AsyncState;
+                Socket client = state.workSocket;
+
+                // Read data from the remote device.
+                int bytesRead = client.EndReceive(ar);
+
+                if (bytesRead > 0)
                 {
-                    using (var response = (HttpWebResponse)request.GetResponse())
+                    // There might be more data, so store the data received so far.
+                    state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+
+                    // Get the rest of the data.
+                    client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                        new AsyncCallback(ReceiveCallback), state);
+                }
+                else {
+                    // All the data has arrived; put it in response.
+                    if (state.sb.Length > 1)
                     {
-                        using (var stream = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding(1252)))
-                        {
-                            if (response.StatusCode == HttpStatusCode.OK)
-                            {
-                                while (!stream.EndOfStream)
-                                {
-                                    output += stream.ReadLine();
-                                }
-                                output = stream.ReadToEnd();
-                            }
-                        }
+                        response = state.sb.ToString();
                     }
+                    // Signal that all bytes have been received.
+                    receiveDone.Set();
                 }
-                catch (Exception e)
-                {
-                    MessageBox.Show(e.Message);
-                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        private void Send(Socket client, String data)
+        {
+            // Convert the string data to byte data using ASCII encoding.
+            byte[] byteData = Encoding.ASCII.GetBytes(data);
+
+            // Begin sending the data to the remote device.
+            client.BeginSend(byteData, 0, byteData.Length, 0,
+                new AsyncCallback(SendCallback), client);
+        }
+
+        private void SendCallback(IAsyncResult ar)
+        {
+            try
+            {
+                // Retrieve the socket from the state object.
+                Socket client = (Socket)ar.AsyncState;
+
+                // Complete sending the data to the remote device.
+                int bytesSent = client.EndSend(ar);
+                Console.WriteLine("Sent {0} bytes to server.", bytesSent);
+
+                // Signal that all bytes have been sent.
+                sendDone.Set();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
             }
         }
     }
