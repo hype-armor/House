@@ -23,6 +23,7 @@ using System.Text.RegularExpressions;
 using System.Text;
 using HtmlAgilityPack;
 using System.IO;
+using System.Xml;
 
 namespace Extensions
 {
@@ -47,6 +48,31 @@ namespace Extensions
             else
             {
                 return null;
+            }
+        }
+
+        public static DateTime ToDateTime(this object value)
+        {
+            DateTime Datet;
+            if (value == null)
+            {
+                return DateTime.MinValue;
+            }
+            if (value.ToString() != "")
+            {
+                if (!DateTime.TryParse(value.ToString(), out Datet))
+                {
+                    value = "Invalid Date! " + value;
+                    return DateTime.MinValue;
+                }
+                else
+                {
+                    return Datet;
+                }
+            }
+            else
+            {
+                return DateTime.MinValue;
             }
         }
 
@@ -292,7 +318,7 @@ namespace Extensions
         // later on may appear to be ASCII initially). If taster = 0, then taster
         // becomes the length of the file (for maximum reliability). 'text' is simply
         // the string with the discovered encoding applied to the file.
-        public static Encoding detectTextEncoding(byte[] bytes, int taster = 1000)
+        public static Encoding detectTextEncoding(this byte[] bytes, int taster = 1000)
         {
             String text;
             byte[] b = bytes;
@@ -408,6 +434,32 @@ namespace Extensions
 
             //file is not locked
             return false;
+        }
+
+        public static string SelectNodeInnerText(this XmlNode itemNode, string xPath)
+        {
+            if (itemNode.HasChildNodes)
+            {
+                if (itemNode.SelectSingleNode(xPath) != null)
+                {
+                    return itemNode.SelectSingleNode(xPath).InnerText;
+                }
+            }
+            return "";
+        }
+
+        public static string SelectNodeInnerText(this XmlNode itemNode, string xPath, XmlNamespaceManager nsmgr)
+        {
+            string prefix = xPath.Split(new char[] { ':' }).First();
+
+            if (itemNode.HasChildNodes && nsmgr.HasNamespace(prefix))
+            {
+                if (itemNode.SelectSingleNode(xPath, nsmgr) != null)
+                {
+                    return itemNode.SelectSingleNode(xPath, nsmgr).InnerText;
+                }
+            }
+            return "";
         }
     }
 }
