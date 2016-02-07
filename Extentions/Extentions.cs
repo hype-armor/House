@@ -24,6 +24,7 @@ using System.Text;
 using HtmlAgilityPack;
 using System.IO;
 using System.Xml;
+using OpenNLP;
 
 namespace Extensions
 {
@@ -460,6 +461,59 @@ namespace Extensions
                 }
             }
             return "";
+        }
+
+        static private string mModelPath = @"C:\Users\Sky\Documents\SharpNLP\";
+        static private OpenNLP.Tools.SentenceDetect.MaximumEntropySentenceDetector mSentenceDetector;
+        static private OpenNLP.Tools.Tokenize.EnglishMaximumEntropyTokenizer mTokenizer;
+        static private OpenNLP.Tools.PosTagger.EnglishMaximumEntropyPosTagger mPosTagger;
+
+        static private string[] SplitSentences(string paragraph)
+        {
+            if (mSentenceDetector == null)
+            {
+                mSentenceDetector = new OpenNLP.Tools.SentenceDetect.EnglishMaximumEntropySentenceDetector(mModelPath + "EnglishSD.nbin");
+            }
+
+            return mSentenceDetector.SentenceDetect(paragraph);
+        }
+
+        static private string[] TokenizeSentence(string sentence)
+        {
+            if (mTokenizer == null)
+            {
+                mTokenizer = new OpenNLP.Tools.Tokenize.EnglishMaximumEntropyTokenizer(mModelPath + "EnglishTok.nbin");
+            }
+
+            return mTokenizer.Tokenize(sentence);
+        }
+
+        static private string[] PosTagTokens(string[] tokens)
+        {
+            if (mPosTagger == null)
+            {
+                mPosTagger = new OpenNLP.Tools.PosTagger.EnglishMaximumEntropyPosTagger(mModelPath + "EnglishPOS.nbin", mModelPath + @"\Parser\tagdict");
+            }
+
+            return mPosTagger.Tag(tokens);
+        }
+
+        static public Dictionary<string, string> FindSubject(string sent)
+        {
+            Dictionary<string, string> Tokens = new Dictionary<string, string>();
+            string[] split_sentences = SplitSentences(sent);
+            foreach (string sentence in split_sentences)
+            {
+                string[] tokens = TokenizeSentence(sentence);
+                string[] tags = PosTagTokens(tokens);
+
+                for (int currentTag = 0; currentTag < tags.Length; currentTag++)
+                {
+                    Tokens.Add(tags[currentTag], tokens[currentTag]);
+                }
+            }
+
+            return Tokens;
         }
     }
 }
