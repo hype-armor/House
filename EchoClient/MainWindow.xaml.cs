@@ -44,7 +44,7 @@ namespace EchoClient
 
         private void startBtn_Click(object sender, RoutedEventArgs e)
         {
-            lblUpdateTime.Content = StartClient("what is the time?");
+            lblUpdateTime.Content = StartClient("look up what a panda is");
         }
 
         public static string StartClient(string query)
