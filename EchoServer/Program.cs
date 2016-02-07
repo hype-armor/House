@@ -22,7 +22,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using ExtensionMethods;
+using Extensions;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Speech.Synthesis;
@@ -34,91 +34,111 @@ namespace EchoServer
 {
     public class Program
     {
-        private MessageSystem messageSystem = new MessageSystem();
         private QueryClassification qc = new QueryClassification();
         private Dictionary<string, IPlugin> _Plugins;
-        public Program()
+        private ResponseTime responseTime = new ResponseTime();
+
+        public Program(MessageSystem messageSystem)
         {
 
             try
             {
                 _Plugins = new Dictionary<string, IPlugin>();
-                string path = @"C:\Program Files (x86)\EchoServer\Plugins";
+                string path = @"C:\Program Files\EchoServer\Plugins";
                 ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins(path);
-                foreach (var item in plugins)
+
+
+                if (plugins != null && plugins.Count() > 0)
                 {
-                    _Plugins.Add(item.Name, item);
-
-                    List<string> actions = _Plugins[item.Name].Actions;
-
-                    foreach (string action in actions)
+                    foreach (var item in plugins)
                     {
-                        qc.AddPhraseToAction(action, item.Name);
+                        try
+                        {
+                            _Plugins.Add(item.Name, item);
+
+                            //List<string> actions = _Plugins[item.Name].Actions;
+
+                            foreach (string action in item.Actions)
+                            {
+                                qc.AddPhraseToAction(action, item.Name);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            MessageBox.Show(e.Message);
+                        }
                     }
+                }
+                else
+                {
+                    _Plugins.Add("help", null);
                 }
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
             }
-            
-        }
 
-        public byte[] Go(Guid guid, string input)
-        {
-            input = input == string.Empty ? "help" : input;
-            input = input.CleanText();
-
-            string updateOnly = "updateupdate";
-            bool updateRequest = input == updateOnly;
-
-            if (updateRequest)
+            Task.Factory.StartNew(() =>
             {
-                string response = messageSystem.Get(guid);
-                if (response != string.Empty)
+                while (true)
                 {
-                    return GetAudio(response);
+                    try
+                    {
+                        Message message = messageSystem.GetNextMessage();
+
+                        if (message == null)
+                        {
+                            Thread.Sleep(10);
+                            continue;
+                        }
+
+                        KeyValuePair<string, string> query = qc.Classify(message.textRequest);
+
+                        int responseTimeID = responseTime.Start(query.Key);
+                        string delaymsg = responseTime.GetDelayMessage(query.Key);
+                        if (!string.IsNullOrWhiteSpace(delaymsg))
+                        {
+                            message.textResponse = delaymsg;
+                            message.response = GetAudio(delaymsg);
+                            message.status = Message.Status.delayed;
+                        }
+
+                        if (query.Key == "help")
+                        {
+                            message.textResponse = query.Value;
+                            message.status = Message.Status.ready;
+                        }
+                        else if (query.Key == "unknown")
+                        {
+                            message.textResponse = query.Value;
+                            message.status = Message.Status.ready;
+                        }
+                        else
+                        {
+                            foreach (var plugin in _Plugins)
+                            {
+                                if (query.Key == plugin.Key)
+                                {
+                                    string response = plugin.Value.Go(message.textRequest);
+
+                                    message.textResponse = response;
+                                    message.response = GetAudio(response);
+                                    message.status = Message.Status.ready;
+                                }
+
+                            } 
+                        }
+
+                        responseTime.Stop(query.Key, responseTimeID);
+                    }
+                    catch (Exception e)
+                    {
+
+                        throw e;
+                    }
                 }
-            }
-            else
-            {
-                ProcessInput(guid, input, messageSystem);
-            }
-
-            return updateOnly.GetBytes();
-        }
-
-        private void ProcessInput(Guid guid, string input, MessageSystem messageSystem)
-        {
-            
-            KeyValuePair<string, string> query = qc.Classify(input);
-
-            ResponseTime responseTime = new ResponseTime();
-            int responseTimeID = responseTime.Start(guid, query.Key, messageSystem);
-
-            foreach (var plugin in _Plugins)
-            {
-                if (query.Key == plugin.Key)
-                {
-                    input = input.CleanText();
-                    messageSystem.Post(guid, plugin.Value.Go(input));
-                }
-            }
-
-            if (query.Key == "help")
-            {
-                messageSystem.Post(guid, qc.help);
-            }
-            else if (query.Key == "wolframAlpha")
-            {
-                Wolfram.Go(guid, input, messageSystem);
-            }
-            else if (query.Key == "unknown")
-            {
-                messageSystem.Post(guid, query.Value);
-            }
-
-            responseTime.Stop(query.Key, responseTimeID);
+            });
         }
 
         private static byte[] GetAudio(string response)
@@ -133,7 +153,7 @@ namespace EchoServer
                     {
                         SpeechSynthesizer synth = new SpeechSynthesizer();
                         synth.SetOutputToWaveStream(memoryStream);
-                        synth.Speak(response.CleanText());
+                        synth.Speak(response);
                         wav = memoryStream.ToArray();
                     }
                 });
@@ -142,14 +162,6 @@ namespace EchoServer
             }
 
             return wav;
-        }
-
-        public static byte[] Combine(byte[] first, byte[] second)
-        {
-            byte[] ret = new byte[first.Length + second.Length];
-            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
-            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
-            return ret;
         }
     }
 }

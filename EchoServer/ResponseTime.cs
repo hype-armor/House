@@ -28,13 +28,13 @@ namespace EchoServer
         private Dictionary<string, Dictionary<int, Stopwatch>> actionTimes
             = new Dictionary<string, Dictionary<int, Stopwatch>>();
 
-        public int Start(Guid guid, string action, MessageSystem messageSystem)
+        public int Start(string action)
         {
             Stopwatch sw = new Stopwatch();
             if (!actionTimes.ContainsKey(action))
             {
                 Dictionary<int, Stopwatch> temp = new Dictionary<int, Stopwatch>();
-                
+                sw.Start();
                 temp.Add(0, sw);
                 actionTimes.Add(action, temp);
 
@@ -43,35 +43,9 @@ namespace EchoServer
 
             Dictionary<int, Stopwatch> times = actionTimes[action];
             int timerID = times.Count();
-            Dictionary<int, Stopwatch>.ValueCollection stopwatches = times.Values;
-            
-            long sum = 0;
-            foreach (Stopwatch stopwatch in stopwatches)
-            {
-                sum += stopwatch.ElapsedMilliseconds;
-            }
-            double avg = sum / stopwatches.Count();
-            
-            if (avg >= 60000)
-            {
-                messageSystem.Post(guid, "Please wait. I might take a while.");
-            }
-            else if (avg >= 20000)
-            {
-                messageSystem.Post(guid, "Please wait.");
-            }
-            else if (avg >= 10000)
-            {
-                messageSystem.Post(guid, "hmmmmmm, okay, hold on a second.");
-            }
-            else if (avg >= 5000)
-            {
-                messageSystem.Post(guid, "Loading");
-            }
 
             times.Add(timerID, sw);
             sw.Start();
-            
 
             return timerID;
         }
@@ -81,6 +55,39 @@ namespace EchoServer
             Dictionary<int, Stopwatch> times = actionTimes[action];
             Stopwatch sw = times[id];
             sw.Stop();
+        }
+
+        public string GetDelayMessage(string action)
+        {
+            Dictionary<int, Stopwatch>.ValueCollection stopwatches = actionTimes[action].Values;
+
+            long sum = 0;
+            foreach (Stopwatch stopwatch in stopwatches)
+            {
+                sum += stopwatch.ElapsedMilliseconds;
+            }
+            double avg = sum / stopwatches.Count();
+
+            if (avg >= 60000)
+            {
+                return "Please wait. I might take a while.";
+            }
+            else if (avg >= 20000)
+            {
+                return "Please wait.";
+            }
+            else if (avg >= 10000)
+            {
+                return "hmmmmmm, okay, hold on a second.";
+            }
+            else if (avg >= 5000)
+            {
+                return "Loading";
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
     }
 }

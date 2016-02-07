@@ -18,48 +18,105 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Extensions;
+using System.Net;
+using System.IO;
+using System.Speech.Recognition;
+using System.Speech.Synthesis;
+using System.Threading;
+using System.Speech.AudioFormat;
 
 namespace EchoServer
 {
-    class MessageSystem
+    public class MessageSystem
     {
-        private List<Message> messages = new List<Message>();
+        internal int workers = 0;
+        private List<Message> queue = new List<Message>();
+        public int messageCount { get { return (from Message in queue
+                                                orderby Message.PostTime
+                                                where Message.status == Message.Status.ready
+                                                select Message).Count(); } }
 
-        public bool ContainsTempResponse(string guid)
+        public void CreateRequest(Guid ClientGuid, string Request) // called from client
         {
-            return true;
-        }
-
-        public void Post(Guid guid, string message)
-        {
-            Message newMessage = new Message();
-            newMessage.guid = guid;
-            newMessage.message = message;
-            messages.Add(newMessage);
-            return;
-        }
-
-        public string Get(Guid guid)
-        {
-            // using the guid provided by the web server, you can get the queued messages.
-            foreach (Message _message in messages)
+            Message newMessage;
+            if (Request.Length > 0)
             {
-                if (_message.guid == guid)
-                {
-                    messages.Remove(_message);
-                    return _message.message;
-                }
+                newMessage = new Message(ClientGuid, Request);
+                queue.Add(newMessage);
+            }
+        }
+
+        public Message GetNextMessage() // called from server
+        {
+            IEnumerable<Message> Messages =
+                (from Message in queue
+                 orderby Message.PostTime
+                 where Message.status == Message.Status.queued
+                 select Message);
+
+            if (Messages.Count() > 0)
+            {
+                Message message = Messages.Last();
+                message.status = Message.Status.processing;
+                return message;
             }
 
-            // if nothing else has triggered, return an empty string.
-            return string.Empty;
+            return null;
+        }
 
+        public Message GetResponse(Guid ClientGuid) // called from client
+        {
+            IEnumerable<Message> Messages =
+                   (from Message in queue
+                    orderby Message.PostTime
+                    where Message.clientGuid == ClientGuid
+                    && (Message.status == Message.Status.ready
+                    || Message.status == Message.Status.delayed)
+                    select Message);
+            if (Messages.Count() > 0)
+            {
+                Message message = Messages.Last();
+                if (message.status == Message.Status.ready)
+                {
+                    message.status = Message.Status.closed;
+                    return message;
+                }
+                else if (message.status == Message.Status.delayed)
+                {
+                    message.status = Message.Status.processing;
+                    return message;
+                }
+            }
+            return null; // need a way to tell client, we are will working on it.
         }
     }
 
     public class Message
     {
-        public Guid guid = Guid.NewGuid();
-        public string message;
+        private Guid _clientGuid = Guid.Empty;
+        public Guid clientGuid { get { return _clientGuid; } }
+
+        private Guid _MessageGuid = Guid.NewGuid();
+        public Guid MessageGuid { get { return _MessageGuid; } }
+
+        public string textRequest = string.Empty;
+        public string textResponse = string.Empty;
+        public Stream request;
+        public byte[] response = new byte[0];
+
+        private DateTime _postTime = DateTime.Now;
+        public DateTime PostTime { get { return _postTime; } }
+
+        public enum Status { queued, processing, delayed, ready, closed, error };
+        public Status status = Status.queued;
+
+        public Message(Guid ClientGuid, string Request)
+        {
+            
+            _clientGuid = ClientGuid;
+            textRequest = Request;
+        }
     }
 }
