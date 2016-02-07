@@ -26,9 +26,6 @@ using Extensions;
 
 namespace EchoServer
 {
-    // for information on saving the object to a file on change. https://msdn.microsoft.com/en-us/library/et91as27.aspx
-
-    [Serializable()]
     class QueryClassification
     {
         public enum Actions { help, wikipedia, newPhrase, alarm, timer, clear, wolframAlpha, weather, joke, unknown };
