@@ -2,10 +2,7 @@ OpenEcho
 =====
 OpenEcho is an open source version of the Amazon Echo.
 
-The purpose of either device is to perform basic tasks that are initiated through verbal communication with the device. The Amazon Echo uses NLP and I have been working on adding a basic implementation to OpenEcho. I'm just not there yet.
+The purpose of this software is to perform tasks that are initiated through verbal communication with a device.
 
-Download and build this awesome project. Import the dll it produces into OpenEcho.
-https://github.com/Genbox/WolframAlpha.NET
-
-To install EchoServer as a service, run: 
-c:\windows\microsoft.net\framework\v4.0.30319\InstallUtil.exe c:\Users\Greg\Documents\GitHubVisualStudio\OpenEcho\EchoServer\bin\Debug\EchoServer.exe
+To develope a plugin, please see my <a href="https://github.com/hype-armor/OpenEchoPluginTemplate">plugin template project</a>.</br>
+Plugins are placed in c:\program files\openecho\plugins
