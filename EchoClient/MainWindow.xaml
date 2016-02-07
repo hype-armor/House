@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="OpenEcho Client" Height="130.509" Width="348.693">
     <Grid Margin="10,0,2,3">
-        <Button x:Name="startBtn" Content="Send" Margin="10,10,209,0" Height="28" VerticalAlignment="Top" Click="startBtn_Click" />
+        <Button x:Name="startBtn" Content="Record" Margin="10,10,209,0" Height="28" VerticalAlignment="Top" PreviewMouseLeftButtonDown="startBtn_PreviewMouseLeftButtonDown" PreviewMouseLeftButtonUp="startBtn_PreviewMouseLeftButtonUp"/>
         <Label x:Name="lblUpdateTime" Content="Loading..." HorizontalAlignment="Right" Margin="0,43,10,0" VerticalAlignment="Top" Width="309" Height="45"/>
 
     </Grid>

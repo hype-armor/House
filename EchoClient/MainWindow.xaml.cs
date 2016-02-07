@@ -7,6 +7,10 @@ using System.Timers;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Threading;
+using System.IO;
+using NAudio;
+using NAudio.Wave;
+using System.Windows.Input;
 
 namespace EchoClient
 {
@@ -37,17 +41,17 @@ namespace EchoClient
             DateTime CurrentDateTime = DateTime.Now;
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
-                lblUpdateTime.Content = StartClient("<UPDATE>");
+                lblUpdateTime.Content = StartClient(new byte[0], true);
             }));
             aTimer.Start();
         }
 
         private void startBtn_Click(object sender, RoutedEventArgs e)
         {
-            lblUpdateTime.Content = StartClient("look up what a panda is");
+            //lblUpdateTime.Content = StartClient("look up what a panda is");
         }
 
-        public static string StartClient(string query)
+        public static string StartClient(byte[] query, bool update = false)
         {
             // Data buffer for incoming data.
             byte[] bytes = new byte[1024];
@@ -74,8 +78,16 @@ namespace EchoClient
                         sender.RemoteEndPoint.ToString());
 
                     // Encode the data string into a byte array.
-                    query = guid.ToString() + query + "<EOF>";
-                    byte[] msg = Encoding.ASCII.GetBytes(query);
+                    if (update)
+                    {
+                        query = Encoding.ASCII.GetBytes(guid.ToString() + "<UPDATE><EOF>");
+                    }
+                    else
+                    {
+                        query = Combine(guid.ToByteArray(), query);
+                    }
+                    byte[] msg = Combine(query, Encoding.ASCII.GetBytes("<EOF>"));
+
 
                     // Send the data through the socket.
                     int bytesSent = sender.Send(msg);
@@ -109,7 +121,75 @@ namespace EchoClient
             {
                 return e.ToString();
             }
-            return "ERROR";
+        }
+
+        public class MediaPlayer
+        {
+            System.Media.SoundPlayer soundPlayer;
+
+            public MediaPlayer(byte[] buffer)
+            {
+                var memoryStream = new MemoryStream(buffer, true);
+                soundPlayer = new System.Media.SoundPlayer(memoryStream);
+            }
+
+            public void Play()
+            {
+                soundPlayer.PlaySync();
+            }
+        }
+
+        public WaveIn waveSource = null;
+        private byte[] buffer = null;
+        private void waveSource_RecordingStopped(object sender, StoppedEventArgs e)
+        {
+            if (waveSource != null)
+            {
+                waveSource.Dispose();
+                waveSource = null;
+            }
+
+            startBtn.IsEnabled = true;
+        }
+
+        private void waveSource_DataAvailable(object sender, WaveInEventArgs e)
+        {
+            if (buffer == null)
+            {
+                buffer = e.Buffer;
+            }
+            else
+            {
+                buffer = Combine(buffer, e.Buffer);
+            }
+        }
+
+        public static byte[] Combine(byte[] first, byte[] second)
+        {
+            byte[] ret = new byte[first.Length + second.Length];
+            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
+            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
+            return ret;
+        }
+
+        private void startBtn_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            waveSource = new WaveIn();
+            WaveFormat wf = new WaveFormat(44100, 16, 1);
+            waveSource.WaveFormat = wf;//new WaveFormat(44100, 1);
+
+            waveSource.DataAvailable += new EventHandler<WaveInEventArgs>(waveSource_DataAvailable);
+            waveSource.RecordingStopped += new EventHandler<StoppedEventArgs>(waveSource_RecordingStopped);
+
+            waveSource.StartRecording();
+        }
+
+        private void startBtn_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            waveSource.StopRecording();
+
+            // prep for transfer to server
+            //Post(buffer);
         }
     }
 
