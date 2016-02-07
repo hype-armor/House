@@ -49,6 +49,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Extentions">
+      <HintPath>..\Extentions\bin\Debug\Extentions.dll</HintPath>
+    </Reference>
     <Reference Include="HtmlAgilityPack, Version=1.4.8.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
       <HintPath>..\packages\HtmlAgilityPack.1.4.8\lib\Net45\HtmlAgilityPack.dll</HintPath>
       <Private>True</Private>
@@ -115,10 +118,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Extentions\Extentions.csproj">
-      <Project>{d33d4222-0f09-4d5a-a066-92fdfe5f05cf}</Project>
-      <Name>Extentions</Name>
-    </ProjectReference>
     <ProjectReference Include="..\PluginContracts\PluginContracts.csproj">
       <Project>{93ec9d95-1ef0-4a5d-bd86-f7e3972cca7b}</Project>
       <Name>PluginContracts</Name>

@@ -28,7 +28,7 @@ namespace EchoClient
             guid = Guid.NewGuid();
 
             // Create a timer with a two second interval.
-            aTimer = new System.Timers.Timer(1000);
+            aTimer = new System.Timers.Timer(10000);
             // Hook up the Elapsed event for the timer. 
             aTimer.Elapsed += OnTimedEvent;
             aTimer.AutoReset = true;
@@ -80,11 +80,11 @@ namespace EchoClient
                     // Encode the data string into a byte array.
                     if (update)
                     {
-                        query = Encoding.ASCII.GetBytes(guid.ToString() + "<UPDATE><EOF>");
+                        query = Encoding.ASCII.GetBytes(guid.ToString() + "<UPDATE>");
                     }
                     else
                     {
-                        query = Combine(guid.ToByteArray(), query);
+                        query = Combine(Encoding.ASCII.GetBytes(guid.ToString()), query);
                     }
                     byte[] msg = Combine(query, Encoding.ASCII.GetBytes("<EOF>"));
 
@@ -189,7 +189,7 @@ namespace EchoClient
             waveSource.StopRecording();
 
             // prep for transfer to server
-            //Post(buffer);
+            StartClient(buffer);
         }
     }
 

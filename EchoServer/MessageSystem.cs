@@ -38,7 +38,7 @@ namespace EchoServer
                                                 where Message.status == Message.Status.ready
                                                 select Message).Count(); } }
 
-        public void CreateRequest(Guid ClientGuid, string Request) // called from client
+        public void CreateRequest(Guid ClientGuid, byte[] Request) // called from client
         {
             Message newMessage;
             if (Request.Length > 0)
@@ -103,7 +103,7 @@ namespace EchoServer
 
         public string textRequest = string.Empty;
         public string textResponse = string.Empty;
-        public Stream request;
+        public byte[] request;
         public byte[] response = new byte[0];
 
         private DateTime _postTime = DateTime.Now;
@@ -112,11 +112,11 @@ namespace EchoServer
         public enum Status { queued, processing, delayed, ready, closed, error };
         public Status status = Status.queued;
 
-        public Message(Guid ClientGuid, string Request)
+        public Message(Guid ClientGuid, byte[] Request)
         {
             
             _clientGuid = ClientGuid;
-            textRequest = Request;
+            request = Request;
         }
     }
 }

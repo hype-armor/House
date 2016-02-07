@@ -19,6 +19,8 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -37,6 +39,10 @@ namespace EchoServer
         public byte[] buffer = new byte[BufferSize];
         // Received data string.
         public StringBuilder sb = new StringBuilder();
+        // store data as byte array
+        public byte[] dataBuffer = new byte[0];
+        // Guid 
+        public Guid guid = Guid.Empty;
     }
 
     public class WebServer
@@ -82,7 +88,6 @@ namespace EchoServer
                     // Wait until a connection is made before continuing.
                     allDone.WaitOne();
                 }
-
             }
             catch (Exception e)
             {
@@ -136,14 +141,15 @@ namespace EchoServer
                 // Check for end-of-file tag. If it is not there, read 
                 // more data.
                 content = state.sb.ToString();
+                state.dataBuffer = Combine(state.dataBuffer, state.buffer);
+
                 if (content.IndexOf("<EOF>") > -1)
                 {
-                    // All the data has been read from the 
-                    // client. Display it on the console.
-                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
-                        content.Length, content);
-                    // Echo the data back to the client.
-                    Send(handler, content);
+                    byte[] tGuid = state.dataBuffer.Take(36).ToArray();
+                    string _guid = Encoding.ASCII.GetString(tGuid);
+                    state.guid = Guid.Parse(_guid);
+                    state.dataBuffer = state.dataBuffer.Skip(36).Take(content.IndexOf("<EOF>")).ToArray();
+                    Send(handler, state.guid, state.dataBuffer);
                 }
                 else
                 {
@@ -154,35 +160,31 @@ namespace EchoServer
             }
         }
 
-        private void Send(Socket handler, String data)
+        private void Send(Socket handler, Guid guid, byte[] data)
         {
-            // post to main program.
-            string _guid = data.Substring(0, 36);
-            data = data.Substring(36).Replace("<EOF>", "");
-
-            Guid guid = Guid.Parse(_guid);
-
-            if (data != "<UPDATE>")
+            //check if there is the update tag.
+            if (data.Length > 44) // guid + update + EOF
             {
+                data = data.Take(data.Length - 5).ToArray(); // remove <EOF>
                 messageSystem.CreateRequest(guid, data);
-                data = "Query was posted at " + DateTime.Now.ToShortTimeString();
+                data = Encoding.ASCII.GetBytes("Query was posted at " + DateTime.Now.ToShortTimeString());
             }
             else
             {
                 Message m = messageSystem.GetResponse(guid);
 
-                if (m != null && m.status == Message.Status.closed)
+                if (m != null)
                 {
-                    data = m.textResponse;
+                    data = Encoding.ASCII.GetBytes(m.textResponse);
+                }
+                else
+                {
+                    data = Encoding.ASCII.GetBytes("Total messages: " + messageSystem.messageCount + " at " + DateTime.Now.ToShortTimeString());
                 }
             }
-            
-
-            // Convert the string data to byte data using ASCII encoding.
-            byte[] byteData = Encoding.ASCII.GetBytes(data);
 
             // Begin sending the data to the remote device.
-            handler.BeginSend(byteData, 0, byteData.Length, 0,
+            handler.BeginSend(data, 0, data.Length, 0,
                 new AsyncCallback(SendCallback), handler);
         }
 
@@ -205,6 +207,14 @@ namespace EchoServer
             {
                 Console.WriteLine(e.ToString());
             }
+        }
+
+        static public byte[] Combine(byte[] first, byte[] second)
+        {
+            byte[] ret = new byte[first.Length + second.Length];
+            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
+            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
+            return ret;
         }
     } 
 }
