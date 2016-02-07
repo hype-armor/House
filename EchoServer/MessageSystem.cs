@@ -35,7 +35,7 @@ namespace EchoServer
         private List<Message> queue = new List<Message>();
         public int messageCount { get { return (from Message in queue
                                                 orderby Message.PostTime
-                                                where Message.status == Message.Status.closed
+                                                where Message.status == Message.Status.ready
                                                 select Message).Count(); } }
 
         public void CreateRequest(Guid ClientGuid, string Request) // called from client

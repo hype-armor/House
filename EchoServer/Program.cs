@@ -60,7 +60,7 @@ namespace EchoServer
                         {
                             qc.AddPhraseToAction(action, item.Name);
                         }
-                    } 
+                    }
                 }
                 else
                 {
@@ -72,52 +72,65 @@ namespace EchoServer
                 MessageBox.Show(e.Message);
             }
 
-            Task.Factory.StartNew(() => {
+            Task.Factory.StartNew(() =>
+            {
                 while (true)
                 {
-                    Message message = messageSystem.GetNextMessage();
-
-                    if (message == null)
+                    try
                     {
-                        continue;
-                    }
+                        Message message = messageSystem.GetNextMessage();
 
-                    KeyValuePair<string, string> query = qc.Classify(message.textRequest);
-
-                    int responseTimeID = responseTime.Start(query.Key);
-                    string delaymsg = responseTime.GetDelayMessage(query.Key);
-                    if (!string.IsNullOrWhiteSpace(delaymsg))
-                    {
-                        message.textResponse = delaymsg;
-                        message.response = GetAudio(delaymsg);
-                        message.status = Message.Status.delayed;
-                    }
-
-                    foreach (var plugin in _Plugins)
-                    {
-                        if (query.Key == plugin.Key)
+                        if (message == null)
                         {
-                            string response;
-                            if (query.Key == "help")
-                            {
-                                response = qc.help;
-                            }
-                            else if (query.Key == "unknown")
-                            {
-                                response = query.Value;
-                            }
-                            else
-                            {
-                                response = plugin.Value.Go(message.textRequest);
-                                Thread.Sleep(5000);
-                            }
-                            message.textResponse = response;
-                            message.response = GetAudio(response);
+                            Thread.Sleep(10);
+                            continue;
+                        }
+
+                        KeyValuePair<string, string> query = qc.Classify(message.textRequest);
+
+                        int responseTimeID = responseTime.Start(query.Key);
+                        string delaymsg = responseTime.GetDelayMessage(query.Key);
+                        if (!string.IsNullOrWhiteSpace(delaymsg))
+                        {
+                            message.textResponse = delaymsg;
+                            message.response = GetAudio(delaymsg);
+                            message.status = Message.Status.delayed;
+                        }
+
+                        if (query.Key == "help")
+                        {
+                            message.textResponse = qc.help;
                             message.status = Message.Status.ready;
                         }
-                    }
+                        else if (query.Key == "unknown")
+                        {
+                            message.textResponse = query.Value;
+                            message.status = Message.Status.ready;
+                        }
+                        else
+                        {
+                            foreach (var plugin in _Plugins)
+                            {
+                                if (query.Key == plugin.Key)
+                                {
+                                    string response = plugin.Value.Go(message.textRequest);
+                                    Thread.Sleep(5000);
 
-                    responseTime.Stop(query.Key, responseTimeID);
+                                    message.textResponse = response;
+                                    message.response = GetAudio(response);
+                                    message.status = Message.Status.ready;
+                                }
+
+                            } 
+                        }
+
+                        responseTime.Stop(query.Key, responseTimeID);
+                    }
+                    catch (Exception e)
+                    {
+
+                        throw e;
+                    }
                 }
             });
         }

@@ -157,17 +157,25 @@ namespace EchoServer
         private void Send(Socket handler, String data)
         {
             // post to main program.
-            Guid guid = new Guid();
-            messageSystem.CreateRequest(guid, "help");
+            string _guid = data.Substring(0, 36);
+            data = data.Substring(36).Replace("<EOF>", "");
 
-            while (messageSystem.messageCount == 0)
+            Guid guid = Guid.Parse(_guid);
+            messageSystem.CreateRequest(guid, data);
+
+            Message m = messageSystem.GetResponse(guid);
+
+            if (m != null && m.status == Message.Status.closed)
             {
-                Thread.Sleep(50);
+                data = m.textResponse;
             }
-            data = messageSystem.GetResponse(guid).textResponse;
+            else
+            {
+                data = "Query was posted at " + DateTime.Now.ToShortTimeString();
+            }
 
             // Convert the string data to byte data using ASCII encoding.
-            byte[] byteData = Encoding.ASCII.GetBytes(data + DateTime.Now.ToString());
+            byte[] byteData = Encoding.ASCII.GetBytes(data);
 
             // Begin sending the data to the remote device.
             handler.BeginSend(byteData, 0, byteData.Length, 0,
