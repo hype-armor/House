@@ -18,13 +18,13 @@ namespace EchoServer
             InitializeComponent();
         }
 
-        WebServer ws = new WebServer();
+        static WebServer ws = new WebServer();
         protected override void OnStart(string[] args)
         {
             // start web server...
             var t = new System.Threading.Thread(() =>
             {
-                ws.Start(IPAddress.Any, 8080, "/");
+                ws.StartListening();
             });
             t.Start();
         }
@@ -32,7 +32,15 @@ namespace EchoServer
         protected override void OnStop()
         {
             // start web server...
-            ws.Stop();
+            ws.StopListenting();
+        }
+
+        public static void Main(string[] args)
+        {
+            ws.StartListening();
+            Console.WriteLine("Done, about to exit.");
+            Console.ReadLine();
+            ws.StopListenting();
         }
     }
 }

@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using ExtensionMethods;
-using System.Windows.Threading;
 using System.Timers;
+using System.Net.Sockets;
+using System.Threading;
+using System.Windows.Threading;
 
 namespace EchoClient
 {
@@ -25,10 +15,13 @@ namespace EchoClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Timer aTimer;
+        private static Guid guid;
+        private System.Timers.Timer aTimer;
         public MainWindow()
         {
             InitializeComponent();
+
+            guid = Guid.NewGuid();
 
             // Create a timer with a two second interval.
             aTimer = new System.Timers.Timer(1000);
@@ -36,83 +29,88 @@ namespace EchoClient
             aTimer.Elapsed += OnTimedEvent;
             aTimer.AutoReset = true;
             aTimer.Enabled = true;
-            
         }
 
-        private string Update = "updateupdate";
-        private void OnTimedEvent(Object source, ElapsedEventArgs e)
+        private void OnTimedEvent(object sender, ElapsedEventArgs e)
         {
             aTimer.Stop();
-            HitServer(Update);
+            DateTime CurrentDateTime = DateTime.Now;
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                lblUpdateTime.Content = StartClient("<UPDATE>");
+            }));
             aTimer.Start();
         }
 
-        private static Guid guid = Guid.NewGuid();
-
-        private void gobtn_Click(object sender, RoutedEventArgs e)
+        private void startBtn_Click(object sender, RoutedEventArgs e)
         {
-            gobtn.IsEnabled = false;
-            string text = txtQuery.Text.CleanText();
-
-            HitServer(text);
-            
+            lblUpdateTime.Content = StartClient("look up what a panda is");
         }
 
-        public void HitServer(string query)
+        public static string StartClient(string query)
         {
-            WebClient client = new WebClient();
+            // Data buffer for incoming data.
+            byte[] bytes = new byte[1024];
 
-            // Add a user agent header in case the 
-            // requested URI contains a query.
-
-            client.Headers.Add("user-agent", "EchoClient_version=1.1");
-
-            string serverPath = "http://192.168.0.50:8080/";
-
-            if (!string.IsNullOrWhiteSpace(query))
+            // Connect to a remote device.
+            try
             {
-                string address = serverPath + "guid=" + guid.ToString() + ";query=" + query + ";";
-                byte[] data = client.DownloadData(address);
+                // Establish the remote endpoint for the socket.
+                // This example uses port 11000 on the local computer.
+                IPHostEntry ipHostInfo = Dns.GetHostEntry("sky.ibang.us");
+                IPAddress ipAddress = ipHostInfo.AddressList[0];
+                IPEndPoint remoteEP = new IPEndPoint(ipAddress, 8080);
 
-                if (data.GetString() == Update)
-                {
-                    // update only
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                    {
-                        lblUpdateTime.Content = DateTime.Now.ToLongTimeString();
-                    }));
-                }
-                else if (data.Length > 0)
-                {
-                    MediaPlayer mp = new MediaPlayer(data);
-                    mp.Play();
+                // Create a TCP/IP  socket.
+                Socket sender = new Socket(AddressFamily.InterNetwork,
+                    SocketType.Stream, ProtocolType.Tcp);
 
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                    {
-                        gobtn.IsEnabled = true;
-                    }));
-                }
-                else
+                // Connect the socket to the remote endpoint. Catch any errors.
+                try
                 {
-                    MessageBox.Show("query: " + query + Environment.NewLine + "Did not send guid", "Error");
+                    sender.Connect(remoteEP);
+
+                    Console.WriteLine("Socket connected to {0}",
+                        sender.RemoteEndPoint.ToString());
+
+                    // Encode the data string into a byte array.
+                    query = guid.ToString() + query + "<EOF>";
+                    byte[] msg = Encoding.ASCII.GetBytes(query);
+
+                    // Send the data through the socket.
+                    int bytesSent = sender.Send(msg);
+
+                    // Receive the response from the remote device.
+                    int bytesRec = sender.Receive(bytes);
+                    string response = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+
+                    // Release the socket.
+                    sender.Shutdown(SocketShutdown.Both);
+                    sender.Close();
+
+                    return response;
+
                 }
+                catch (ArgumentNullException ane)
+                {
+                    return "ArgumentNullException : " + ane.ToString();
+                }
+                catch (SocketException se)
+                {
+                    return "SocketException : " + se.ToString();
+                }
+                catch (Exception e)
+                {
+                    return "Unexpected exception : " + e.ToString();
+                }
+
             }
-        }
-
-        public class MediaPlayer
-        {
-            System.Media.SoundPlayer soundPlayer;
-
-            public MediaPlayer(byte[] buffer)
+            catch (Exception e)
             {
-                var memoryStream = new MemoryStream(buffer, true);
-                soundPlayer = new System.Media.SoundPlayer(memoryStream);
+                return e.ToString();
             }
-
-            public void Play()
-            {
-                soundPlayer.PlaySync();
-            }
+            return "ERROR";
         }
     }
+
 }

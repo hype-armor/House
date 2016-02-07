@@ -23,85 +23,112 @@ using System.Text.RegularExpressions;
 using System.Text;
 using HtmlAgilityPack;
 using System.IO;
+using System.Xml;
+using OpenNLP;
 
-namespace ExtensionMethods
+namespace Extensions
 {
-	public static class MyExtensions
-	{
+    public static class MyExtensions
+    {
 
-		public static string ToDate(this object value)
-		{
-			DateTime Datet;
-			if (value.ToString() != "")
-			{
-				if (!DateTime.TryParse(value.ToString(), out Datet))
-				{
-					value = "Invalid Date! " + value;
-					return null;
-				}
-				else
-				{
-					return Datet.ToString();
-				}
-			}
-			else
-			{
-				return null;
-			}
-		}
+        public static string ToDate(this object value)
+        {
+            DateTime Datet;
+            if (value.ToString() != "")
+            {
+                if (!DateTime.TryParse(value.ToString(), out Datet))
+                {
+                    value = "Invalid Date! " + value;
+                    return null;
+                }
+                else
+                {
+                    return Datet.ToString();
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
 
-		public static bool IsDecimal(this object value)
-		{
-			decimal result;
-			if (Decimal.TryParse(value.ToString(), out result))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
+        public static DateTime ToDateTime(this object value)
+        {
+            DateTime Datet;
+            if (value == null)
+            {
+                return DateTime.MinValue;
+            }
+            if (value.ToString() != "")
+            {
+                if (!DateTime.TryParse(value.ToString(), out Datet))
+                {
+                    value = "Invalid Date! " + value;
+                    return DateTime.MinValue;
+                }
+                else
+                {
+                    return Datet;
+                }
+            }
+            else
+            {
+                return DateTime.MinValue;
+            }
+        }
 
-		public static decimal ToDecimal(this object value)
-		{
-			decimal result;
-			if (Decimal.TryParse(value.ToString(), out result))
-			{
-				return result;
-			}
-			else
-			{
-				return decimal.MinValue;
-			}
-		}
+        public static bool IsDecimal(this object value)
+        {
+            decimal result;
+            if (Decimal.TryParse(value.ToString(), out result))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		public static bool IsInt(this object value)
-		{
-			int Number;
-			if (int.TryParse(value.ToString(), out Number))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+        public static decimal ToDecimal(this object value)
+        {
+            decimal result;
+            if (Decimal.TryParse(value.ToString(), out result))
+            {
+                return result;
+            }
+            else
+            {
+                return decimal.MinValue;
+            }
+        }
 
-		}
+        public static bool IsInt(this object value)
+        {
+            int Number;
+            if (int.TryParse(value.ToString(), out Number))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
 
-		public static int ToInt(this object value)
-		{
-			int Number;
-			if (int.TryParse(value.ToString(), out Number))
-			{
-				return Number;
-			}
-			else
-			{
-				return Number;
-			}
-		}
+        }
+
+        public static int ToInt(this object value)
+        {
+            int Number;
+            if (int.TryParse(value.ToString(), out Number))
+            {
+                return Number;
+            }
+            else
+            {
+                return Number;
+            }
+        }
 
         public static string ToWords(this int number)
         {
@@ -189,7 +216,7 @@ namespace ExtensionMethods
         public static string ReplaceWithNumbers(this string numberString)
         {
             StringBuilder sb = new StringBuilder();
-            string[] words = numberString.Split(new char[] {' '});
+            string[] words = numberString.Split(new char[] { ' ' });
             long prevNumber = 0;
             bool add = false;
             foreach (string word in words)
@@ -211,7 +238,7 @@ namespace ExtensionMethods
                     {
                         wordToAdd = word.ToLong().ToString();
                     }
-                    
+
                 }
                 else if (word.Trim().Contains("zero"))
                 {
@@ -231,15 +258,15 @@ namespace ExtensionMethods
 
         public static string CleanText(this string text)
         {
-            char[] alphaNumeric = new char[] 
-                    { 
+            char[] alphaNumeric = new char[]
+                    {
                         'a','b','c','d','e','f','g','h','i','j','k',
                         'l','m','n','o','p','q','r','s','t','u','v',
                         'w','x','y','z','1','2','3','4','5','6','7','8','9','0',
                         '.',',',' ','?','\'', '-'
                     };
             text = text.Replace("%20", " ");
-            text = text.RemoveHTMLTags();
+            //text = text.RemoveHTMLTags();
             string result = "";
             foreach (char c in text)
             {
@@ -292,7 +319,7 @@ namespace ExtensionMethods
         // later on may appear to be ASCII initially). If taster = 0, then taster
         // becomes the length of the file (for maximum reliability). 'text' is simply
         // the string with the discovered encoding applied to the file.
-        public static Encoding detectTextEncoding(byte[] bytes, int taster = 1000)
+        public static Encoding detectTextEncoding(this byte[] bytes, int taster = 1000)
         {
             String text;
             byte[] b = bytes;
@@ -408,6 +435,104 @@ namespace ExtensionMethods
 
             //file is not locked
             return false;
+        }
+
+        public static string SelectNodeInnerText(this XmlNode itemNode, string xPath)
+        {
+            if (itemNode.HasChildNodes)
+            {
+                if (itemNode.SelectSingleNode(xPath) != null)
+                {
+                    return itemNode.SelectSingleNode(xPath).InnerText;
+                }
+            }
+            return "";
+        }
+
+        public static string SelectNodeInnerText(this XmlNode itemNode, string xPath, XmlNamespaceManager nsmgr)
+        {
+            string prefix = xPath.Split(new char[] { ':' }).First();
+
+            if (itemNode.HasChildNodes && nsmgr.HasNamespace(prefix))
+            {
+                if (itemNode.SelectSingleNode(xPath, nsmgr) != null)
+                {
+                    return itemNode.SelectSingleNode(xPath, nsmgr).InnerText;
+                }
+            }
+            return "";
+        }
+
+        static private string mModelPath = @"C:\Users\Sky\Documents\SharpNLP\";
+        static private OpenNLP.Tools.SentenceDetect.MaximumEntropySentenceDetector mSentenceDetector;
+        static private OpenNLP.Tools.Tokenize.EnglishMaximumEntropyTokenizer mTokenizer;
+        static private OpenNLP.Tools.PosTagger.EnglishMaximumEntropyPosTagger mPosTagger;
+
+        static private string[] SplitSentences(string paragraph)
+        {
+            if (mSentenceDetector == null)
+            {
+                mSentenceDetector = new OpenNLP.Tools.SentenceDetect.EnglishMaximumEntropySentenceDetector(mModelPath + "EnglishSD.nbin");
+            }
+
+            return mSentenceDetector.SentenceDetect(paragraph);
+        }
+
+        static private string[] TokenizeSentence(string sentence)
+        {
+            if (mTokenizer == null)
+            {
+                mTokenizer = new OpenNLP.Tools.Tokenize.EnglishMaximumEntropyTokenizer(mModelPath + "EnglishTok.nbin");
+            }
+
+            return mTokenizer.Tokenize(sentence);
+        }
+
+        static private string[] PosTagTokens(string[] tokens)
+        {
+            if (mPosTagger == null)
+            {
+                mPosTagger = new OpenNLP.Tools.PosTagger.EnglishMaximumEntropyPosTagger(mModelPath + "EnglishPOS.nbin", mModelPath + @"\Parser\tagdict");
+            }
+
+            return mPosTagger.Tag(tokens);
+        }
+
+        static public string FindSubject(this string sent)
+        {
+            string[] split_sentences = SplitSentences(sent);
+            foreach (string sentence in split_sentences)
+            {
+                string[] tokens = TokenizeSentence(sentence);
+                string[] tags = PosTagTokens(tokens);
+
+                for (int currentTag = 0; currentTag < tags.Length; currentTag++)
+                {
+                    if (tags[currentTag] == "NN")
+                    {
+                        return tokens[currentTag];
+                    }
+                }
+            }
+            return "";
+        }
+
+        static public Dictionary<string, string> TagSentence(this string sent)
+        {
+            Dictionary<string, string> Tokens = new Dictionary<string, string>();
+            string[] split_sentences = SplitSentences(sent);
+            foreach (string sentence in split_sentences)
+            {
+                string[] tokens = TokenizeSentence(sentence);
+                string[] tags = PosTagTokens(tokens);
+
+                for (int currentTag = 0; currentTag < tags.Length; currentTag++)
+                {
+                    Tokens.Add(tags[currentTag], tokens[currentTag]);
+                }
+            }
+
+            return Tokens;
         }
     }
 }

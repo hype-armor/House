@@ -22,13 +22,10 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using ExtensionMethods;
+using Extensions;
 
 namespace EchoServer
 {
-    // for information on saving the object to a file on change. https://msdn.microsoft.com/en-us/library/et91as27.aspx
-
-    [Serializable()]
     class QueryClassification
     {
         public enum Actions { help, wikipedia, newPhrase, alarm, timer, clear, wolframAlpha, weather, joke, unknown };
@@ -41,29 +38,7 @@ namespace EchoServer
 
         void QueryClassificationf()
         {
-            
-
-            AddPhraseToAction("what is", "wolframAlpha");
-            AddPhraseToAction("what is a", "wolframAlpha");
-            AddPhraseToAction("what is an", "wolframAlpha");
-
-            AddPhraseToAction("help", "help");
-            AddPhraseToAction("clear", "clear");
-        }
-
-        public static void AddPhraseToAction(string phrase, Actions action)
-        {
-            //if (!actionDatabase.Keys.Contains(action))
-            //{
-            //    actionDatabase.Add(action, new HashSet<string>());
-            //}
-
-            //phrase = phrase.CleanText();
-
-            //HashSet<string> phrases = actionDatabase[action];
-            //phrases.Add(phrase);
-            //actionDatabase[action] = phrases;
-
+            AddPhraseToAction("help", help);
         }
 
         public void AddPhraseToAction(string phrase, string _action)
@@ -81,39 +56,33 @@ namespace EchoServer
 
         }
 
-        public void AddAction()
-        {
-            
-        }
-
         public KeyValuePair<string, string> Classify(string input)
         {
-            input = ApplyEnglish(input);
-            Dictionary<string, string> matchedVerbs = new Dictionary<string, string>();
+            Dictionary<string, string> matchedSubjects = new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, HashSet<string>> item in actionDatabase)
             {
                 string term = item.Key;
-                HashSet<string> verbs = item.Value;
+                HashSet<string> subjects = item.Value;
 
-                foreach (string verb in verbs)
+                foreach (string subj in subjects)
                 {
-                    if (input.Contains(verb) && !matchedVerbs.Keys.Contains(term))
+                    if (input.Contains(subj) && !matchedSubjects.Keys.Contains(term))
                     {
-                        matchedVerbs.Add(term, verb);
+                        matchedSubjects.Add(term, subj);
                     }
-                    else if (input.Contains(verb) && matchedVerbs.Keys.Contains(term) && matchedVerbs[term].Length < verb.Length)
+                    else if (input.Contains(subj) && matchedSubjects.Keys.Contains(term) && matchedSubjects[term].Length < subj.Length)
                     {
-                        matchedVerbs[term] = verb;
+                        matchedSubjects[term] = subj;
                     }
                 }
             }
 
-            if (matchedVerbs.Count() == 1)
+            if (matchedSubjects.Count() == 1)
             {
-                return matchedVerbs.First();
+                return matchedSubjects.First();
             }
-            else if (matchedVerbs.Count() > 1)
+            else if (matchedSubjects.Count() > 1)
             {
                 return new KeyValuePair<string, string>
                     ("unknown", "There is more than one match for your query. Please remove one of the matches from my database.");
@@ -122,21 +91,6 @@ namespace EchoServer
             {
                 return new KeyValuePair<string, string>("unknown", "I can not match your query to anything in my database.");
             }
-        }
-
-        private string ApplyEnglish(string input)
-        {
-            input = input.Replace("s is", " is");
-
-            return input;
-        }
-
-        // we might need this for plugins. 
-        public static Actions ParseAction(string word)
-        {
-            QueryClassification.Actions action =
-                                (QueryClassification.Actions)Enum.Parse(typeof(QueryClassification.Actions), word, true);
-            return action;
         }
 
         public string help
