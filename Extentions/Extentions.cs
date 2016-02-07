@@ -265,7 +265,7 @@ namespace Extensions
                         '.',',',' ','?','\'', '-'
                     };
             text = text.Replace("%20", " ");
-            text = text.RemoveHTMLTags();
+            //text = text.RemoveHTMLTags();
             string result = "";
             foreach (char c in text)
             {
