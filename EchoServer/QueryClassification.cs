@@ -41,14 +41,7 @@ namespace EchoServer
 
         void QueryClassificationf()
         {
-            
-
-            AddPhraseToAction("what is", "wolframAlpha");
-            AddPhraseToAction("what is a", "wolframAlpha");
-            AddPhraseToAction("what is an", "wolframAlpha");
-
-            AddPhraseToAction("help", "help");
-            AddPhraseToAction("clear", "clear");
+            AddPhraseToAction("help", help);
         }
 
         public static void AddPhraseToAction(string phrase, Actions action)
@@ -81,11 +74,6 @@ namespace EchoServer
 
         }
 
-        public void AddAction()
-        {
-            
-        }
-
         public KeyValuePair<string, string> Classify(string input)
         {
             input = ApplyEnglish(input);
@@ -113,11 +101,6 @@ namespace EchoServer
             {
                 return matchedVerbs.First();
             }
-            else if (input == "help")
-            {
-                return new KeyValuePair<string, string>
-                    ("help", help);
-            }
             else if (matchedVerbs.Count() > 1)
             {
                 return new KeyValuePair<string, string>
@@ -134,14 +117,6 @@ namespace EchoServer
             input = input.Replace("s is", " is");
 
             return input;
-        }
-
-        // we might need this for plugins. 
-        public static Actions ParseAction(string word)
-        {
-            QueryClassification.Actions action =
-                                (QueryClassification.Actions)Enum.Parse(typeof(QueryClassification.Actions), word, true);
-            return action;
         }
 
         public string help
