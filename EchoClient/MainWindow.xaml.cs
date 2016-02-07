@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Timers;
 using System.Net.Sockets;
 using System.Threading;
+using System.Windows.Threading;
 
 namespace EchoClient
 {
@@ -15,20 +16,38 @@ namespace EchoClient
     public partial class MainWindow : Window
     {
         private static Guid guid;
-
+        private System.Timers.Timer aTimer;
         public MainWindow()
         {
             InitializeComponent();
 
             guid = Guid.NewGuid();
+
+            // Create a timer with a two second interval.
+            aTimer = new System.Timers.Timer(1000);
+            // Hook up the Elapsed event for the timer. 
+            aTimer.Elapsed += OnTimedEvent;
+            aTimer.AutoReset = true;
+            aTimer.Enabled = true;
+        }
+
+        private void OnTimedEvent(object sender, ElapsedEventArgs e)
+        {
+            aTimer.Stop();
+            DateTime CurrentDateTime = DateTime.Now;
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                lblUpdateTime.Content = StartClient("<UPDATE>");
+            }));
+            aTimer.Start();
         }
 
         private void startBtn_Click(object sender, RoutedEventArgs e)
         {
-            lblUpdateTime.Content = StartClient();
+            lblUpdateTime.Content = StartClient("what is the time?");
         }
 
-        public static string StartClient()
+        public static string StartClient(string query)
         {
             // Data buffer for incoming data.
             byte[] bytes = new byte[1024];
@@ -55,7 +74,7 @@ namespace EchoClient
                         sender.RemoteEndPoint.ToString());
 
                     // Encode the data string into a byte array.
-                    string query = guid.ToString() + "what is the time" + "<EOF>";
+                    query = guid.ToString() + query + "<EOF>";
                     byte[] msg = Encoding.ASCII.GetBytes(query);
 
                     // Send the data through the socket.

@@ -161,18 +161,22 @@ namespace EchoServer
             data = data.Substring(36).Replace("<EOF>", "");
 
             Guid guid = Guid.Parse(_guid);
-            messageSystem.CreateRequest(guid, data);
 
-            Message m = messageSystem.GetResponse(guid);
-
-            if (m != null && m.status == Message.Status.closed)
+            if (data != "<UPDATE>")
             {
-                data = m.textResponse;
+                messageSystem.CreateRequest(guid, data);
+                data = "Query was posted at " + DateTime.Now.ToShortTimeString();
             }
             else
             {
-                data = "Query was posted at " + DateTime.Now.ToShortTimeString();
+                Message m = messageSystem.GetResponse(guid);
+
+                if (m != null && m.status == Message.Status.closed)
+                {
+                    data = m.textResponse;
+                }
             }
+            
 
             // Convert the string data to byte data using ASCII encoding.
             byte[] byteData = Encoding.ASCII.GetBytes(data);
