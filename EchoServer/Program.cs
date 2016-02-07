@@ -44,7 +44,7 @@ namespace EchoServer
             try
             {
                 _Plugins = new Dictionary<string, IPlugin>();
-                string path = @"C:\Program Files (x86)\EchoServer\Plugins";
+                string path = @"C:\Program Files\EchoServer\Plugins";
                 ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins(path);
 
 
@@ -52,13 +52,20 @@ namespace EchoServer
                 {
                     foreach (var item in plugins)
                     {
-                        _Plugins.Add(item.Name, item);
-
-                        List<string> actions = _Plugins[item.Name].Actions;
-
-                        foreach (string action in actions)
+                        try
                         {
-                            qc.AddPhraseToAction(action, item.Name);
+                            _Plugins.Add(item.Name, item);
+
+                            //List<string> actions = _Plugins[item.Name].Actions;
+
+                            foreach (string action in item.Actions)
+                            {
+                                qc.AddPhraseToAction(action, item.Name);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            MessageBox.Show(e.Message);
                         }
                     }
                 }
@@ -99,7 +106,7 @@ namespace EchoServer
 
                         if (query.Key == "help")
                         {
-                            message.textResponse = qc.help;
+                            message.textResponse = query.Value;
                             message.status = Message.Status.ready;
                         }
                         else if (query.Key == "unknown")
@@ -114,7 +121,6 @@ namespace EchoServer
                                 if (query.Key == plugin.Key)
                                 {
                                     string response = plugin.Value.Go(message.textRequest);
-                                    Thread.Sleep(5000);
 
                                     message.textResponse = response;
                                     message.response = GetAudio(response);
