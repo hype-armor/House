@@ -498,7 +498,26 @@ namespace Extensions
             return mPosTagger.Tag(tokens);
         }
 
-        static public Dictionary<string, string> FindSubject(string sent)
+        static public string FindSubject(this string sent)
+        {
+            string[] split_sentences = SplitSentences(sent);
+            foreach (string sentence in split_sentences)
+            {
+                string[] tokens = TokenizeSentence(sentence);
+                string[] tags = PosTagTokens(tokens);
+
+                for (int currentTag = 0; currentTag < tags.Length; currentTag++)
+                {
+                    if (tags[currentTag] == "NN")
+                    {
+                        return tokens[currentTag];
+                    }
+                }
+            }
+            return "";
+        }
+
+        static public Dictionary<string, string> TagSentence(this string sent)
         {
             Dictionary<string, string> Tokens = new Dictionary<string, string>();
             string[] split_sentences = SplitSentences(sent);
