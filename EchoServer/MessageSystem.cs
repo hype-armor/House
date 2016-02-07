@@ -33,8 +33,12 @@ namespace EchoServer
     {
         internal int workers = 0;
         private List<Message> queue = new List<Message>();
+        public int messageCount { get { return (from Message in queue
+                                                orderby Message.PostTime
+                                                where Message.status == Message.Status.closed
+                                                select Message).Count(); } }
 
-        public void CreateRequest(Guid ClientGuid, Stream Request) // called from client
+        public void CreateRequest(Guid ClientGuid, string Request) // called from client
         {
             Message newMessage;
             if (Request.Length > 0)
@@ -108,95 +112,11 @@ namespace EchoServer
         public enum Status { queued, processing, delayed, ready, closed, error };
         public Status status = Status.queued;
 
-        public Message(Guid ClientGuid, Stream Request)
+        public Message(Guid ClientGuid, string Request)
         {
-            // convert Request to string.
-            Speech sp = new Speech(Request);
-            while (sp.status == Speech.Status.processing)
-            {
-                // wait
-                Thread.Sleep(10);
-            }
-            if (sp.status != Speech.Status.done)
-            {
-                // was unable to process input into text.
-                status = Status.error;
-
-                // need to report error to client using audio.
-                // string to stream and then send that to the Speech class.
-            }
+            
             _clientGuid = ClientGuid;
-            textRequest = sp.result;
-        }
-    }
-
-    public class Speech
-    {
-        public string result = string.Empty;
-        public enum Status { processing, done, error };
-        public Status status = Status.processing;
-
-        public Speech(Stream stream)
-        {
-            using (SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine())
-            {
-
-                // Create and load a grammar.
-                Grammar dictation = new DictationGrammar();
-                dictation.Name = "Dictation Grammar";
-
-                recognizer.LoadGrammar(dictation);
-
-                // Configure the input to the recognizer.
-                //Stream stream = new MemoryStream(buffer);
-                recognizer.SetInputToAudioStream(stream, new SpeechAudioFormatInfo(
-            44100, AudioBitsPerSample.Sixteen, AudioChannel.Mono));
-                //recognizer.SetInputToWaveStream(stream);
-
-                // Attach event handlers for the results of recognition.
-                recognizer.SpeechRecognized +=
-                  new EventHandler<SpeechRecognizedEventArgs>(recognizer_SpeechRecognized);
-                recognizer.RecognizeCompleted +=
-                  new EventHandler<RecognizeCompletedEventArgs>(recognizer_RecognizeCompleted);
-
-                // Perform recognition on the entire file.
-                recognizer.RecognizeAsync();
-            }
-        }
-
-        // Handle the SpeechRecognized event.
-        private void recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        {
-            if (e.Result != null && e.Result.Text != null)
-            {
-                result = e.Result.Text;
-            }
-            else
-            {
-                status = Status.error;
-            }
-        }
-
-        // Handle the RecognizeCompleted event.
-        private void recognizer_RecognizeCompleted(object sender, RecognizeCompletedEventArgs e)
-        {
-            if (e.Error != null)
-            {
-                status = Status.error;
-                Console.WriteLine("  Error encountered, {0}: {1}",
-                e.Error.GetType().Name, e.Error.Message);
-            }
-            if (e.Cancelled)
-            {
-                status = Status.error;
-                Console.WriteLine("  Operation cancelled.");
-            }
-            if (e.InputStreamEnded)
-            {
-                Console.WriteLine("  End of stream encountered.");
-            }
-
-            status = Status.done;
+            textRequest = Request;
         }
     }
 }

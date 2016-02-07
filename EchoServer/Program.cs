@@ -46,16 +46,25 @@ namespace EchoServer
                 _Plugins = new Dictionary<string, IPlugin>();
                 string path = @"C:\Program Files (x86)\EchoServer\Plugins";
                 ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins(path);
-                foreach (var item in plugins)
+
+
+                if (plugins != null && plugins.Count() > 0)
                 {
-                    _Plugins.Add(item.Name, item);
-
-                    List<string> actions = _Plugins[item.Name].Actions;
-
-                    foreach (string action in actions)
+                    foreach (var item in plugins)
                     {
-                        qc.AddPhraseToAction(action, item.Name);
-                    }
+                        _Plugins.Add(item.Name, item);
+
+                        List<string> actions = _Plugins[item.Name].Actions;
+
+                        foreach (string action in actions)
+                        {
+                            qc.AddPhraseToAction(action, item.Name);
+                        }
+                    } 
+                }
+                else
+                {
+                    _Plugins.Add("help", null);
                 }
             }
             catch (Exception e)
@@ -125,7 +134,7 @@ namespace EchoServer
                     {
                         SpeechSynthesizer synth = new SpeechSynthesizer();
                         synth.SetOutputToWaveStream(memoryStream);
-                        synth.Speak(response.CleanText());
+                        synth.Speak(response);
                         wav = memoryStream.ToArray();
                     }
                 });

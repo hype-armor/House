@@ -113,6 +113,11 @@ namespace EchoServer
             {
                 return matchedVerbs.First();
             }
+            else if (input == "help")
+            {
+                return new KeyValuePair<string, string>
+                    ("help", help);
+            }
             else if (matchedVerbs.Count() > 1)
             {
                 return new KeyValuePair<string, string>
