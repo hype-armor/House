@@ -26,6 +26,7 @@ using System.Speech.Recognition;
 using System.Speech.Synthesis;
 using System.Threading;
 using System.Speech.AudioFormat;
+using System.Data.SqlClient;
 
 namespace EchoServer
 {
@@ -37,30 +38,33 @@ namespace EchoServer
                                                 orderby Message.PostTime
                                                 where Message.status == Message.Status.ready
                                                 select Message).Count(); } }
-
+        public enum Status { queued, processing, delayed, ready, closed, error };
         public void CreateRequest(Guid ClientGuid, byte[] Request) // called from client
         {
-            Message newMessage;
-            if (Request.Length > 0)
-            {
-                newMessage = new Message(ClientGuid, Request);
-                queue.Add(newMessage);
-            }
+            SQL.AddClient(ClientGuid);
+            SQL.AddMessage(Guid.NewGuid(), ClientGuid, "", "", Request, new byte[0], DateTime.Now, (int)Status.queued);
         }
 
         public Message GetNextMessage() // called from server
         {
-            IEnumerable<Message> Messages =
-                (from Message in queue
-                 orderby Message.PostTime
-                 where Message.status == Message.Status.queued
-                 select Message);
+            EchoDataSet db = new EchoDataSet();
+            var messages = from m in db.Messages
+                           where m.Status == (int)Message.Status.queued
+                           select m;
 
-            if (Messages.Count() > 0)
+            if (messages.Count() > 0)
             {
-                Message message = Messages.Last();
-                message.status = Message.Status.processing;
-                return message;
+                var m = messages.First();
+                Message msg = new Message();
+                msg.clientID = m.ClientID;
+                msg.messageID = m.MessageID;
+                msg.PostTime = m.PostTime;
+                msg.request = m.request;
+                msg.response = m.response;
+                msg.status = Message.Status.processing;
+                msg.textRequest = m.textRequest;
+                msg.textResponse = m.textResponse;
+                return msg;
             }
 
             return null;
@@ -68,55 +72,108 @@ namespace EchoServer
 
         public Message GetResponse(Guid ClientGuid) // called from client
         {
-            IEnumerable<Message> Messages =
-                   (from Message in queue
-                    orderby Message.PostTime
-                    where Message.clientGuid == ClientGuid
-                    && (Message.status == Message.Status.ready
-                    || Message.status == Message.Status.delayed)
-                    select Message);
-            if (Messages.Count() > 0)
+            
+            Message m = SQL.GetMessage(ClientGuid);
+
+            if (m.messageID == Guid.Empty)
             {
-                Message message = Messages.Last();
-                if (message.status == Message.Status.ready)
-                {
-                    message.status = Message.Status.closed;
-                    return message;
-                }
-                else if (message.status == Message.Status.delayed)
-                {
-                    message.status = Message.Status.processing;
-                    return message;
-                }
+                return null;
             }
-            return null; // need a way to tell client, we are will working on it.
+
+            return m;
         }
     }
 
     public class Message
     {
-        private Guid _clientGuid = Guid.Empty;
-        public Guid clientGuid { get { return _clientGuid; } }
-
-        private Guid _MessageGuid = Guid.NewGuid();
-        public Guid MessageGuid { get { return _MessageGuid; } }
-
+        public Guid clientID = Guid.Empty;
+        public Guid messageID = Guid.Empty;
         public string textRequest = string.Empty;
         public string textResponse = string.Empty;
         public byte[] request;
         public byte[] response = new byte[0];
-
-        private DateTime _postTime = DateTime.Now;
-        public DateTime PostTime { get { return _postTime; } }
-
+        public DateTime PostTime = new DateTime();
         public enum Status { queued, processing, delayed, ready, closed, error };
         public Status status = Status.queued;
+    }
 
-        public Message(Guid ClientGuid, byte[] Request)
+    public class SQL
+    {
+        private static string connectionString = "Server=SKYNET\\SQLEXPRESS;Database=Echo;Trusted_Connection=True;";
+        public static void AddClient(Guid guid)
         {
-            
-            _clientGuid = ClientGuid;
-            request = Request;
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+                try
+                {
+                    using (SqlCommand command = new SqlCommand(
+                    "INSERT INTO Clients VALUES(@ClientID)", con))
+                    {
+                        command.Parameters.Add(new SqlParameter("ClientID", guid));
+                        command.ExecuteNonQuery();
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("Client failed to insert.");
+                }
+            }
+        }
+
+        public static void AddMessage(Guid messageID, Guid clientID, string request, string response, byte[] audioRequest, byte[] AudioResponse, DateTime PostTime, int status)
+        {
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+                try
+                {
+                    using (SqlCommand command = new SqlCommand(
+                    "INSERT INTO Messages VALUES(@MessageID, @ClientID, @textRequest, @textResponse, @request, @response, @PostTime, @Status)", con))
+                    {
+                        command.Parameters.Add(new SqlParameter("MessageID", messageID));
+                        command.Parameters.Add(new SqlParameter("ClientID", clientID));
+                        command.Parameters.Add(new SqlParameter("textRequest", request));
+                        command.Parameters.Add(new SqlParameter("textResponse", response));
+                        command.Parameters.Add(new SqlParameter("request", audioRequest));
+                        command.Parameters.Add(new SqlParameter("response", AudioResponse));
+                        command.Parameters.Add(new SqlParameter("PostTime", PostTime));
+                        command.Parameters.Add(new SqlParameter("Status", status));
+                        command.ExecuteNonQuery();
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+
+        public static Message GetMessage(Guid ClientID)
+        {
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+
+                using (SqlCommand command = new SqlCommand("SELECT *" +
+                    " FROM Messages " + "WHERE [ClientID]='" + ClientID.ToString() + "' AND [Status]=2 OR [Status]=3", con))
+                {
+                    Message m = new Message();
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        m.messageID = Guid.Parse(reader["MessageID"].ToString());
+                        m.clientID = Guid.Parse(reader["ClientID"].ToString());
+                        m.textRequest = (string)reader["textRequest"];
+                        m.textResponse = (string)reader["textResponse"];
+                        m.request = (byte[])reader["request"];
+                        m.response = (byte[])reader["response"];
+                        m.PostTime = (DateTime)reader["PostTime"];
+                        m.status = (Message.Status)reader["Status"].ToInt();
+                    }
+                    return m;
+                }
+            }
         }
     }
 }
