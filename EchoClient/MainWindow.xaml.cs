@@ -28,7 +28,7 @@ namespace EchoClient
             guid = Guid.NewGuid();
 
             // Create a timer with a two second interval.
-            aTimer = new System.Timers.Timer(10000);
+            aTimer = new System.Timers.Timer(1000);
             // Hook up the Elapsed event for the timer. 
             aTimer.Elapsed += OnTimedEvent;
             aTimer.AutoReset = true;
