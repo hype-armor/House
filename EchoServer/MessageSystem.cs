@@ -39,7 +39,7 @@ namespace EchoServer
             get
             {
                 return (from Message in queue
-                        orderby Message.PostTime
+                        orderby Message.postTime
                         where Message.status == Message.Status.ready
                         select Message).Count();
             }
@@ -53,6 +53,7 @@ namespace EchoServer
 
         public Message GetNextMessage() // called from server
         {
+            // also mark as processing.
             return SQL.GetNextMessage();
         }
 
@@ -76,9 +77,9 @@ namespace EchoServer
         public Guid messageID = Guid.Empty;
         public string textRequest = string.Empty;
         public string textResponse = string.Empty;
-        public byte[] request;
-        public byte[] response = new byte[0];
-        public DateTime PostTime = new DateTime();
+        public byte[] audioRequest;
+        public byte[] audioResponse = new byte[0];
+        public DateTime postTime = new DateTime();
         public enum Status { queued, processing, delayed, ready, closed, error };
         public Status status = Status.queued;
     }
@@ -144,25 +145,44 @@ namespace EchoServer
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 con.Open();
-
-                using (SqlCommand command = new SqlCommand("SELECT *" +
-                    " FROM Messages " + "WHERE [ClientID]='" + ClientID.ToString() + "' AND [Status]=2 OR [Status]=3", con))
+                Message m = new Message();
+                using (SqlCommand command = new SqlCommand("SELECT * FROM Messages " +
+                    "WHERE [ClientID]=@ClientID AND ([Status]=2 OR [Status]=3)", con))
                 {
-                    Message m = new Message();
+                    command.Parameters.Add(new SqlParameter("ClientID", ClientID));
+
                     SqlDataReader reader = command.ExecuteReader();
                     while (reader.Read())
                     {
                         m.messageID = Guid.Parse(reader["MessageID"].ToString());
                         m.clientID = Guid.Parse(reader["ClientID"].ToString());
-                        m.textRequest = (string)reader["textRequest"];
-                        m.textResponse = (string)reader["textResponse"];
-                        m.request = (byte[])reader["request"];
-                        m.response = (byte[])reader["response"];
-                        m.PostTime = (DateTime)reader["PostTime"];
+                        m.textRequest = reader["textRequest"].ToString();
+                        m.textResponse = reader["textResponse"].ToString();
+                        m.audioRequest = reader["request"].ToByteArray();
+                        m.audioResponse = reader["response"].ToByteArray();
+                        m.postTime = reader["PostTime"].ToDateTime();
                         m.status = (Message.Status)reader["Status"].ToInt();
                     }
+                }
+                con.Close();
+
+                if (m.clientID == Guid.Empty)
+                {
                     return m;
                 }
+
+                con.Open();
+                m.status = Message.Status.closed;
+                using (SqlCommand command = new SqlCommand(
+                    "UPDATE [Messages] " +
+                    "SET [Status]=@Status " +
+                    "WHERE [MessageID]=@MessageID", con))
+                {
+                    command.Parameters.Add(new SqlParameter("Status", m.status));
+                    command.Parameters.Add(new SqlParameter("MessageID", m.messageID));
+                    command.ExecuteNonQuery();
+                }
+                return m;
             }
         }
 
@@ -171,9 +191,37 @@ namespace EchoServer
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 con.Open();
+                Guid msgGuid = Guid.Empty;
+                using (SqlCommand command = new SqlCommand("DECLARE @msg uniqueidentifier; " +
+                    "SELECT TOP 1 @msg = [MessageID] " +
+                    "FROM Messages " +
+                    "WHERE [Status] = 0; " +
+                    "SELECT @msg AS [MessageID]; " +
+                    "UPDATE [Messages] " +
+                    "SET [Status] = 1 " +
+                    "WHERE [MessageID] = @msg; ", con))
+                {
+                    Message m = new Message();
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        if (!string.IsNullOrWhiteSpace(reader["MessageID"].ToString()))
+                        {
+                            m.messageID = Guid.Parse(reader["MessageID"].ToString());
+                        }
+                        else
+                        {
+                            return m;
+                        }
+                    }
+                    msgGuid = m.messageID;
+                }
+                con.Close();
 
-                using (SqlCommand command = new SqlCommand("SELECT *" +
-                    " FROM Messages " + "WHERE [Status]=0", con))
+                con.Open();
+                using (SqlCommand command = new SqlCommand("SELECT [MessageID],[ClientID],[textRequest], " + 
+                    "[textResponse],[request],[response],[PostTime],[Status]" +
+                    " FROM Messages " + "WHERE [MessageID]='" + msgGuid.ToString() + "'", con))
                 {
                     Message m = new Message();
                     SqlDataReader reader = command.ExecuteReader();
@@ -181,14 +229,37 @@ namespace EchoServer
                     {
                         m.messageID = Guid.Parse(reader["MessageID"].ToString());
                         m.clientID = Guid.Parse(reader["ClientID"].ToString());
-                        m.textRequest = (string)reader["textRequest"];
-                        m.textResponse = (string)reader["textResponse"];
-                        m.request = (byte[])reader["request"];
-                        m.response = (byte[])reader["response"];
-                        m.PostTime = (DateTime)reader["PostTime"];
+                        m.textRequest = reader["textRequest"].ToString();
+                        m.textResponse = reader["textResponse"].ToString();
+                        m.audioRequest = reader["request"].ToByteArray();
+                        m.audioResponse = reader["response"].ToByteArray();
+                        m.postTime = reader["PostTime"].ToDateTime();
                         m.status = (Message.Status)reader["Status"].ToInt();
                     }
                     return m;
+                }
+            }
+        }
+
+        public static void UpdateMessage(Message msg)
+        {
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+
+                using (SqlCommand command = new SqlCommand(
+                    "UPDATE [Messages] " +
+                    "SET [textRequest]=@textRequest,[textResponse]=@textResponse,[request]=@request, " +
+                    "[response]=@response,[Status]=@Status " +
+                    "WHERE [MessageID]=@MessageID", con))
+                {
+                    command.Parameters.Add(new SqlParameter("textRequest", msg.textRequest));
+                    command.Parameters.Add(new SqlParameter("textResponse", msg.textResponse));
+                    command.Parameters.Add(new SqlParameter("request", msg.audioRequest));
+                    command.Parameters.Add(new SqlParameter("response", msg.audioResponse));
+                    command.Parameters.Add(new SqlParameter("Status", msg.status));
+                    command.Parameters.Add(new SqlParameter("MessageID", msg.messageID));
+                    command.ExecuteNonQuery();
                 }
             }
         }

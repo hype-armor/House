@@ -25,6 +25,7 @@ using HtmlAgilityPack;
 using System.IO;
 using System.Xml;
 using OpenNLP;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Extensions
 {
@@ -541,6 +542,32 @@ namespace Extensions
             Buffer.BlockCopy(first, 0, ret, 0, first.Length);
             Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
             return ret;
+        }
+
+        //http://stackoverflow.com/questions/1446547/how-to-convert-an-object-to-a-byte-array-in-c-sharp
+        // Convert an object to a byte array
+        public static byte[] ToByteArray(this Object obj)
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            using (var ms = new MemoryStream())
+            {
+                bf.Serialize(ms, obj);
+                return ms.ToArray();
+            }
+        }
+
+        //http://stackoverflow.com/questions/1446547/how-to-convert-an-object-to-a-byte-array-in-c-sharp
+        // Convert a byte array to an Object
+        public static Object ToObject(this byte[] arrBytes)
+        {
+            using (var memStream = new MemoryStream())
+            {
+                var binForm = new BinaryFormatter();
+                memStream.Write(arrBytes, 0, arrBytes.Length);
+                memStream.Seek(0, SeekOrigin.Begin);
+                var obj = binForm.Deserialize(memStream);
+                return obj;
+            }
         }
     }
 }

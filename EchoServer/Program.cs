@@ -87,7 +87,7 @@ namespace EchoServer
                     {
                         Message message = messageSystem.GetNextMessage();
 
-                        if (message == null)
+                        if (message == null || message.messageID == Guid.Empty)
                         {
                             Thread.Sleep(10);
                             continue;
@@ -100,7 +100,7 @@ namespace EchoServer
                         if (!string.IsNullOrWhiteSpace(delaymsg))
                         {
                             message.textResponse = delaymsg;
-                            message.response = GetAudio(delaymsg);
+                            message.audioResponse = GetAudio(delaymsg);
                             message.status = Message.Status.delayed;
                         }
 
@@ -123,13 +123,15 @@ namespace EchoServer
                                     string response = plugin.Value.Go(message.textRequest);
 
                                     message.textResponse = response;
-                                    message.response = GetAudio(response);
+                                    message.audioResponse = GetAudio(response);
                                     message.status = Message.Status.ready;
                                 }
 
                             } 
                         }
 
+                        // post the message back to SQL.
+                        SQL.UpdateMessage(message);
                         responseTime.Stop(query.Key, responseTimeID);
                     }
                     catch (Exception e)
