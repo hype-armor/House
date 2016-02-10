@@ -134,8 +134,7 @@ namespace EchoServer
                     }
                     catch (Exception e)
                     {
-
-                        throw e;
+                        Console.WriteLine(e.Message);
                     }
                 }
             });

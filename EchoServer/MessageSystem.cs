@@ -34,10 +34,16 @@ namespace EchoServer
     {
         internal int workers = 0;
         private List<Message> queue = new List<Message>();
-        public int messageCount { get { return (from Message in queue
-                                                orderby Message.PostTime
-                                                where Message.status == Message.Status.ready
-                                                select Message).Count(); } }
+        public int messageCount
+        {
+            get
+            {
+                return (from Message in queue
+                        orderby Message.PostTime
+                        where Message.status == Message.Status.ready
+                        select Message).Count();
+            }
+        }
         public enum Status { queued, processing, delayed, ready, closed, error };
         public void CreateRequest(Guid ClientGuid, byte[] Request) // called from client
         {
@@ -47,32 +53,12 @@ namespace EchoServer
 
         public Message GetNextMessage() // called from server
         {
-            EchoDataSet db = new EchoDataSet();
-            var messages = from m in db.Messages
-                           where m.Status == (int)Message.Status.queued
-                           select m;
-
-            if (messages.Count() > 0)
-            {
-                var m = messages.First();
-                Message msg = new Message();
-                msg.clientID = m.ClientID;
-                msg.messageID = m.MessageID;
-                msg.PostTime = m.PostTime;
-                msg.request = m.request;
-                msg.response = m.response;
-                msg.status = Message.Status.processing;
-                msg.textRequest = m.textRequest;
-                msg.textResponse = m.textResponse;
-                return msg;
-            }
-
-            return null;
+            return SQL.GetNextMessage();
         }
 
         public Message GetResponse(Guid ClientGuid) // called from client
         {
-            
+
             Message m = SQL.GetMessage(ClientGuid);
 
             if (m.messageID == Guid.Empty)
@@ -114,9 +100,13 @@ namespace EchoServer
                         command.ExecuteNonQuery();
                     }
                 }
-                catch
+                catch (SqlException se)
                 {
-                    Console.WriteLine("Client failed to insert.");
+                    // all is well
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
                 }
             }
         }
@@ -157,6 +147,33 @@ namespace EchoServer
 
                 using (SqlCommand command = new SqlCommand("SELECT *" +
                     " FROM Messages " + "WHERE [ClientID]='" + ClientID.ToString() + "' AND [Status]=2 OR [Status]=3", con))
+                {
+                    Message m = new Message();
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        m.messageID = Guid.Parse(reader["MessageID"].ToString());
+                        m.clientID = Guid.Parse(reader["ClientID"].ToString());
+                        m.textRequest = (string)reader["textRequest"];
+                        m.textResponse = (string)reader["textResponse"];
+                        m.request = (byte[])reader["request"];
+                        m.response = (byte[])reader["response"];
+                        m.PostTime = (DateTime)reader["PostTime"];
+                        m.status = (Message.Status)reader["Status"].ToInt();
+                    }
+                    return m;
+                }
+            }
+        }
+
+        public static Message GetNextMessage()
+        {
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+
+                using (SqlCommand command = new SqlCommand("SELECT *" +
+                    " FROM Messages " + "WHERE [Status]=0", con))
                 {
                     Message m = new Message();
                     SqlDataReader reader = command.ExecuteReader();

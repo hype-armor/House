@@ -68,11 +68,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EchoDataSet.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>EchoDataSet.xsd</DependentUpon>
-    </Compile>
     <Compile Include="GenericPluginLoader.cs" />
     <Compile Include="MessageSystem.cs" />
     <Compile Include="PluginLoader.cs" />
@@ -102,17 +97,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="EchoDataSet.xsc">
-      <DependentUpon>EchoDataSet.xsd</DependentUpon>
-    </None>
-    <None Include="EchoDataSet.xsd">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>EchoDataSet.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="EchoDataSet.xss">
-      <DependentUpon>EchoDataSet.xsd</DependentUpon>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
