@@ -13,6 +13,7 @@ using NAudio.Wave;
 using System.Windows.Input;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
+using Extensions;
 
 namespace EchoClient
 {
@@ -87,7 +88,7 @@ namespace EchoClient
                     else
                     {
                         var soundData = query;//CreateSinWave(44000, 120, TimeSpan.FromSeconds(60), 1d);
-                        using (FileStream fs = new FileStream(DateTime.Now.ToString() + ".wav", FileMode.Create))
+                        using (FileStream fs = new FileStream(DateTime.Now.ToString().CleanText() + ".wav", FileMode.Create))
                         {
                             WriteHeader(fs, soundData.Length, 1, 44100);
                             fs.Write(soundData, 0, soundData.Length);
@@ -201,6 +202,7 @@ namespace EchoClient
 
             // prep for transfer to server
             StartClient(buffer);
+            buffer = null;
         }
 
         static byte[] RIFF_HEADER = new byte[] { 0x52, 0x49, 0x46, 0x46 };
