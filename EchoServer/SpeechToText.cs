@@ -43,8 +43,12 @@ namespace EchoServer
                 string jsons = GetText(msg.GetBuffer());
                 string json = jsons.Split('\n')[1];
                 SpeechResponse m = JsonConvert.DeserializeObject<SpeechResponse>(json);
-                return m.Result.First().Alternative.First().Transcript;
+                if (m != null)
+                {
+                    return m.Result.First().Alternative.First().Transcript;
+                }
             }
+            return "";
         }
 
         static byte[] RIFF_HEADER = new byte[] { 0x52, 0x49, 0x46, 0x46 };
