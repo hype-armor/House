@@ -18,6 +18,7 @@
 */
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -128,35 +129,46 @@ namespace EchoServer
             // from the asynchronous state object.
             StateObject state = (StateObject)ar.AsyncState;
             Socket handler = state.workSocket;
-
-            // Read data from the client socket. 
-            int bytesRead = handler.EndReceive(ar);
-
-            if (bytesRead > 0)
+            try
             {
-                // There  might be more data, so store the data received so far.
-                state.sb.Append(Encoding.ASCII.GetString(
-                    state.buffer, 0, bytesRead));
 
-                // Check for end-of-file tag. If it is not there, read 
-                // more data.
-                content = state.sb.ToString();
-                state.dataBuffer = Combine(state.dataBuffer, state.buffer);
+                // Read data from the client socket. 
+                int bytesRead = handler.EndReceive(ar);
 
-                if (content.IndexOf("<EOF>") > -1)
+                if (bytesRead > 0)
                 {
-                    byte[] tGuid = state.dataBuffer.Take(36).ToArray();
-                    string _guid = Encoding.ASCII.GetString(tGuid);
-                    state.guid = Guid.Parse(_guid);
-                    state.dataBuffer = state.dataBuffer.Skip(36).Take(content.IndexOf("<EOF>")).ToArray();
-                    Send(handler, state.guid, state.dataBuffer);
+                    // There  might be more data, so store the data received so far.
+                    state.sb.Append(Encoding.ASCII.GetString(
+                        state.buffer, 0, bytesRead));
+
+                    // Check for end-of-file tag. If it is not there, read 
+                    // more data.
+                    content = state.sb.ToString();
+                    state.dataBuffer = Combine(state.dataBuffer, state.buffer);
+
+                    if (content.IndexOf("<EOF>") > -1)
+                    {
+                        //if (content.IndexOf("<UPDATE>") == -1 && Debugger.IsAttached)
+                        //{
+                        //    Debugger.Break();
+                        //}
+                        byte[] tGuid = state.dataBuffer.Take(36).ToArray();
+                        string _guid = Encoding.ASCII.GetString(tGuid);
+                        state.guid = Guid.Parse(_guid);
+                        state.dataBuffer = state.dataBuffer.Skip(36).Take(content.IndexOf("<EOF>")).ToArray();
+                        Send(handler, state.guid, state.dataBuffer);
+                    }
+                    else
+                    {
+                        // Not all data received. Get more.
+                        handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                        new AsyncCallback(ReadCallback), state);
+                    }
                 }
-                else
-                {
-                    // Not all data received. Get more.
-                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReadCallback), state);
-                }
+            }
+            catch (System.Net.Sockets.SocketException e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
 
