@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GenericPluginLoader.cs" />
+    <Compile Include="SpeechToText.cs" />
     <Compile Include="MessageSystem.cs" />
     <Compile Include="PluginLoader.cs" />
     <Compile Include="ProjectInstaller.cs">
