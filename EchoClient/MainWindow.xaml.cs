@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using Extensions;
+using System.Diagnostics;
 
 namespace EchoClient
 {
@@ -28,11 +29,14 @@ namespace EchoClient
         {
             InitializeComponent();
 
-            guid = Guid.NewGuid();
+            if ((Guid)Properties.Settings.Default["guid"] == Guid.Empty)
+            {
+                Properties.Settings.Default["guid"] = Guid.NewGuid();
+                Properties.Settings.Default.Save();
+            }
+            guid = (Guid)Properties.Settings.Default["guid"];
 
-            // Create a timer with a two second interval.
             aTimer = new System.Timers.Timer(1000);
-            // Hook up the Elapsed event for the timer. 
             aTimer.Elapsed += OnTimedEvent;
             aTimer.AutoReset = true;
             aTimer.Enabled = true;
@@ -49,30 +53,20 @@ namespace EchoClient
             aTimer.Start();
         }
 
-        private void startBtn_Click(object sender, RoutedEventArgs e)
-        {
-            //lblUpdateTime.Content = StartClient("look up what a panda is");
-        }
-
         public static string StartClient(byte[] query, bool update = false)
         {
             // Data buffer for incoming data.
             byte[] bytes = new byte[1024];
 
-            // Connect to a remote device.
             try
             {
-                // Establish the remote endpoint for the socket.
-                // This example uses port 11000 on the local computer.
                 IPHostEntry ipHostInfo = Dns.GetHostEntry("sky.ibang.us");
                 IPAddress ipAddress = ipHostInfo.AddressList[0];
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, 8080);
 
-                // Create a TCP/IP  socket.
                 Socket sender = new Socket(AddressFamily.InterNetwork,
                     SocketType.Stream, ProtocolType.Tcp);
 
-                // Connect the socket to the remote endpoint. Catch any errors.
                 try
                 {
                     sender.Connect(remoteEP);
@@ -80,14 +74,13 @@ namespace EchoClient
                     Console.WriteLine("Socket connected to {0}",
                         sender.RemoteEndPoint.ToString());
 
-                    // Encode the data string into a byte array.
                     if (update)
                     {
                         query = Encoding.ASCII.GetBytes(guid.ToString() + "<UPDATE>");
                     }
                     else
                     {
-                        var soundData = query;//CreateSinWave(44000, 120, TimeSpan.FromSeconds(60), 1d);
+                        var soundData = query;
                         using (FileStream fs = new FileStream(DateTime.Now.ToString().CleanText() + ".wav", FileMode.Create))
                         {
                             WriteHeader(fs, soundData.Length, 1, 44100);
@@ -100,13 +93,15 @@ namespace EchoClient
                     byte[] msg = Combine(query, Encoding.ASCII.GetBytes("<EOF>"));
 
                     
+                    sender.Send(msg);
 
-                    // Send the data through the socket.
-                    int bytesSent = sender.Send(msg);
-
-                    // Receive the response from the remote device.
                     int bytesRec = sender.Receive(bytes);
                     string response = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+
+                    if (Debugger.IsAttached && !update)
+                    {
+                        Debugger.Break();
+                    }
 
                     // Release the socket.
                     sender.Shutdown(SocketShutdown.Both);
