@@ -16,16 +16,16 @@ namespace EchoClient.EchoWCFService {
     public interface Echo {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://Microsoft.Samples.GettingStarted/Echo/Post", ReplyAction="http://Microsoft.Samples.GettingStarted/Echo/PostResponse")]
-        System.DateTime Post(System.Guid n1, byte[] n2);
+        System.DateTime Post(System.Guid ClientID, System.IO.MemoryStream audioStream);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://Microsoft.Samples.GettingStarted/Echo/Post", ReplyAction="http://Microsoft.Samples.GettingStarted/Echo/PostResponse")]
-        System.Threading.Tasks.Task<System.DateTime> PostAsync(System.Guid n1, byte[] n2);
+        System.Threading.Tasks.Task<System.DateTime> PostAsync(System.Guid ClientID, System.IO.MemoryStream audioStream);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://Microsoft.Samples.GettingStarted/Echo/Get", ReplyAction="http://Microsoft.Samples.GettingStarted/Echo/GetResponse")]
-        byte[] Get(System.Guid n1);
+        System.IO.MemoryStream Get(System.Guid ClientID);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://Microsoft.Samples.GettingStarted/Echo/Get", ReplyAction="http://Microsoft.Samples.GettingStarted/Echo/GetResponse")]
-        System.Threading.Tasks.Task<byte[]> GetAsync(System.Guid n1);
+        System.Threading.Tasks.Task<System.IO.MemoryStream> GetAsync(System.Guid ClientID);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -55,20 +55,20 @@ namespace EchoClient.EchoWCFService {
                 base(binding, remoteAddress) {
         }
         
-        public System.DateTime Post(System.Guid n1, byte[] n2) {
-            return base.Channel.Post(n1, n2);
+        public System.DateTime Post(System.Guid ClientID, System.IO.MemoryStream audioStream) {
+            return base.Channel.Post(ClientID, audioStream);
         }
         
-        public System.Threading.Tasks.Task<System.DateTime> PostAsync(System.Guid n1, byte[] n2) {
-            return base.Channel.PostAsync(n1, n2);
+        public System.Threading.Tasks.Task<System.DateTime> PostAsync(System.Guid ClientID, System.IO.MemoryStream audioStream) {
+            return base.Channel.PostAsync(ClientID, audioStream);
         }
         
-        public byte[] Get(System.Guid n1) {
-            return base.Channel.Get(n1);
+        public System.IO.MemoryStream Get(System.Guid ClientID) {
+            return base.Channel.Get(ClientID);
         }
         
-        public System.Threading.Tasks.Task<byte[]> GetAsync(System.Guid n1) {
-            return base.Channel.GetAsync(n1);
+        public System.Threading.Tasks.Task<System.IO.MemoryStream> GetAsync(System.Guid ClientID) {
+            return base.Channel.GetAsync(ClientID);
         }
     }
 }

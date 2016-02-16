@@ -4,6 +4,8 @@
     <xsd:schema targetNamespace="http://Microsoft.Samples.GettingStarted/Imports">
       <xsd:import schemaLocation="http://skynet/servicemodelsamples/service.svc?xsd=xsd0" namespace="http://Microsoft.Samples.GettingStarted" />
       <xsd:import schemaLocation="http://skynet/servicemodelsamples/service.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://skynet/servicemodelsamples/service.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/System.IO" />
+      <xsd:import schemaLocation="http://skynet/servicemodelsamples/service.svc?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/System" />
     </xsd:schema>
   </wsdl:types>
   <wsdl:message name="Echo_Post_InputMessage">

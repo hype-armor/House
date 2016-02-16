@@ -113,6 +113,12 @@
     <None Include="Service References\EchoWCFService\service1.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Service References\EchoWCFService\service2.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\EchoWCFService\service21.xsd">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

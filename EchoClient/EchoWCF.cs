@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,12 +18,15 @@ namespace EchoClient
 
         public DateTime Post(byte[] audio)
         {
-            return client.Post(ClientID, audio);
+            MemoryStream audioStream = new MemoryStream(audio, 0, audio.Length, true, true);
+            audioStream.Position = 0L;
+            return client.Post(ClientID, audioStream);
         }
 
         public byte[] Get()
         {
-            return client.Get(ClientID);
+            MemoryStream audioStream = client.Get(ClientID);
+            return audioStream.GetBuffer();
         }
     }
 }

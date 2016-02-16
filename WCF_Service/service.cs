@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.ServiceModel;
 using System.Text;
 using Extensions;
+using System.IO;
 
 namespace Microsoft.Samples.GettingStarted
 {
@@ -15,27 +16,29 @@ namespace Microsoft.Samples.GettingStarted
     public interface Echo
     {
         [OperationContract]
-        DateTime Post(Guid n1, byte[] n2);
+        DateTime Post(Guid ClientID, MemoryStream audioStream);
         [OperationContract]
-        byte[] Get(Guid n1);
+        MemoryStream Get(Guid ClientID);
     }
 
     // Service class which implements the service contract.
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerSession, ConcurrencyMode = ConcurrencyMode.Single)]
     public class EchoService : Echo
     {
-        public DateTime Post(Guid guid, byte[] data)
+        public DateTime Post(Guid ClientID, MemoryStream audioStream)
         {
-            SQL.AddClient(guid);
-            SQL.CreateRequest(Guid.NewGuid(), guid, "", "", data, new byte[0], DateTime.Now, 0);
+            audioStream.Position = 0L;
+            byte[] data = audioStream.GetBuffer();
+            SQL.AddClient(ClientID);
+            SQL.CreateRequest(Guid.NewGuid(), ClientID, "", "", data, new byte[0], DateTime.Now, 0);
             return DateTime.Now;
         }
 
-        public byte[] Get(Guid guid)
+        public MemoryStream Get(Guid ClientID)
         {
-            byte[] audio = SQL.GetResponse(guid);
-
-            return audio;
+            byte[] audio = SQL.GetResponse(ClientID);
+            MemoryStream audioStream = new MemoryStream(audio, 0, audio.Length, true, true);
+            return audioStream;
         }
     }
 
