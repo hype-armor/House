@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="150debc7-2698-42cf-b675-f366c0045f3e" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://sky.ibang.us/servicemodelsamples/service.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="service.disco" MetadataType="Disco" ID="f2762120-9813-447f-901c-c60ea2430dde" SourceId="1" SourceUrl="http://skynet/servicemodelsamples/service.svc?disco" />
+    <MetadataFile FileName="service.xsd" MetadataType="Schema" ID="f0c02b3e-9b4f-4b29-8531-d8a85e907573" SourceId="1" SourceUrl="http://skynet/servicemodelsamples/service.svc?xsd=xsd0" />
+    <MetadataFile FileName="service1.xsd" MetadataType="Schema" ID="a7b0306e-8064-443d-8a39-dcc61d839081" SourceId="1" SourceUrl="http://skynet/servicemodelsamples/service.svc?xsd=xsd1" />
+    <MetadataFile FileName="EchoService.wsdl" MetadataType="Wsdl" ID="86a10e53-f257-4e33-9e86-a2574b8aa08f" SourceId="1" SourceUrl="http://skynet/servicemodelsamples/service.svc?wsdl" />
+    <MetadataFile FileName="service.wsdl" MetadataType="Wsdl" ID="fde85e72-c333-49a6-aa05-0031326e5ab2" SourceId="1" SourceUrl="http://skynet/servicemodelsamples/service.svc?wsdl=wsdl0" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

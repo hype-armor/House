@@ -23,18 +23,20 @@ namespace EchoClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static Guid guid;
+        private static Guid ClientID;
         private System.Timers.Timer aTimer;
+        private static EchoWCF echo;
         public MainWindow()
         {
             InitializeComponent();
 
-            if ((Guid)Properties.Settings.Default["guid"] == Guid.Empty)
+            if ((Guid)Properties.Settings.Default["ClientID"] == Guid.Empty)
             {
-                Properties.Settings.Default["guid"] = Guid.NewGuid();
+                Properties.Settings.Default["ClientID"] = Guid.NewGuid();
                 Properties.Settings.Default.Save();
             }
-            guid = (Guid)Properties.Settings.Default["guid"];
+            ClientID = (Guid)Properties.Settings.Default["ClientID"];
+            echo = new EchoWCF(ClientID);
 
             aTimer = new System.Timers.Timer(1000);
             aTimer.Elapsed += OnTimedEvent;
@@ -48,86 +50,19 @@ namespace EchoClient
             DateTime CurrentDateTime = DateTime.Now;
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
-                lblUpdateTime.Content = StartClient(new byte[0], true);
+                byte[] audio = echo.Get();
+                if (audio.Length > 0)
+                {
+                    MediaPlayer mp = new MediaPlayer(audio);
+                    mp.Play();
+                }
             }));
             aTimer.Start();
         }
 
-        public static string StartClient(byte[] query, bool update = false)
+        public static void StartClient(byte[] audio)
         {
-            // Data buffer for incoming data.
-            byte[] bytes = new byte[1024];
-
-            try
-            {
-                IPHostEntry ipHostInfo = Dns.GetHostEntry("sky.ibang.us");
-                IPAddress ipAddress = ipHostInfo.AddressList[0];
-                IPEndPoint remoteEP = new IPEndPoint(ipAddress, 8080);
-
-                Socket sender = new Socket(AddressFamily.InterNetwork,
-                    SocketType.Stream, ProtocolType.Tcp);
-
-                try
-                {
-                    sender.Connect(remoteEP);
-
-                    Console.WriteLine("Socket connected to {0}",
-                        sender.RemoteEndPoint.ToString());
-
-                    if (update)
-                    {
-                        query = Encoding.ASCII.GetBytes(guid.ToString() + "<UPDATE>");
-                    }
-                    else
-                    {
-                        var soundData = query;
-                        using (FileStream fs = new FileStream(DateTime.Now.ToString().CleanText() + ".wav", FileMode.Create))
-                        {
-                            WriteHeader(fs, soundData.Length, 1, 44100);
-                            fs.Write(soundData, 0, soundData.Length);
-                            fs.Close();
-                        }
-
-                        query = Combine(Encoding.ASCII.GetBytes(guid.ToString()), query);
-                    }
-                    byte[] msg = Combine(query, Encoding.ASCII.GetBytes("<EOF>"));
-
-                    
-                    sender.Send(msg);
-
-                    int bytesRec = sender.Receive(bytes);
-                    string response = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-
-                    if (Debugger.IsAttached && !update)
-                    {
-                        Debugger.Break();
-                    }
-
-                    // Release the socket.
-                    sender.Shutdown(SocketShutdown.Both);
-                    sender.Close();
-
-                    return response;
-
-                }
-                catch (ArgumentNullException ane)
-                {
-                    return "ArgumentNullException : " + ane.ToString();
-                }
-                catch (SocketException se)
-                {
-                    return "SocketException : " + se.ToString();
-                }
-                catch (Exception e)
-                {
-                    return "Unexpected exception : " + e.ToString();
-                }
-
-            }
-            catch (Exception e)
-            {
-                return e.ToString();
-            }
+            echo.Post(audio);
         }
 
         public class MediaPlayer
@@ -207,30 +142,21 @@ namespace EchoClient
         static byte[] SUBCHUNK_ID = new byte[] { 0x64, 0x61, 0x74, 0x61 };
         private const int BYTES_PER_SAMPLE = 2;
 
-        public static void WriteHeader(
-             System.IO.Stream targetStream,
-             int byteStreamSize,
-             int channelCount,
-             int sampleRate)
+        public static void WriteHeader(System.IO.Stream targetStream, int byteStreamSize, int channelCount, int sampleRate)
         {
-
             int byteRate = sampleRate * channelCount * BYTES_PER_SAMPLE;
             int blockAlign = channelCount * BYTES_PER_SAMPLE;
-
             targetStream.Write(RIFF_HEADER, 0, RIFF_HEADER.Length);
             targetStream.Write(PackageInt(byteStreamSize + 42, 4), 0, 4);
-
             targetStream.Write(FORMAT_WAVE, 0, FORMAT_WAVE.Length);
             targetStream.Write(FORMAT_TAG, 0, FORMAT_TAG.Length);
             targetStream.Write(PackageInt(16, 4), 0, 4);//Subchunk1Size    
-
             targetStream.Write(AUDIO_FORMAT, 0, AUDIO_FORMAT.Length);//AudioFormat   
             targetStream.Write(PackageInt(channelCount, 2), 0, 2);
             targetStream.Write(PackageInt(sampleRate, 4), 0, 4);
             targetStream.Write(PackageInt(byteRate, 4), 0, 4);
             targetStream.Write(PackageInt(blockAlign, 2), 0, 2);
             targetStream.Write(PackageInt(BYTES_PER_SAMPLE * 8), 0, 2);
-            //targetStream.Write(PackageInt(0,2), 0, 2);//Extra param size
             targetStream.Write(SUBCHUNK_ID, 0, SUBCHUNK_ID.Length);
             targetStream.Write(PackageInt(byteStreamSize, 4), 0, 4);
         }
@@ -247,29 +173,6 @@ namespace EchoClient
                 retVal[2] = (byte)((source >> 0x10) & 0xFF);
                 retVal[3] = (byte)((source >> 0x18) & 0xFF);
             }
-            return retVal;
-        }
-
-        public static byte[] CreateSinWave(
-            int sampleRate,
-            double frequency,
-            TimeSpan length,
-            double magnitude
-        )
-        {
-            int sampleCount = (int)(((double)sampleRate) * length.TotalSeconds);
-            short[] tempBuffer = new short[sampleCount];
-            byte[] retVal = new byte[sampleCount * 2];
-            double step = Math.PI * 2.0d / frequency;
-            double current = 0;
-
-            for (int i = 0; i < tempBuffer.Length; ++i)
-            {
-                tempBuffer[i] = (short)(Math.Sin(current) * magnitude * ((double)short.MaxValue));
-                current += step;
-            }
-
-            Buffer.BlockCopy(tempBuffer, 0, retVal, 0, retVal.Length);
             return retVal;
         }
     }

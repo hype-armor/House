@@ -26,12 +26,12 @@ namespace EchoClient.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("00000000-0000-0000-0000-000000000000")]
-        public global::System.Guid guid {
+        public global::System.Guid ClientID {
             get {
-                return ((global::System.Guid)(this["guid"]));
+                return ((global::System.Guid)(this["ClientID"]));
             }
             set {
-                this["guid"] = value;
+                this["ClientID"] = value;
             }
         }
     }
