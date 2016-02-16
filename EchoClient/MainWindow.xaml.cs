@@ -77,7 +77,14 @@ namespace EchoClient
 
             public void Play()
             {
-                soundPlayer.PlaySync();
+                try
+                {
+                    soundPlayer.PlaySync();
+                }
+                catch (InvalidOperationException ipe)
+                {
+                    Console.WriteLine(ipe.Message);
+                }
             }
         }
 
