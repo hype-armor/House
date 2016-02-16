@@ -41,7 +41,7 @@ namespace Microsoft.Samples.GettingStarted
 
     public class SQL
     {
-        private static string connectionString = "Server=SKYNET\\SQLEXPRESS;Database=Echo;Trusted_Connection=True;";
+        private static string connectionString = "Server=SKYNET\\SQLEXPRESS;Database=Echo;User Id=client;Password=echo;";
         public static void AddClient(Guid guid)
         {
             using (SqlConnection con = new SqlConnection(connectionString))
