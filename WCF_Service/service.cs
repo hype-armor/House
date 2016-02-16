@@ -61,7 +61,7 @@ namespace Microsoft.Samples.GettingStarted
                 }
                 catch (SqlException se)
                 {
-                    // all is well
+                    return; // clientID is already in DB.
                 }
                 catch (Exception e)
                 {
