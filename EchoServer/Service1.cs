@@ -18,29 +18,28 @@ namespace EchoServer
             InitializeComponent();
         }
 
-        static WebServer ws = new WebServer();
         protected override void OnStart(string[] args)
         {
-            // start web server...
             var t = new System.Threading.Thread(() =>
             {
-                ws.StartListening();
+                Program p = new Program();
+                
             });
             t.Start();
         }
 
         protected override void OnStop()
         {
-            // start web server...
-            ws.StopListenting();
         }
 
         public static void Main(string[] args)
         {
-            ws.StartListening();
-            Console.WriteLine("Done, about to exit.");
-            Console.ReadLine();
-            ws.StopListenting();
+            var t = new System.Threading.Thread(() =>
+            {
+                Program p = new Program();
+
+            });
+            t.Start();
         }
     }
 }
