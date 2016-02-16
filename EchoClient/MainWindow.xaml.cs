@@ -23,9 +23,9 @@ namespace EchoClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static Guid ClientID;
+        private Guid ClientID;
         private System.Timers.Timer aTimer;
-        private static EchoWCF echo;
+        private EchoWCF echo;
         public MainWindow()
         {
             InitializeComponent();
@@ -38,10 +38,12 @@ namespace EchoClient
             ClientID = (Guid)Properties.Settings.Default["ClientID"];
             echo = new EchoWCF(ClientID);
 
-            aTimer = new System.Timers.Timer(1000);
+            aTimer = new System.Timers.Timer(10000);
             aTimer.Elapsed += OnTimedEvent;
             aTimer.AutoReset = true;
             aTimer.Enabled = true;
+
+            OnTimedEvent(null, null);
         }
 
         private void OnTimedEvent(object sender, ElapsedEventArgs e)
@@ -53,16 +55,22 @@ namespace EchoClient
                 byte[] audio = echo.Get();
                 if (audio.Length > 0)
                 {
+                    aTimer.Interval = 5000;
                     MediaPlayer mp = new MediaPlayer(audio);
                     mp.Play();
+                }
+                else
+                {
+                    lblUpdateTime.Content = DateTime.Now.ToShortTimeString();
                 }
             }));
             aTimer.Start();
         }
 
-        public static void StartClient(byte[] audio)
+        public void StartClient(byte[] audio)
         {
             echo.Post(audio);
+            aTimer.Interval = 500;
         }
 
         public class MediaPlayer
@@ -113,7 +121,7 @@ namespace EchoClient
             }
         }
 
-        public static byte[] Combine(byte[] first, byte[] second)
+        public byte[] Combine(byte[] first, byte[] second)
         {
             byte[] ret = new byte[first.Length + second.Length];
             Buffer.BlockCopy(first, 0, ret, 0, first.Length);
@@ -149,7 +157,7 @@ namespace EchoClient
         static byte[] SUBCHUNK_ID = new byte[] { 0x64, 0x61, 0x74, 0x61 };
         private const int BYTES_PER_SAMPLE = 2;
 
-        public static void WriteHeader(System.IO.Stream targetStream, int byteStreamSize, int channelCount, int sampleRate)
+        public void WriteHeader(System.IO.Stream targetStream, int byteStreamSize, int channelCount, int sampleRate)
         {
             int byteRate = sampleRate * channelCount * BYTES_PER_SAMPLE;
             int blockAlign = channelCount * BYTES_PER_SAMPLE;
