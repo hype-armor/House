@@ -134,7 +134,7 @@ namespace Microsoft.Samples.GettingStarted
                     "SET [Status]=@Status " +
                     "WHERE [MessageID]=@MessageID", con))
                 {
-                    command.Parameters.Add(new SqlParameter("Status", 0));
+                    command.Parameters.Add(new SqlParameter("Status", status));
                     command.Parameters.Add(new SqlParameter("MessageID", MessageID));
                     command.ExecuteNonQuery();
                 }
