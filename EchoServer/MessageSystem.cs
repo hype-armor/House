@@ -32,42 +32,10 @@ namespace EchoServer
 {
     public class MessageSystem
     {
-        internal int workers = 0;
-        private List<Message> queue = new List<Message>();
-        public int messageCount
-        {
-            get
-            {
-                return (from Message in queue
-                        orderby Message.postTime
-                        where Message.status == Message.Status.ready
-                        select Message).Count();
-            }
-        }
-        public enum Status { queued, processing, delayed, ready, closed, error };
-        public void CreateRequest(Guid ClientGuid, byte[] Request) // called from client
-        {
-            SQL.AddClient(ClientGuid);
-            SQL.AddMessage(Guid.NewGuid(), ClientGuid, "", "", Request, new byte[0], DateTime.Now, (int)Status.queued);
-        }
-
         public Message GetNextMessage() // called from server
         {
             // also mark as processing.
             return SQL.GetNextMessage();
-        }
-
-        public Message GetResponse(Guid ClientGuid) // called from client
-        {
-
-            Message m = SQL.GetMessage(ClientGuid);
-
-            if (m.messageID == Guid.Empty)
-            {
-                return null;
-            }
-
-            return m;
         }
     }
 
@@ -87,104 +55,6 @@ namespace EchoServer
     public class SQL
     {
         private static string connectionString = "Server=SKYNET\\SQLEXPRESS;Database=Echo;Trusted_Connection=True;";
-        public static void AddClient(Guid guid)
-        {
-            using (SqlConnection con = new SqlConnection(connectionString))
-            {
-                con.Open();
-                try
-                {
-                    using (SqlCommand command = new SqlCommand(
-                    "INSERT INTO Clients VALUES(@ClientID)", con))
-                    {
-                        command.Parameters.Add(new SqlParameter("ClientID", guid));
-                        command.ExecuteNonQuery();
-                    }
-                }
-                catch (SqlException se)
-                {
-                    // all is well
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-        }
-
-        public static void AddMessage(Guid messageID, Guid clientID, string request, string response, byte[] audioRequest, byte[] AudioResponse, DateTime PostTime, int status)
-        {
-            using (SqlConnection con = new SqlConnection(connectionString))
-            {
-                con.Open();
-                try
-                {
-                    using (SqlCommand command = new SqlCommand(
-                    "INSERT INTO Messages VALUES(@MessageID, @ClientID, @textRequest, @textResponse, @request, @response, @PostTime, @Status)", con))
-                    {
-                        command.Parameters.Add(new SqlParameter("MessageID", messageID));
-                        command.Parameters.Add(new SqlParameter("ClientID", clientID));
-                        command.Parameters.Add(new SqlParameter("textRequest", request));
-                        command.Parameters.Add(new SqlParameter("textResponse", response));
-                        command.Parameters.Add(new SqlParameter("request", audioRequest));
-                        command.Parameters.Add(new SqlParameter("response", AudioResponse));
-                        command.Parameters.Add(new SqlParameter("PostTime", PostTime));
-                        command.Parameters.Add(new SqlParameter("Status", status));
-                        command.ExecuteNonQuery();
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-        }
-
-        public static Message GetMessage(Guid ClientID)
-        {
-            using (SqlConnection con = new SqlConnection(connectionString))
-            {
-                con.Open();
-                Message m = new Message();
-                using (SqlCommand command = new SqlCommand("SELECT * FROM Messages " +
-                    "WHERE [ClientID]=@ClientID AND ([Status]=2 OR [Status]=3)", con))
-                {
-                    command.Parameters.Add(new SqlParameter("ClientID", ClientID));
-
-                    SqlDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        m.messageID = Guid.Parse(reader["MessageID"].ToString());
-                        m.clientID = Guid.Parse(reader["ClientID"].ToString());
-                        m.textRequest = reader["textRequest"].ToString();
-                        m.textResponse = reader["textResponse"].ToString();
-                        m.audioRequest = reader["request"].ToByteArray();
-                        m.audioResponse = reader["response"].ToByteArray();
-                        m.postTime = reader["PostTime"].ToDateTime();
-                        m.status = (Message.Status)reader["Status"].ToInt();
-                    }
-                }
-                con.Close();
-
-                if (m.clientID == Guid.Empty)
-                {
-                    return m;
-                }
-
-                con.Open();
-                m.status = Message.Status.closed;
-                using (SqlCommand command = new SqlCommand(
-                    "UPDATE [Messages] " +
-                    "SET [Status]=@Status " +
-                    "WHERE [MessageID]=@MessageID", con))
-                {
-                    command.Parameters.Add(new SqlParameter("Status", m.status));
-                    command.Parameters.Add(new SqlParameter("MessageID", m.messageID));
-                    command.ExecuteNonQuery();
-                }
-                return m;
-            }
-        }
 
         public static Message GetNextMessage()
         {

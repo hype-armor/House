@@ -28,12 +28,6 @@ namespace EchoServer
 {
     class QueryClassification
     {
-        public enum Actions { help, wikipedia, newPhrase, alarm, timer, clear, wolframAlpha, weather, joke, unknown };
-
-        public List<string> _Actions = new List<string>();
-
-        [field: NonSerialized()]
-        //private static Dictionary<Actions, HashSet<string>> actionDatabase = new Dictionary<Actions, HashSet<string>>();
         private Dictionary<string, HashSet<string>> actionDatabase = new Dictionary<string, HashSet<string>>();
 
         void QueryClassificationf()
