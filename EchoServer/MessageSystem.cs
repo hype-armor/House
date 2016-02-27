@@ -60,41 +60,17 @@ namespace EchoServer
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                con.Open();
-                Guid msgGuid = Guid.Empty;
-                using (SqlCommand command = new SqlCommand("DECLARE @msg uniqueidentifier; " +
-                    "SELECT TOP 1 @msg = [MessageID] " +
-                    "FROM Messages " +
-                    "WHERE [Status] = 0; " +
-                    "SELECT @msg AS [MessageID]; " +
-                    "UPDATE [Messages] " +
-                    "SET [Status] = 1 " +
-                    "WHERE [MessageID] = @msg; ", con))
-                {
-                    Message m = new Message();
-                    SqlDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        if (!string.IsNullOrWhiteSpace(reader["MessageID"].ToString()))
-                        {
-                            m.messageID = Guid.Parse(reader["MessageID"].ToString());
-                        }
-                        else
-                        {
-                            return m;
-                        }
-                    }
-                    msgGuid = m.messageID;
-                }
-                con.Close();
+                Guid msgGuid = GetNextMessageGuid();
 
                 con.Open();
                 using (SqlCommand command = new SqlCommand("SELECT [MessageID],[ClientID],[textRequest], " + 
                     "[textResponse],[request],[response],[PostTime],[Status]" +
-                    " FROM Messages " + "WHERE [MessageID]='" + msgGuid.ToString() + "'", con))
+                    " FROM Messages " + "WHERE [MessageID]=@MessageID", con))
                 {
-                    Message m = new Message();
+                    command.Parameters.Add(new SqlParameter("MessageID", msgGuid));
                     SqlDataReader reader = command.ExecuteReader();
+
+                    Message m = new Message();
                     while (reader.Read())
                     {
                         m.messageID = Guid.Parse(reader["MessageID"].ToString());
@@ -105,6 +81,7 @@ namespace EchoServer
                         m.audioResponse = reader["response"].ToByteArray();
                         m.postTime = reader["PostTime"].ToDateTime();
                         m.status = (Message.Status)reader["Status"].ToInt();
+
                     }
                     return m;
                 }
@@ -132,6 +109,36 @@ namespace EchoServer
                     command.ExecuteNonQuery();
                 }
             }
+        }
+
+        public static Guid GetNextMessageGuid()
+        {
+            Guid msgGuid = Guid.Empty;
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+                using (SqlCommand command = new SqlCommand("DECLARE @msg uniqueidentifier; " +
+                    "SELECT TOP 1 @msg = [MessageID] " +
+                    "FROM Messages " +
+                    "WHERE [Status] = 0; " +
+                    "SELECT @msg AS [MessageID]; " +
+                    "UPDATE [Messages] " +
+                    "SET [Status] = 1 " +
+                    "WHERE [MessageID] = @msg; ", con))
+                {
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        if (!string.IsNullOrWhiteSpace(reader["MessageID"].ToString()))
+                        {
+                            msgGuid = Guid.Parse(reader["MessageID"].ToString());
+                        }
+                    }
+                }
+                con.Close();
+            }
+
+            return msgGuid;
         }
     }
 }

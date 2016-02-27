@@ -19,6 +19,8 @@ namespace Microsoft.Samples.GettingStarted
         DateTime Post(Guid ClientID, MemoryStream audioStream);
         [OperationContract]
         MemoryStream Get(Guid ClientID);
+        [OperationContract]
+        bool GetUpdateStatus(Guid ClientID);
     }
 
     // Service class which implements the service contract.
@@ -39,6 +41,11 @@ namespace Microsoft.Samples.GettingStarted
             byte[] audio = SQL.GetResponse(ClientID);
             MemoryStream audioStream = new MemoryStream(audio, 0, audio.Length, true, true);
             return audioStream;
+        }
+
+        public bool GetUpdateStatus(Guid ClientID)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -78,7 +85,7 @@ namespace Microsoft.Samples.GettingStarted
                 try
                 {
                     using (SqlCommand command = new SqlCommand(
-                    "INSERT INTO Messages VALUES(@MessageID, @ClientID, @textRequest, @textResponse, @request, @response, @PostTime, @Status)", con))
+                    "INSERT INTO Messages VALUES(@MessageID, @ClientID, @textRequest, @textResponse, @request, @response, @PostTime, @Status, @LastUpdated)", con))
                     {
                         command.Parameters.Add(new SqlParameter("MessageID", messageID));
                         command.Parameters.Add(new SqlParameter("ClientID", clientID));
@@ -88,6 +95,7 @@ namespace Microsoft.Samples.GettingStarted
                         command.Parameters.Add(new SqlParameter("response", AudioResponse));
                         command.Parameters.Add(new SqlParameter("PostTime", PostTime));
                         command.Parameters.Add(new SqlParameter("Status", status));
+                        command.Parameters.Add(new SqlParameter("LastUpdated", DateTime.Now));
                         command.ExecuteNonQuery();
                     }
                 }
@@ -103,12 +111,13 @@ namespace Microsoft.Samples.GettingStarted
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 con.Open();
+                
                 Guid MessageID = Guid.Empty;
                 byte[] audioResponse = new byte[0];
                 int status = 0;
 
-                using (SqlCommand command = new SqlCommand("SELECT [MessageID], [response], [Status] FROM Messages " +
-                    "WHERE [ClientID]=@ClientID AND ([Status]=2 OR [Status]=3)", con))
+                using (SqlCommand command = new SqlCommand("SELECT TOP 1 [MessageID], [response], [Status] FROM Messages " +
+                    "WHERE [ClientID]=@ClientID AND ([Status]=2 OR [Status]=3) ORDER BY [PostTime] ASC", con))
                 {
                     command.Parameters.Add(new SqlParameter("ClientID", ClientID));
 
@@ -122,23 +131,37 @@ namespace Microsoft.Samples.GettingStarted
                 }
                 con.Close();
 
-                if (audioResponse.Length == 0)
+                if (audioResponse.Length == 10)
                 {
+                    // no audio response. Return here so we do not update the message status.
                     return new byte[0];
                 }
 
+                if (status == 3) // completed message
+                {
+                    status = 4;
+                    UpdateMessageWithStatus(MessageID, status);
+                }
+                
+                return audioResponse;
+            }
+        }
+
+        private static void UpdateMessageWithStatus(Guid MessageID, int status)
+        {
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
                 con.Open();
-                status = 4;
                 using (SqlCommand command = new SqlCommand(
-                    "UPDATE [Messages] " +
-                    "SET [Status]=@Status " +
-                    "WHERE [MessageID]=@MessageID", con))
+                                "UPDATE [Messages] " +
+                                "SET [Status]=@Status " +
+                                "WHERE [MessageID]=@MessageID", con))
                 {
                     command.Parameters.Add(new SqlParameter("Status", status));
                     command.Parameters.Add(new SqlParameter("MessageID", MessageID));
                     command.ExecuteNonQuery();
                 }
-                return audioResponse;
+                con.Close();
             }
         }
     }
