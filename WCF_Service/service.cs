@@ -40,6 +40,7 @@ namespace Microsoft.Samples.GettingStarted
         {
             byte[] audio = SQL.GetResponse(ClientID);
             MemoryStream audioStream = new MemoryStream(audio, 0, audio.Length, true, true);
+            audioStream.Position = 0L;
             return audioStream;
         }
 
@@ -116,8 +117,10 @@ namespace Microsoft.Samples.GettingStarted
                 byte[] audioResponse = new byte[0];
                 int status = 0;
 
+
+                // removed [ClientID]=@ClientID AND for testing from the where.
                 using (SqlCommand command = new SqlCommand("SELECT TOP 1 [MessageID], [response], [Status] FROM Messages " +
-                    "WHERE [ClientID]=@ClientID AND ([Status]=2 OR [Status]=3) ORDER BY [PostTime] ASC", con))
+                    "WHERE ([Status]=2 OR [Status]=3) ORDER BY [PostTime] ASC", con))
                 {
                     command.Parameters.Add(new SqlParameter("ClientID", ClientID));
 
