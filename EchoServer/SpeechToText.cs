@@ -15,40 +15,118 @@ namespace EchoServer
     {
         public static string Process(byte[] audioRequest)
         {
-            MemoryStream ms = new MemoryStream(audioRequest);
-            byte[] buffer;
-            try
-            {
-                BinaryFormatter formatter = new BinaryFormatter();
+            byte[] buffer = Deserialize(audioRequest);
 
-                // Deserialize the hashtable from the file and 
-                // assign the reference to the local variable.
-                buffer = (byte[])formatter.Deserialize(ms);
-            }
-            catch (SerializationException e)
+            using (MemoryStream msg = new MemoryStream())
             {
-                Console.WriteLine("Failed to deserialize. Reason: " + e.Message);
-                throw;
-            }
-            finally
-            {
-                ms.Close();
-            }
+                buffer = AddWavHeader(buffer);
+                string text = GSpeechToText(buffer);
 
+                if (text.Length > 0)
+                {
+                    string[] requestPosibilities = text.Split('\n');
+                    if (requestPosibilities.Length > 0)
+                    {
+                        string RequestJson = requestPosibilities[1];
+                        SpeechResponse m = JsonConvert.DeserializeObject<SpeechResponse>(RequestJson);
+                        if (m != null)
+                        {
+                            return m.Result.First().Alternative.First().Transcript;
+                        }
+                    }
+                }
+            }
+            return "";
+        }
+
+        private static byte[] AddWavHeader(byte[] buffer)
+        {
             using (MemoryStream msg = new MemoryStream())
             {
                 WriteHeader(msg, buffer.Length, 1, 44100);
                 msg.Write(buffer, 0, buffer.Length);
                 msg.Close();
-                string jsons = GetText(msg.GetBuffer());
-                string json = jsons.Split('\n')[1];
-                SpeechResponse m = JsonConvert.DeserializeObject<SpeechResponse>(json);
-                if (m != null)
+                return msg.GetBuffer();
+            }
+        }
+
+        private static byte[] Deserialize(byte[] audioRequest)
+        {
+            MemoryStream ms = new MemoryStream(audioRequest);
+            byte[] buffer;
+
+            BinaryFormatter formatter = new BinaryFormatter();
+
+            // Deserialize the hashtable from the file and 
+            // assign the reference to the local variable.
+            buffer = (byte[])formatter.Deserialize(ms);
+
+            ms.Close();
+            return buffer;
+        }
+
+        private static string GSpeechToText(byte[] audio)
+        {
+
+            HttpWebRequest _HWR_SpeechToText = null;
+            _HWR_SpeechToText =
+                        (HttpWebRequest)HttpWebRequest.Create(
+                            "https://www.google.com/speech-api/v2/recognize?output=json&lang=en-us&key=AIzaSyBFladhupiqR95oCdyNczmwP2qvu234qt4");
+            _HWR_SpeechToText.Credentials = CredentialCache.DefaultCredentials;
+            _HWR_SpeechToText.Method = "POST";
+            _HWR_SpeechToText.ContentType = "audio/l16; rate=44100";
+            _HWR_SpeechToText.ContentLength = audio.Length;
+            Stream stream = _HWR_SpeechToText.GetRequestStream();
+            try
+            {
+                stream.Write(audio, 0, audio.Length);
+                stream.Close();
+                HttpWebResponse HWR_Response = (HttpWebResponse)_HWR_SpeechToText.GetResponse();
+                if (HWR_Response.StatusCode == HttpStatusCode.OK)
                 {
-                    return m.Result.First().Alternative.First().Transcript;
+                    StreamReader SR_Response = new StreamReader(HWR_Response.GetResponseStream());
+                    return SR_Response.ReadToEnd();
                 }
             }
+            catch (System.IO.IOException ie)
+            {
+                // likely out of quota for the day.
+            }
+            catch (System.Net.WebException we)
+            {
+                // 403?
+                if (we.Message.Contains("403"))
+                {
+                    // forbidden.
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            finally
+            {
+                stream.Close();
+            }
             return "";
+        }
+
+        public class SpeechAlternative
+        {
+            public string Transcript { get; set; }
+            public double Confidence { get; set; }
+        }
+
+        public class SpeechResult
+        {
+            public SpeechAlternative[] Alternative { get; set; }
+            public bool Final { get; set; }
+        }
+
+        public class SpeechResponse
+        {
+            public SpeechResult[] Result { get; set; }
+            public int Result_Index { get; set; }
         }
 
         static byte[] RIFF_HEADER = new byte[] { 0x52, 0x49, 0x46, 0x46 };
@@ -99,48 +177,6 @@ namespace EchoServer
                 retVal[3] = (byte)((source >> 0x18) & 0xFF);
             }
             return retVal;
-        }
-
-        private static string GetText(byte[] audio)
-        {
-
-            HttpWebRequest _HWR_SpeechToText = null;
-            _HWR_SpeechToText =
-                        (HttpWebRequest)HttpWebRequest.Create(
-                            "https://www.google.com/speech-api/v2/recognize?output=json&lang=en-us&key=AIzaSyBFladhupiqR95oCdyNczmwP2qvu234qt4");
-            _HWR_SpeechToText.Credentials = CredentialCache.DefaultCredentials;
-            _HWR_SpeechToText.Method = "POST";
-            _HWR_SpeechToText.ContentType = "audio/l16; rate=44100";
-            _HWR_SpeechToText.ContentLength = audio.Length;
-            Stream stream = _HWR_SpeechToText.GetRequestStream();
-            stream.Write(audio, 0, audio.Length);
-            stream.Close();
-
-            HttpWebResponse HWR_Response = (HttpWebResponse)_HWR_SpeechToText.GetResponse();
-            if (HWR_Response.StatusCode == HttpStatusCode.OK)
-            {
-                StreamReader SR_Response = new StreamReader(HWR_Response.GetResponseStream());
-                return SR_Response.ReadToEnd();
-            }
-            return "";
-        }
-
-        public class SpeechAlternative
-        {
-            public string Transcript { get; set; }
-            public double Confidence { get; set; }
-        }
-
-        public class SpeechResult
-        {
-            public SpeechAlternative[] Alternative { get; set; }
-            public bool Final { get; set; }
-        }
-
-        public class SpeechResponse
-        {
-            public SpeechResult[] Result { get; set; }
-            public int Result_Index { get; set; }
         }
     }
 }
