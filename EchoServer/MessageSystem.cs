@@ -97,7 +97,7 @@ namespace EchoServer
                 using (SqlCommand command = new SqlCommand(
                     "UPDATE [Messages] " +
                     "SET [textRequest]=@textRequest,[textResponse]=@textResponse,[request]=@request, " +
-                    "[response]=@response,[Status]=@Status " +
+                    "[response]=@response,[Status]=@Status,[LastUpdated]=GETDATE() " +
                     "WHERE [MessageID]=@MessageID", con))
                 {
                     command.Parameters.Add(new SqlParameter("textRequest", msg.textRequest));
@@ -120,10 +120,11 @@ namespace EchoServer
                 using (SqlCommand command = new SqlCommand("DECLARE @msg uniqueidentifier; " +
                     "SELECT TOP 1 @msg = [MessageID] " +
                     "FROM Messages " +
-                    "WHERE [Status] = 0; " +
+                    "WHERE [Status] < 3 " +
+                    "ORDER BY [PostTime] ASC; " + 
                     "SELECT @msg AS [MessageID]; " +
                     "UPDATE [Messages] " +
-                    "SET [Status] = 1 " +
+                    "SET [Status] = 1, [LastUpdated]=GETDATE()" +
                     "WHERE [MessageID] = @msg; ", con))
                 {
                     SqlDataReader reader = command.ExecuteReader();
