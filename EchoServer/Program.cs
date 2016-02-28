@@ -49,65 +49,60 @@ namespace EchoServer
 
             while (true)
             {
-                try
+                Message message = messageSystem.GetNextMessage();
+
+                if (message == null || message.messageID == Guid.Empty)
                 {
-                    Message message = messageSystem.GetNextMessage();
+                    Thread.Sleep(10);
+                    continue;
+                }
 
-                    if (message == null || message.messageID == Guid.Empty)
-                    {
-                        Thread.Sleep(10);
-                        continue;
-                    }
-
-                    if (string.IsNullOrEmpty(message.textResponse))
-                    {
-                        message.textRequest = SpeechToText.Process(message.audioRequest);
-                    }
+                if (string.IsNullOrEmpty(message.textResponse))
+                {
+                    message.textRequest = SpeechToText.Process(message.audioRequest);
+                }
 
 
-                    KeyValuePair<string, string> query = qc.Classify(message.textRequest);
+                KeyValuePair<string, string> query = qc.Classify(message.textRequest);
 
-                    int responseTimeID = responseTime.Start(query.Key);
-                    string delaymsg = responseTime.GetDelayMessage(query.Key);
-                    if (!string.IsNullOrWhiteSpace(delaymsg))
-                    {
-                        message.textResponse = delaymsg;
-                        message.audioResponse = GetAudio(delaymsg);
-                        message.status = Message.Status.delayed;
-                    }
+                int responseTimeID = responseTime.Start(query.Key);
+                string delaymsg = responseTime.GetDelayMessage(query.Key);
+                if (!string.IsNullOrWhiteSpace(delaymsg))
+                {
+                    message.textResponse = delaymsg;
+                    message.audioResponse = GetAudio(delaymsg);
+                    message.status = Message.Status.delayed;
+                }
 
-                    if (query.Key == "help")
+                if (query.Key == "help")
+                {
+                    message.textResponse = query.Value;
+                    message.audioResponse = GetAudio(query.Value);
+                    message.status = Message.Status.ready;
+                }
+                else if (query.Key == "unknown")
+                {
+                    message.textResponse = query.Value;
+                    message.audioResponse = GetAudio(query.Value);
+                    message.status = Message.Status.ready;
+                }
+                else
+                {
+                    foreach (var plugin in _Plugins)
                     {
-                        message.textResponse = query.Value;
-                        message.status = Message.Status.ready;
-                    }
-                    else if (query.Key == "unknown")
-                    {
-                        message.textResponse = query.Value;
-                        message.status = Message.Status.ready;
-                    }
-                    else
-                    {
-                        foreach (var plugin in _Plugins)
+                        if (query.Key == plugin.Key)
                         {
-                            if (query.Key == plugin.Key)
-                            {
-                                string response = plugin.Value.Go(message.textRequest);
-                                message.textResponse = response;
-                                message.audioResponse = GetAudio(response);
-                                message.status = Message.Status.ready;
-                            }
+                            string response = plugin.Value.Go(message.textRequest);
+                            message.textResponse = response;
+                            message.audioResponse = GetAudio(response);
+                            message.status = Message.Status.ready;
                         }
                     }
+                }
 
-                    // post the message back to SQL.
-                    SQL.UpdateMessage(message);
-                    responseTime.Stop(query.Key, responseTimeID);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
+                // post the message back to SQL.
+                SQL.UpdateMessage(message);
+                responseTime.Stop(query.Key, responseTimeID);
             }
         }
 
@@ -122,8 +117,6 @@ namespace EchoServer
             {
                 foreach (var item in plugins)
                 {
-                    try
-                    {
                         _Plugins.Add(item.Name, item);
 
                         //List<string> actions = _Plugins[item.Name].Actions;
@@ -132,11 +125,6 @@ namespace EchoServer
                         {
                             qc.AddPhraseToAction(action, item.Name);
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        MessageBox.Show(e.Message);
-                    }
                 }
             }
             else
@@ -146,9 +134,9 @@ namespace EchoServer
             return _Plugins;
         }
 
-        private static byte[] GetAudio(string response)
+        private byte[] GetAudio(string response)
         {
-            byte[] wav = new byte[0];
+            byte[] buffer = new byte[0];
 
             if (!string.IsNullOrWhiteSpace(response))
             {
@@ -159,13 +147,15 @@ namespace EchoServer
                         SpeechSynthesizer synth = new SpeechSynthesizer();
                         synth.SetOutputToWaveStream(memoryStream);
                         synth.Speak(response);
-                        wav = memoryStream.ToArray();
+                        buffer = memoryStream.ToArray();
                     }
                 });
                 t.Start();
                 t.Join();
             }
-            return wav;
+           
+
+            return buffer;
         }
     }
 }

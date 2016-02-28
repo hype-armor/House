@@ -100,17 +100,25 @@ namespace EchoClient
                 }
 
                 MemoryStream msg = new MemoryStream();
-                WriteHeader(msg, buffer.Length, 1, 44100);
+                //WriteHeader(msg, buffer.Length, 1, 44100);
                 msg.Write(buffer, 0, buffer.Length);
-                msg.Position = 0L;
+                
                 File.WriteAllBytes(@"client.wav", msg.GetBuffer());
-
+                msg.Position = 0L;
                 soundPlayer = new System.Media.SoundPlayer(msg);
             }
 
             public void Play()
             {
-                soundPlayer.PlaySync();
+                soundPlayer.Stream.Position = 0L;
+                try
+                {
+                    soundPlayer.PlaySync();
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message,"EchoClient Error", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK);
+                }
                 soundPlayer.Dispose();
             }
 
