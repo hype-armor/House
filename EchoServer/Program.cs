@@ -40,49 +40,12 @@ namespace EchoServer
     public class Program
     {
         private QueryClassification qc = new QueryClassification();
-        private Dictionary<string, IPlugin> _Plugins;
         private ResponseTime responseTime = new ResponseTime();
         private MessageSystem messageSystem = new MessageSystem();
 
         public Program()
         {
-            try
-            {
-                _Plugins = new Dictionary<string, IPlugin>();
-                string path = @"C:\Program Files\EchoServer\Plugins";
-                ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins(path);
-
-
-                if (plugins != null && plugins.Count() > 0)
-                {
-                    foreach (var item in plugins)
-                    {
-                        try
-                        {
-                            _Plugins.Add(item.Name, item);
-
-                            //List<string> actions = _Plugins[item.Name].Actions;
-
-                            foreach (string action in item.Actions)
-                            {
-                                qc.AddPhraseToAction(action, item.Name);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            MessageBox.Show(e.Message);
-                        }
-                    }
-                }
-                else
-                {
-                    _Plugins.Add("help", null);
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
+            Dictionary<string, IPlugin> _Plugins = LoadPlugins();
 
             while (true)
             {
@@ -96,7 +59,10 @@ namespace EchoServer
                         continue;
                     }
 
-                    message.textRequest = SpeechToText.Process(message.audioRequest);
+                    if (string.IsNullOrEmpty(message.textResponse))
+                    {
+                        message.textRequest = SpeechToText.Process(message.audioRequest);
+                    }
 
 
                     KeyValuePair<string, string> query = qc.Classify(message.textRequest);
@@ -126,15 +92,11 @@ namespace EchoServer
                         {
                             if (query.Key == plugin.Key)
                             {
-
-
                                 string response = plugin.Value.Go(message.textRequest);
-
                                 message.textResponse = response;
                                 message.audioResponse = GetAudio(response);
                                 message.status = Message.Status.ready;
                             }
-
                         }
                     }
 
@@ -147,6 +109,41 @@ namespace EchoServer
                     Console.WriteLine(e.Message);
                 }
             }
+        }
+
+        private Dictionary<string, IPlugin> LoadPlugins()
+        {
+            Dictionary<string, IPlugin> _Plugins = new Dictionary<string, IPlugin>();
+            string path = @"C:\Program Files\EchoServer\Plugins";
+            ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins(path);
+
+
+            if (plugins != null && plugins.Count() > 0)
+            {
+                foreach (var item in plugins)
+                {
+                    try
+                    {
+                        _Plugins.Add(item.Name, item);
+
+                        //List<string> actions = _Plugins[item.Name].Actions;
+
+                        foreach (string action in item.Actions)
+                        {
+                            qc.AddPhraseToAction(action, item.Name);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show(e.Message);
+                    }
+                }
+            }
+            else
+            {
+                _Plugins.Add("help", null);
+            }
+            return _Plugins;
         }
 
         private static byte[] GetAudio(string response)
@@ -168,7 +165,6 @@ namespace EchoServer
                 t.Start();
                 t.Join();
             }
-
             return wav;
         }
     }
