@@ -86,17 +86,26 @@ namespace EchoServer
                     message.audioResponse = GetAudio(query.Value);
                     message.status = Message.Status.ready;
                 }
+                else if (query.Key == "blank")
+                {
+                    message.status = Message.Status.error;
+                }
                 else
                 {
-                    foreach (var plugin in _Plugins)
+                    if (_Plugins.ContainsKey(query.Key))
                     {
-                        if (query.Key == plugin.Key)
-                        {
-                            string response = plugin.Value.Go(message.textRequest);
-                            message.textResponse = response;
-                            message.audioResponse = GetAudio(response);
-                            message.status = Message.Status.ready;
-                        }
+                        string request = message.textRequest.Replace(query.Value, "").Trim();
+                        IPlugin plugin = _Plugins[query.Key];
+                        string response = plugin.Go(request);
+                        message.textResponse = response;
+                        message.audioResponse = GetAudio(response);
+                        message.status = Message.Status.ready;
+                    }
+                    else
+                    {
+                        message.textResponse = query.Value;
+                        message.audioResponse = GetAudio("A loaded plugin has failed to produce a valid key."); // very unlikely.
+                        message.status = Message.Status.ready;
                     }
                 }
 
