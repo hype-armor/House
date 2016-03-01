@@ -52,6 +52,11 @@ namespace EchoServer
 
         public KeyValuePair<string, string> Classify(string input)
         {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return new KeyValuePair<string, string>("blank", "");
+            }
+
             Dictionary<string, string> matchedSubjects = new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, HashSet<string>> item in actionDatabase)
@@ -79,11 +84,11 @@ namespace EchoServer
             else if (matchedSubjects.Count() > 1)
             {
                 return new KeyValuePair<string, string>
-                    ("unknown", "There is more than one match for your query. Please remove one of the matches from my database.");
+                    ("unknown", "There is more than one match for your query. Please remove one of the matches from my database. The matched query was " + matchedSubjects.First().Key);
             }
             else
             {
-                return new KeyValuePair<string, string>("unknown", "I can not match your query to anything in my database.");
+                return new KeyValuePair<string, string>("unknown", "I cannot match your query to anything in my database.");
             }
         }
 
