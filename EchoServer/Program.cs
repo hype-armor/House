@@ -57,7 +57,7 @@ namespace EchoServer
                     continue;
                 }
 
-                if (string.IsNullOrEmpty(message.textResponse))
+                if (string.IsNullOrEmpty(message.textRequest))
                 {
                     message.textRequest = SpeechToText.Process(message.audioRequest);
                 }
