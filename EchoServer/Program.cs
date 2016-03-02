@@ -110,6 +110,7 @@ namespace EchoServer
                 }
 
                 // post the message back to SQL.
+                message.audioRequest = new byte[0]; // remove request audio.
                 SQL.UpdateMessage(message);
                 responseTime.Stop(query.Key, responseTimeID);
             }
