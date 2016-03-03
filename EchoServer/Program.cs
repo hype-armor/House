@@ -28,9 +28,9 @@ using System.Threading.Tasks;
 
 namespace EchoServer
 {
-    public class Program
+    public static class Program
     {
-        public Program()
+        public static void Main(string[] args)
         {
             ResponseTime responseTime = new ResponseTime();
             QueryClassification qc = new QueryClassification();
@@ -105,12 +105,11 @@ namespace EchoServer
             }
         }
 
-        private Dictionary<string, IPlugin> LoadPlugins(QueryClassification qc)
+        private static Dictionary<string, IPlugin> LoadPlugins(QueryClassification qc)
         {
             Dictionary<string, IPlugin> _Plugins = new Dictionary<string, IPlugin>();
             string path = @"C:\Program Files\EchoServer\Plugins";
             ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins(path);
-
 
             if (plugins != null && plugins.Count() > 0)
             {
@@ -118,22 +117,16 @@ namespace EchoServer
                 {
                     _Plugins.Add(item.Name, item);
 
-                    //List<string> actions = _Plugins[item.Name].Actions;
-
                     foreach (string action in item.Actions)
                     {
                         qc.AddPhraseToAction(action, item.Name);
                     }
                 }
             }
-            else
-            {
-                _Plugins.Add("help", null);
-            }
             return _Plugins;
         }
 
-        private byte[] GetAudio(string response)
+        private static byte[] GetAudio(string response)
         {
             byte[] buffer = new byte[0];
 

@@ -51,7 +51,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>EchoServer.Echo</StartupObject>
+    <StartupObject>EchoServer.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HtmlAgilityPack, Version=1.4.9.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
@@ -79,12 +79,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Queue.cs" />
-    <Compile Include="Service1.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Service1.Designer.cs">
-      <DependentUpon>Service1.cs</DependentUpon>
-    </Compile>
     <Compile Include="GenericPluginLoader.cs" />
     <Compile Include="SpeechToText.cs" />
     <Compile Include="PluginLoader.cs" />
