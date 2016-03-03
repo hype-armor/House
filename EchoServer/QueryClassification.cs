@@ -61,18 +61,18 @@ namespace EchoServer
 
             foreach (KeyValuePair<string, HashSet<string>> item in actionDatabase)
             {
-                string term = item.Key;
+                string phrase = item.Key;
                 HashSet<string> subjects = item.Value;
 
-                foreach (string subj in subjects)
+                foreach (string subject in subjects)
                 {
-                    if (input.Contains(subj) && !matchedSubjects.Keys.Contains(term))
+                    if (input.Contains(subject) && !matchedSubjects.Keys.Contains(phrase))
                     {
-                        matchedSubjects.Add(term, subj);
+                        matchedSubjects.Add(phrase, subject);
                     }
-                    else if (input.Contains(subj) && matchedSubjects.Keys.Contains(term) && matchedSubjects[term].Length < subj.Length)
+                    else if (input.Contains(subject) && matchedSubjects.Keys.Contains(phrase) && matchedSubjects[phrase].Length < subject.Length)
                     {
-                        matchedSubjects[term] = subj;
+                        matchedSubjects[phrase] = subject;
                     }
                 }
             }
