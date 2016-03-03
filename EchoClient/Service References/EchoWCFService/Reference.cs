@@ -16,16 +16,22 @@ namespace EchoClient.EchoWCFService {
     public interface Echo {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://Microsoft.Samples.GettingStarted/Echo/Post", ReplyAction="http://Microsoft.Samples.GettingStarted/Echo/PostResponse")]
-        System.DateTime Post(System.Guid ClientID, System.IO.MemoryStream audioStream);
+        System.DateTime Post(int ClientID, System.IO.MemoryStream audioStream);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://Microsoft.Samples.GettingStarted/Echo/Post", ReplyAction="http://Microsoft.Samples.GettingStarted/Echo/PostResponse")]
-        System.Threading.Tasks.Task<System.DateTime> PostAsync(System.Guid ClientID, System.IO.MemoryStream audioStream);
+        System.Threading.Tasks.Task<System.DateTime> PostAsync(int ClientID, System.IO.MemoryStream audioStream);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://Microsoft.Samples.GettingStarted/Echo/Get", ReplyAction="http://Microsoft.Samples.GettingStarted/Echo/GetResponse")]
-        System.IO.MemoryStream Get(System.Guid ClientID);
+        System.IO.MemoryStream Get(int ClientID);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://Microsoft.Samples.GettingStarted/Echo/Get", ReplyAction="http://Microsoft.Samples.GettingStarted/Echo/GetResponse")]
-        System.Threading.Tasks.Task<System.IO.MemoryStream> GetAsync(System.Guid ClientID);
+        System.Threading.Tasks.Task<System.IO.MemoryStream> GetAsync(int ClientID);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://Microsoft.Samples.GettingStarted/Echo/CreateProfile", ReplyAction="http://Microsoft.Samples.GettingStarted/Echo/CreateProfileResponse")]
+        int CreateProfile(string username, string password);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://Microsoft.Samples.GettingStarted/Echo/CreateProfile", ReplyAction="http://Microsoft.Samples.GettingStarted/Echo/CreateProfileResponse")]
+        System.Threading.Tasks.Task<int> CreateProfileAsync(string username, string password);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -55,20 +61,28 @@ namespace EchoClient.EchoWCFService {
                 base(binding, remoteAddress) {
         }
         
-        public System.DateTime Post(System.Guid ClientID, System.IO.MemoryStream audioStream) {
+        public System.DateTime Post(int ClientID, System.IO.MemoryStream audioStream) {
             return base.Channel.Post(ClientID, audioStream);
         }
         
-        public System.Threading.Tasks.Task<System.DateTime> PostAsync(System.Guid ClientID, System.IO.MemoryStream audioStream) {
+        public System.Threading.Tasks.Task<System.DateTime> PostAsync(int ClientID, System.IO.MemoryStream audioStream) {
             return base.Channel.PostAsync(ClientID, audioStream);
         }
         
-        public System.IO.MemoryStream Get(System.Guid ClientID) {
+        public System.IO.MemoryStream Get(int ClientID) {
             return base.Channel.Get(ClientID);
         }
         
-        public System.Threading.Tasks.Task<System.IO.MemoryStream> GetAsync(System.Guid ClientID) {
+        public System.Threading.Tasks.Task<System.IO.MemoryStream> GetAsync(int ClientID) {
             return base.Channel.GetAsync(ClientID);
+        }
+        
+        public int CreateProfile(string username, string password) {
+            return base.Channel.CreateProfile(username, password);
+        }
+        
+        public System.Threading.Tasks.Task<int> CreateProfileAsync(string username, string password) {
+            return base.Channel.CreateProfileAsync(username, password);
         }
     }
 }

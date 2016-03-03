@@ -10,10 +10,19 @@ namespace EchoClient
     public class EchoWCF
     {
         EchoWCFService.EchoClient client = new EchoWCFService.EchoClient();
-        private Guid ClientID = Guid.Empty;
-        public EchoWCF(Guid clientID)
+        private int ClientID = -1;
+        public EchoWCF(string username, string password)
         {
-            ClientID = clientID;
+            if ((int)Properties.Settings.Default["ClientID"] == -1)
+            {
+                ClientID = CreateProfile(username, password);
+                Properties.Settings.Default["ClientID"] = ClientID;
+                Properties.Settings.Default.Save();
+            }
+            else
+            {
+                ClientID = (int)Properties.Settings.Default["ClientID"];
+            }
         }
 
         public DateTime Post(byte[] audio)
@@ -27,6 +36,11 @@ namespace EchoClient
         {
             MemoryStream audioStream = client.Get(ClientID);
             return audioStream.GetBuffer();
+        }
+
+        public int CreateProfile(string username, string password)
+        {
+            return client.CreateProfile(username, password);
         }
     }
 }

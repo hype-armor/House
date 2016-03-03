@@ -40,7 +40,7 @@ namespace EchoServer
             {
                 Message message = SQL.GetNextMessage();
 
-                if (message == null || message.messageID == Guid.Empty)
+                if (message == null || message.messageID == -1)
                 {
                     Thread.Sleep(10);
                     continue;
@@ -153,8 +153,8 @@ namespace EchoServer
 
     public class Message
     {
-        public Guid clientID = Guid.Empty;
-        public Guid messageID = Guid.Empty;
+        public int clientID = -1;
+        public int messageID = -1;
         public string textRequest = string.Empty;
         public string textResponse = string.Empty;
         public byte[] audioRequest;

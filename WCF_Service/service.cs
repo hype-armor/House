@@ -11,32 +11,31 @@ using System.IO;
 namespace Microsoft.Samples.GettingStarted
 {
     // Define a service contract.
-    [ServiceContract(Namespace="http://Microsoft.Samples.GettingStarted")]
+    [ServiceContract(Namespace = "http://Microsoft.Samples.GettingStarted")]
 
     public interface Echo
     {
         [OperationContract]
-        DateTime Post(Guid ClientID, MemoryStream audioStream);
+        DateTime Post(int ClientID, MemoryStream audioStream);
         [OperationContract]
-        MemoryStream Get(Guid ClientID);
+        MemoryStream Get(int ClientID);
         [OperationContract]
-        bool GetUpdateStatus(Guid ClientID);
+        int CreateProfile(string username, string password);
     }
 
     // Service class which implements the service contract.
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerSession, ConcurrencyMode = ConcurrencyMode.Single)]
     public class EchoService : Echo
     {
-        public DateTime Post(Guid ClientID, MemoryStream audioStream)
+        public DateTime Post(int ClientID, MemoryStream audioStream)
         {
             audioStream.Position = 0L;
             byte[] data = audioStream.GetBuffer();
-            SQL.AddClient(ClientID);
-            SQL.CreateRequest(Guid.NewGuid(), ClientID, "", "", data, new byte[0], DateTime.Now, 0);
+            SQL.CreateRequest(ClientID, "", "", data, new byte[0], DateTime.Now, 0);
             return DateTime.Now;
         }
 
-        public MemoryStream Get(Guid ClientID)
+        public MemoryStream Get(int ClientID)
         {
             byte[] audio = SQL.GetResponse(ClientID);
             MemoryStream audioStream = new MemoryStream(audio, 0, audio.Length, true, true);
@@ -44,41 +43,36 @@ namespace Microsoft.Samples.GettingStarted
             return audioStream;
         }
 
-        public bool GetUpdateStatus(Guid ClientID)
+        public int CreateProfile(string username, string password)
         {
-            throw new NotImplementedException();
+            return SQL.AddClient(username, password);
         }
     }
 
     public class SQL
     {
         private static string connectionString = "Server=SKYNET\\SQLEXPRESS;Database=Echo;User Id=client;Password=echo;";
-        public static void AddClient(Guid guid)
+        public static int AddClient(string username, string password)
         {
+            int id = int.MinValue;
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 con.Open();
-                try
+                using (SqlCommand command = new SqlCommand("INSERT INTO [dbo].[Clients] (username, password) VALUES(@username, @password); SELECT @@IDENTITY AS ClientID", con))
                 {
-                    using (SqlCommand command = new SqlCommand(
-                    "INSERT INTO Clients VALUES(@ClientID)", con))
+                    command.Parameters.Add(new SqlParameter("username", username));
+                    command.Parameters.Add(new SqlParameter("password", password));
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.Parameters.Add(new SqlParameter("ClientID", guid));
-                        command.ExecuteNonQuery();
+                        id = reader["ClientID"].ToInt();
                     }
                 }
-                catch (SqlException se)
-                {
-                    return; // clientID is already in DB.
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
             }
+            return id;
         }
 
-        public static void CreateRequest(Guid messageID, Guid clientID, string request, string response, byte[] audioRequest, byte[] AudioResponse, DateTime PostTime, int status)
+        public static void CreateRequest(int clientID, string request, string response, byte[] audioRequest, byte[] AudioResponse, DateTime PostTime, int status)
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
@@ -86,9 +80,8 @@ namespace Microsoft.Samples.GettingStarted
                 try
                 {
                     using (SqlCommand command = new SqlCommand(
-                    "INSERT INTO Messages VALUES(@MessageID, @ClientID, @textRequest, @textResponse, @request, @response, @PostTime, @Status, @LastUpdated)", con))
+                    "INSERT INTO Messages VALUES(@ClientID, @textRequest, @textResponse, @request, @response, @PostTime, @Status, @LastUpdated)", con))
                     {
-                        command.Parameters.Add(new SqlParameter("MessageID", messageID));
                         command.Parameters.Add(new SqlParameter("ClientID", clientID));
                         command.Parameters.Add(new SqlParameter("textRequest", request));
                         command.Parameters.Add(new SqlParameter("textResponse", response));
@@ -107,16 +100,15 @@ namespace Microsoft.Samples.GettingStarted
             }
         }
 
-        public static byte[] GetResponse(Guid ClientID)
+        public static byte[] GetResponse(int ClientID)
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 con.Open();
-                
-                Guid MessageID = Guid.Empty;
+
+                int MessageID = -1;
                 byte[] audioResponse = new byte[0];
                 int status = 0;
-
 
                 // removed [ClientID]=@ClientID AND for testing from the where.
                 using (SqlCommand command = new SqlCommand("SELECT TOP 1 [MessageID], [response], [Status] FROM Messages " +
@@ -127,7 +119,7 @@ namespace Microsoft.Samples.GettingStarted
                     SqlDataReader reader = command.ExecuteReader();
                     while (reader.Read())
                     {
-                        MessageID = Guid.Parse(reader["MessageID"].ToString());
+                        MessageID = reader["MessageID"].ToInt();
                         audioResponse = reader["response"].ToByteArray();
                         status = reader["Status"].ToInt();
                     }
@@ -145,12 +137,12 @@ namespace Microsoft.Samples.GettingStarted
                     status = 4;
                     UpdateMessageWithStatus(MessageID, status);
                 }
-                
+
                 return audioResponse;
             }
         }
 
-        private static void UpdateMessageWithStatus(Guid MessageID, int status)
+        private static void UpdateMessageWithStatus(int MessageID, int status)
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {

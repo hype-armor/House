@@ -22,6 +22,15 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="CreateProfile">
+      <soap:operation soapAction="http://Microsoft.Samples.GettingStarted/Echo/CreateProfile" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
   </wsdl:binding>
   <wsdl:service name="EchoService">
     <wsdl:port name="BasicHttpBinding_Echo" binding="tns:BasicHttpBinding_Echo">

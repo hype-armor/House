@@ -30,21 +30,21 @@ namespace EchoServer
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                Guid msgGuid = GetNextMessageGuid();
+                int messageID = GetNextMessageID();
 
                 con.Open();
                 using (SqlCommand command = new SqlCommand("SELECT [MessageID],[ClientID],[textRequest], " +
                     "[textResponse],[request],[response],[PostTime],[Status]" +
                     " FROM Messages " + "WHERE [MessageID]=@MessageID", con))
                 {
-                    command.Parameters.Add(new SqlParameter("MessageID", msgGuid));
+                    command.Parameters.Add(new SqlParameter("MessageID", messageID));
                     SqlDataReader reader = command.ExecuteReader();
 
                     Message m = new Message();
                     while (reader.Read())
                     {
-                        m.messageID = Guid.Parse(reader["MessageID"].ToString());
-                        m.clientID = Guid.Parse(reader["ClientID"].ToString());
+                        m.messageID = (int)reader["MessageID"];
+                        m.clientID = (int)reader["ClientID"];
                         m.textRequest = reader["textRequest"].ToString();
                         m.textResponse = reader["textResponse"].ToString();
                         m.audioRequest = reader["request"].ToByteArray();
@@ -81,13 +81,13 @@ namespace EchoServer
             }
         }
 
-        public static Guid GetNextMessageGuid()
+        public static int GetNextMessageID()
         {
-            Guid msgGuid = Guid.Empty;
+            int messageID = -1;
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 con.Open();
-                using (SqlCommand command = new SqlCommand("DECLARE @msg uniqueidentifier; " +
+                using (SqlCommand command = new SqlCommand("DECLARE @msg int; " +
                     "SELECT TOP 1 @msg = [MessageID] " +
                     "FROM Messages " +
                     "WHERE [Status] = 0 " +
@@ -102,14 +102,14 @@ namespace EchoServer
                     {
                         if (!string.IsNullOrWhiteSpace(reader["MessageID"].ToString()))
                         {
-                            msgGuid = Guid.Parse(reader["MessageID"].ToString());
+                            messageID = (int)reader["MessageID"];
                         }
                     }
                 }
                 con.Close();
             }
 
-            return msgGuid;
+            return messageID;
         }
     }
 }

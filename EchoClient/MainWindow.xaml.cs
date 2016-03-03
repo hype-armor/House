@@ -23,27 +23,20 @@ namespace EchoClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Guid ClientID;
         private System.Timers.Timer aTimer;
         private EchoWCF echo;
         public MainWindow()
         {
             InitializeComponent();
 
-            if ((Guid)Properties.Settings.Default["ClientID"] == Guid.Empty)
-            {
-                Properties.Settings.Default["ClientID"] = Guid.NewGuid();
-                Properties.Settings.Default.Save();
-            }
-            ClientID = (Guid)Properties.Settings.Default["ClientID"];
-            echo = new EchoWCF(ClientID);
+            echo = new EchoWCF("greg","password");
 
-            aTimer = new System.Timers.Timer(10000);
+            aTimer = new System.Timers.Timer(1000);
             aTimer.Elapsed += OnTimedEvent;
             aTimer.AutoReset = true;
             aTimer.Enabled = true;
 
-            OnTimedEvent(null, null);
+            //OnTimedEvent(null, null);
         }
 
         private void OnTimedEvent(object sender, ElapsedEventArgs e)

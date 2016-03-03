@@ -20,6 +20,12 @@
   <wsdl:message name="Echo_Get_OutputMessage">
     <wsdl:part name="parameters" element="tns:GetResponse" />
   </wsdl:message>
+  <wsdl:message name="Echo_CreateProfile_InputMessage">
+    <wsdl:part name="parameters" element="tns:CreateProfile" />
+  </wsdl:message>
+  <wsdl:message name="Echo_CreateProfile_OutputMessage">
+    <wsdl:part name="parameters" element="tns:CreateProfileResponse" />
+  </wsdl:message>
   <wsdl:portType name="Echo">
     <wsdl:operation name="Post">
       <wsdl:input wsaw:Action="http://Microsoft.Samples.GettingStarted/Echo/Post" message="tns:Echo_Post_InputMessage" />
@@ -28,6 +34,10 @@
     <wsdl:operation name="Get">
       <wsdl:input wsaw:Action="http://Microsoft.Samples.GettingStarted/Echo/Get" message="tns:Echo_Get_InputMessage" />
       <wsdl:output wsaw:Action="http://Microsoft.Samples.GettingStarted/Echo/GetResponse" message="tns:Echo_Get_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="CreateProfile">
+      <wsdl:input wsaw:Action="http://Microsoft.Samples.GettingStarted/Echo/CreateProfile" message="tns:Echo_CreateProfile_InputMessage" />
+      <wsdl:output wsaw:Action="http://Microsoft.Samples.GettingStarted/Echo/CreateProfileResponse" message="tns:Echo_CreateProfile_OutputMessage" />
     </wsdl:operation>
   </wsdl:portType>
 </wsdl:definitions>
