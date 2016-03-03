@@ -32,7 +32,6 @@ namespace EchoServer
     {
         public Program()
         {
-            MessageSystem messageSystem = new MessageSystem();
             ResponseTime responseTime = new ResponseTime();
             QueryClassification qc = new QueryClassification();
             Dictionary<string, IPlugin> _Plugins = LoadPlugins(qc);
