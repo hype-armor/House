@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EchoClient.Properties {
+namespace EchoServer.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -23,15 +23,13 @@ namespace EchoClient.Properties {
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
-        public int ClientID {
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=skynet\\sqlexpress;Initial Catalog=Echo;Integrated Security=True")]
+        public string EchoDatabase {
             get {
-                return ((int)(this["ClientID"]));
-            }
-            set {
-                this["ClientID"] = value;
+                return ((string)(this["EchoDatabase"]));
             }
         }
     }

@@ -41,6 +41,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Speech" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -60,6 +62,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="EchoWCF.cs" />
+    <Compile Include="Service References\EchoWCFService\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -97,6 +105,20 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <None Include="Service References\EchoWCFService\EchoService.wsdl" />
+    <None Include="Service References\EchoWCFService\service.wsdl" />
+    <None Include="Service References\EchoWCFService\service.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\EchoWCFService\service1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\EchoWCFService\service2.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\EchoWCFService\service21.xsd">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -109,6 +131,24 @@
       <Project>{d33d4222-0f09-4d5a-a066-92fdfe5f05cf}</Project>
       <Name>Extentions</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\EchoWCFService\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\EchoWCFService\service.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\EchoWCFService\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\EchoWCFService\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\EchoWCFService\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

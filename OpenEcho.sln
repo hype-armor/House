@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoServer", "EchoServer\EchoServer.csproj", "{167E320B-723E-4496-B5D3-58265812C378}"
 EndProject
@@ -10,6 +10,17 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginContracts", "PluginContracts\PluginContracts.csproj", "{93EC9D95-1EF0-4A5D-BD86-F7E3972CCA7B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extentions", "Extentions\Extentions.csproj", "{D33D4222-0F09-4D5A-A066-92FDFE5F05CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service", "WCF_Service\Service.csproj", "{73D6E51B-9EAB-4EBE-BAA3-794D636BD176}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6A7E71D8-371E-484A-AD51-134429D7103B}"
+	ProjectSection(SolutionItems) = preProject
+		Clients.sql = Clients.sql
+		Echodb.sql = Echodb.sql
+		Events.sql = Events.sql
+		Messages.sql = Messages.sql
+		RecurringTypes.sql = RecurringTypes.sql
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +44,10 @@ Global
 		{D33D4222-0F09-4D5A-A066-92FDFE5F05CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D33D4222-0F09-4D5A-A066-92FDFE5F05CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D33D4222-0F09-4D5A-A066-92FDFE5F05CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73D6E51B-9EAB-4EBE-BAA3-794D636BD176}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73D6E51B-9EAB-4EBE-BAA3-794D636BD176}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73D6E51B-9EAB-4EBE-BAA3-794D636BD176}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73D6E51B-9EAB-4EBE-BAA3-794D636BD176}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

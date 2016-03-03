@@ -28,12 +28,6 @@ namespace EchoServer
 {
     class QueryClassification
     {
-        public enum Actions { help, wikipedia, newPhrase, alarm, timer, clear, wolframAlpha, weather, joke, unknown };
-
-        public List<string> _Actions = new List<string>();
-
-        [field: NonSerialized()]
-        //private static Dictionary<Actions, HashSet<string>> actionDatabase = new Dictionary<Actions, HashSet<string>>();
         private Dictionary<string, HashSet<string>> actionDatabase = new Dictionary<string, HashSet<string>>();
 
         void QueryClassificationf()
@@ -58,22 +52,27 @@ namespace EchoServer
 
         public KeyValuePair<string, string> Classify(string input)
         {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return new KeyValuePair<string, string>("blank", "");
+            }
+
             Dictionary<string, string> matchedSubjects = new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, HashSet<string>> item in actionDatabase)
             {
-                string term = item.Key;
+                string phrase = item.Key;
                 HashSet<string> subjects = item.Value;
 
-                foreach (string subj in subjects)
+                foreach (string subject in subjects)
                 {
-                    if (input.Contains(subj) && !matchedSubjects.Keys.Contains(term))
+                    if (input.Contains(subject) && !matchedSubjects.Keys.Contains(phrase))
                     {
-                        matchedSubjects.Add(term, subj);
+                        matchedSubjects.Add(phrase, subject);
                     }
-                    else if (input.Contains(subj) && matchedSubjects.Keys.Contains(term) && matchedSubjects[term].Length < subj.Length)
+                    else if (input.Contains(subject) && matchedSubjects.Keys.Contains(phrase) && matchedSubjects[phrase].Length < subject.Length)
                     {
-                        matchedSubjects[term] = subj;
+                        matchedSubjects[phrase] = subject;
                     }
                 }
             }
@@ -85,11 +84,11 @@ namespace EchoServer
             else if (matchedSubjects.Count() > 1)
             {
                 return new KeyValuePair<string, string>
-                    ("unknown", "There is more than one match for your query. Please remove one of the matches from my database.");
+                    ("unknown", "There is more than one match for your query. Please remove one of the matches from my database. The matched query was " + matchedSubjects.First().Key);
             }
             else
             {
-                return new KeyValuePair<string, string>("unknown", "I can not match your query to anything in my database.");
+                return new KeyValuePair<string, string>("unknown", "I cannot match your query to anything in my database.");
             }
         }
 

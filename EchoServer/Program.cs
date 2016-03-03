@@ -16,134 +16,120 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using Extensions;
+using PluginContracts;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using Extensions;
-using System.Reflection;
-using System.Windows.Forms;
+using System.Linq;
 using System.Speech.Synthesis;
 using System.Threading;
-using PluginContracts;
-using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace EchoServer
 {
-    public class Program
+    public static class Program
     {
-        private QueryClassification qc = new QueryClassification();
-        private Dictionary<string, IPlugin> _Plugins;
-        private ResponseTime responseTime = new ResponseTime();
-
-        public Program(MessageSystem messageSystem)
+        public static void Main(string[] args)
         {
+            ResponseTime responseTime = new ResponseTime();
+            QueryClassification qc = new QueryClassification();
+            Dictionary<string, IPlugin> _Plugins = LoadPlugins(qc);
 
-            try
+            while (true)
             {
-                _Plugins = new Dictionary<string, IPlugin>();
-                string path = @"C:\Program Files\EchoServer\Plugins";
-                ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins(path);
+                Message message = SQL.GetNextMessage();
 
-
-                if (plugins != null && plugins.Count() > 0)
+                if (message == null || message.messageID == -1)
                 {
-                    foreach (var item in plugins)
-                    {
-                        try
-                        {
-                            _Plugins.Add(item.Name, item);
-
-                            //List<string> actions = _Plugins[item.Name].Actions;
-
-                            foreach (string action in item.Actions)
-                            {
-                                qc.AddPhraseToAction(action, item.Name);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            MessageBox.Show(e.Message);
-                        }
-                    }
+                    Thread.Sleep(10);
+                    continue;
                 }
-                else
+                Task.Factory.StartNew(() =>
                 {
-                    _Plugins.Add("help", null);
+                    if (string.IsNullOrEmpty(message.textRequest))
+                    {
+                        message.textRequest = SpeechToText.Process(message.audioRequest);
+                    }
+
+
+                    KeyValuePair<string, string> query = qc.Classify(message.textRequest);
+
+                    int responseTimeID = responseTime.Start(query.Key);
+                    string delaymsg = responseTime.GetDelayMessage(query.Key);
+                    if (!string.IsNullOrWhiteSpace(delaymsg))
+                    {
+                        message.textResponse = delaymsg;
+                        message.audioResponse = GetAudio(delaymsg);
+                        message.status = Message.Status.delayed;
+                        SQL.UpdateMessage(message);
+                    }
+
+                    if (query.Key == "help")
+                    {
+                        message.textResponse = query.Value;
+                        message.audioResponse = GetAudio(query.Value);
+                        message.status = Message.Status.ready;
+                    }
+                    else if (query.Key == "unknown")
+                    {
+                        message.textResponse = query.Value;
+                        message.audioResponse = GetAudio(query.Value);
+                        message.status = Message.Status.ready;
+                    }
+                    else if (query.Key == "blank")
+                    {
+                        message.status = Message.Status.error;
+                    }
+                    else if (_Plugins.ContainsKey(query.Key))
+                    {
+                        string request = message.textRequest.Replace(query.Value, "").CleanText();
+                        request = request.Length > 0 ? request : message.textRequest;
+                        IPlugin plugin = _Plugins[query.Key];
+                        string response = plugin.Go(request);
+                        message.textResponse = response;
+                        message.audioResponse = GetAudio(response);
+                        message.status = Message.Status.ready;
+                    }
+                    else
+                    {
+                        message.textResponse = query.Value;
+                        message.audioResponse = GetAudio("A loaded plugin has failed to produce a valid key."); // very unlikely.
+                        message.status = Message.Status.ready;
+                    }
+
+                    // post the message back to SQL.
+                    message.audioRequest = new byte[0]; // remove request audio.
+                    SQL.UpdateMessage(message);
+                    responseTime.Stop(query.Key, responseTimeID);
+                });
+            }
+        }
+
+        private static Dictionary<string, IPlugin> LoadPlugins(QueryClassification qc)
+        {
+            Dictionary<string, IPlugin> _Plugins = new Dictionary<string, IPlugin>();
+            string path = @"C:\Program Files\EchoServer\Plugins";
+            ICollection<IPlugin> plugins = GenericPluginLoader<IPlugin>.LoadPlugins(path);
+
+            if (plugins != null && plugins.Count() > 0)
+            {
+                foreach (var item in plugins)
+                {
+                    _Plugins.Add(item.Name, item);
+
+                    foreach (string action in item.Actions)
+                    {
+                        qc.AddPhraseToAction(action, item.Name);
+                    }
                 }
             }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-
-            Task.Factory.StartNew(() =>
-            {
-                while (true)
-                {
-                    try
-                    {
-                        Message message = messageSystem.GetNextMessage();
-
-                        if (message == null)
-                        {
-                            Thread.Sleep(10);
-                            continue;
-                        }
-
-                        KeyValuePair<string, string> query = qc.Classify(message.textRequest);
-
-                        int responseTimeID = responseTime.Start(query.Key);
-                        string delaymsg = responseTime.GetDelayMessage(query.Key);
-                        if (!string.IsNullOrWhiteSpace(delaymsg))
-                        {
-                            message.textResponse = delaymsg;
-                            message.response = GetAudio(delaymsg);
-                            message.status = Message.Status.delayed;
-                        }
-
-                        if (query.Key == "help")
-                        {
-                            message.textResponse = query.Value;
-                            message.status = Message.Status.ready;
-                        }
-                        else if (query.Key == "unknown")
-                        {
-                            message.textResponse = query.Value;
-                            message.status = Message.Status.ready;
-                        }
-                        else
-                        {
-                            foreach (var plugin in _Plugins)
-                            {
-                                if (query.Key == plugin.Key)
-                                {
-                                    string response = plugin.Value.Go(message.textRequest);
-
-                                    message.textResponse = response;
-                                    message.response = GetAudio(response);
-                                    message.status = Message.Status.ready;
-                                }
-
-                            } 
-                        }
-
-                        responseTime.Stop(query.Key, responseTimeID);
-                    }
-                    catch (Exception e)
-                    {
-
-                        throw e;
-                    }
-                }
-            });
+            return _Plugins;
         }
 
         private static byte[] GetAudio(string response)
         {
-            byte[] wav = new byte[0];
+            byte[] buffer = new byte[0];
 
             if (!string.IsNullOrWhiteSpace(response))
             {
@@ -154,14 +140,28 @@ namespace EchoServer
                         SpeechSynthesizer synth = new SpeechSynthesizer();
                         synth.SetOutputToWaveStream(memoryStream);
                         synth.Speak(response);
-                        wav = memoryStream.ToArray();
+                        buffer = memoryStream.ToArray();
                     }
                 });
                 t.Start();
                 t.Join();
             }
 
-            return wav;
+
+            return buffer;
         }
+    }
+
+    public class Message
+    {
+        public int clientID = -1;
+        public int messageID = -1;
+        public string textRequest = string.Empty;
+        public string textResponse = string.Empty;
+        public byte[] audioRequest;
+        public byte[] audioResponse = new byte[0];
+        public DateTime postTime = new DateTime();
+        public enum Status { queued, processing, delayed, ready, closed, error };
+        public Status status = Status.queued;
     }
 }
