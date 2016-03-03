@@ -62,6 +62,7 @@ namespace EchoServer
                         message.textResponse = delaymsg;
                         message.audioResponse = GetAudio(delaymsg);
                         message.status = Message.Status.delayed;
+                        SQL.UpdateMessage(message);
                     }
 
                     if (query.Key == "help")
