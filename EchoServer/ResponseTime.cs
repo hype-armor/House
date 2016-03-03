@@ -17,9 +17,8 @@
 */
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics;
-using System;
+using System.Linq;
 
 namespace EchoServer
 {
@@ -30,6 +29,7 @@ namespace EchoServer
 
         public int Start(string action)
         {
+            
             Stopwatch sw = new Stopwatch();
             if (!actionTimes.ContainsKey(action))
             {
