@@ -22,29 +22,7 @@ using System.Data.SqlClient;
 
 namespace EchoServer
 {
-    public class MessageSystem
-    {
-        public Message GetNextMessage() // called from server
-        {
-            // also mark as processing.
-            return SQL.GetNextMessage();
-        }
-    }
-
-    public class Message
-    {
-        public Guid clientID = Guid.Empty;
-        public Guid messageID = Guid.Empty;
-        public string textRequest = string.Empty;
-        public string textResponse = string.Empty;
-        public byte[] audioRequest;
-        public byte[] audioResponse = new byte[0];
-        public DateTime postTime = new DateTime();
-        public enum Status { queued, processing, delayed, ready, closed, error };
-        public Status status = Status.queued;
-    }
-
-    public class SQL_old
+    public class SQL
     {
         private static string connectionString = "Server=SKYNET\\SQLEXPRESS;Database=Echo;Trusted_Connection=True;";
 
