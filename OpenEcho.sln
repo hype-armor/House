@@ -13,6 +13,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extentions", "Extentions\Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service", "WCF_Service\Service.csproj", "{73D6E51B-9EAB-4EBE-BAA3-794D636BD176}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6A7E71D8-371E-484A-AD51-134429D7103B}"
+	ProjectSection(SolutionItems) = preProject
+		Clients.sql = Clients.sql
+		Echodb.sql = Echodb.sql
+		Events.sql = Events.sql
+		Messages.sql = Messages.sql
+		RecurringTypes.sql = RecurringTypes.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
