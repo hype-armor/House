@@ -28,7 +28,7 @@ public class SQL
         return id;
     }
 
-    public static void CreateRequest(int clientID, string request, string response, byte[] audioRequest, byte[] AudioResponse, DateTime PostTime, int status)
+    public static void CreateRequest(int clientID, byte[] audioRequest, byte[] AudioResponse, DateTime PostTime, int status)
     {
         using (SqlConnection con = new SqlConnection(connectionString))
         {
@@ -39,8 +39,8 @@ public class SQL
                 "INSERT INTO Messages VALUES(@ClientID, @textRequest, @textResponse, @request, @response, @PostTime, @Status, @LastUpdated)", con))
                 {
                     command.Parameters.Add(new SqlParameter("ClientID", clientID));
-                    command.Parameters.Add(new SqlParameter("textRequest", request));
-                    command.Parameters.Add(new SqlParameter("textResponse", response));
+                    command.Parameters.Add(new SqlParameter("textRequest", ""));
+                    command.Parameters.Add(new SqlParameter("textResponse", ""));
                     command.Parameters.Add(new SqlParameter("request", audioRequest));
                     command.Parameters.Add(new SqlParameter("response", AudioResponse));
                     command.Parameters.Add(new SqlParameter("PostTime", PostTime));
