@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="2206a9aa-66a8-433b-8c54-b42560151600" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://sky.ibang.us/echo/service.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="service.disco" MetadataType="Disco" ID="d99fcc67-e385-47af-bddd-f845b4b7bcc6" SourceId="1" SourceUrl="http://skynet/echo/service.svc?disco" />
+    <MetadataFile FileName="service.wsdl" MetadataType="Wsdl" ID="c58e1231-d972-4d75-b257-98af25d3cfac" SourceId="1" SourceUrl="http://skynet/echo/service.svc?wsdl=wsdl0" />
+    <MetadataFile FileName="Service1.wsdl" MetadataType="Wsdl" ID="4a0fc33b-fe52-40ff-b868-09bfaf9f7708" SourceId="1" SourceUrl="http://skynet/echo/service.svc?wsdl" />
+    <MetadataFile FileName="service.xsd" MetadataType="Schema" ID="607f81dc-4910-418b-a72b-40c7f062ef08" SourceId="1" SourceUrl="http://skynet/echo/service.svc?xsd=xsd1" />
+    <MetadataFile FileName="service1.xsd" MetadataType="Schema" ID="24272c0c-8dfc-471c-90d8-9bdd37a7eece" SourceId="1" SourceUrl="http://skynet/echo/service.svc?xsd=xsd2" />
+    <MetadataFile FileName="service2.xsd" MetadataType="Schema" ID="0d70faf4-630e-4668-a703-2a7792d38153" SourceId="1" SourceUrl="http://skynet/echo/service.svc?xsd=xsd0" />
+    <MetadataFile FileName="service3.xsd" MetadataType="Schema" ID="0abc2e73-c4c6-4b33-855b-c567dc26a952" SourceId="1" SourceUrl="http://skynet/echo/service.svc?xsd=xsd3" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

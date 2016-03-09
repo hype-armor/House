@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://Echo.Duplex" elementFormDefault="qualified" targetNamespace="http://Echo.Duplex" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://skynet/echo/service.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/System.IO" />
+  <xs:element name="Post">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/System.IO" minOccurs="0" name="audioStream" nillable="true" type="q1:MemoryStream" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Push">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/System.IO" minOccurs="0" name="result" nillable="true" type="q2:MemoryStream" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

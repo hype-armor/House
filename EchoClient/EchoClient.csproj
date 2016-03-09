@@ -62,8 +62,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="EchoWCF.cs" />
-    <Compile Include="Service References\EchoWCFService\Reference.cs">
+    <Compile Include="MediaPlayer.cs" />
+    <Compile Include="Service References\EchoDuplex\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
@@ -105,18 +105,18 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-    <None Include="Service References\EchoWCFService\EchoService.wsdl" />
-    <None Include="Service References\EchoWCFService\service.wsdl" />
-    <None Include="Service References\EchoWCFService\service.xsd">
+    <None Include="Service References\EchoDuplex\service.wsdl" />
+    <None Include="Service References\EchoDuplex\service.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\EchoWCFService\service1.xsd">
+    <None Include="Service References\EchoDuplex\Service1.wsdl" />
+    <None Include="Service References\EchoDuplex\service1.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\EchoWCFService\service2.xsd">
+    <None Include="Service References\EchoDuplex\service2.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\EchoWCFService\service21.xsd">
+    <None Include="Service References\EchoDuplex\service3.xsd">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
@@ -133,19 +133,19 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadataStorage Include="Service References\EchoWCFService\" />
+    <WCFMetadataStorage Include="Service References\EchoDuplex\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Service References\EchoWCFService\service.disco" />
+    <None Include="Service References\EchoDuplex\service.disco" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Service References\EchoWCFService\configuration91.svcinfo" />
+    <None Include="Service References\EchoDuplex\configuration91.svcinfo" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Service References\EchoWCFService\configuration.svcinfo" />
+    <None Include="Service References\EchoDuplex\configuration.svcinfo" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Service References\EchoWCFService\Reference.svcmap">
+    <None Include="Service References\EchoDuplex\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
