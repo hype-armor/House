@@ -3,8 +3,11 @@
 
 using System;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.ServiceModel;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace EchoWCFDuplex
 {
@@ -19,7 +22,7 @@ namespace EchoWCFDuplex
     public interface EchoDuplex
     {
         [OperationContract(IsOneWay = true)]
-        void Post(int ClientID, MemoryStream audioStream);
+        void Post(MemoryStream audioStream);
     }
 
     // The callback interface is used to send messages from service back to client.
@@ -28,7 +31,7 @@ namespace EchoWCFDuplex
     public interface IEchoDuplexCallback
     {
         [OperationContract(IsOneWay = true)]
-        void Result(MemoryStream result);
+        void Push(MemoryStream result);
     }
 
     // Service class which implements a duplex service contract.
@@ -40,22 +43,40 @@ namespace EchoWCFDuplex
         int clientID = -1;
         public Service()
         {
-            clientID = SQL.AddClient("greg", "password");
+            clientID = SQL.AddClient("greg1", "password");
+
+            Task.Factory.StartNew(() => 
+            {
+                while (true)
+                {
+                    Thread.Sleep(1000);
+                    byte[] audio = SQL.GetResponse(clientID);
+                    if (audio.Length > 0)
+                    {
+                        MemoryStream audioStream = new MemoryStream(audio, 0, audio.Length, true, true);
+                        audioStream.Position = 0L;
+                        Callback.Push(audioStream);
+                    }
+                    
+                    //break;
+                }
+                //return;
+            });
         }
 
-        public void Post(int ClientID, MemoryStream audioStream)
+        public void Post(MemoryStream audioStream)
         {
             audioStream.Position = 0L;
-            byte[] data = audioStream.GetBuffer();
-            SQL.CreateRequest(ClientID, "", "", data, new byte[0], DateTime.Now, 0);
-        }
-
-        public void Get(int ClientID)
-        {
-            byte[] audio = SQL.GetResponse(ClientID);
-            MemoryStream audioStream = new MemoryStream(audio, 0, audio.Length, true, true);
-            audioStream.Position = 0L;
-            Callback.Result(audioStream);
+            try
+            {
+                byte[] data = audioStream.GetBuffer();
+                SQL.CreateRequest(clientID, data, new byte[0], DateTime.Now, 0);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                throw;
+            }
         }
 
         IEchoDuplexCallback Callback
